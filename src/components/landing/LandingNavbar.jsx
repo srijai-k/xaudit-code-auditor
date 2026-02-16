@@ -14,7 +14,7 @@ export default function LandingNavbar({ isScanning, onStartScan }) {
                     <img
                         src={logoXa}
                         alt="XA Logo"
-                        className={`w-10 h-10 object-contain mix-blend-screen transition-all duration-300 ${isScanning ? 'animate-logo-spin scale-125 brightness-150' : ''}`}
+                        className="w-10 h-10 object-contain mix-blend-screen"
                     />
                     <span className="text-2xl font-bold tracking-tighter">XAUDIT</span>
                 </div>
