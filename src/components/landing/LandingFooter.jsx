@@ -2,6 +2,14 @@
 import logoXa from '../../assets/logo-xa.png';
 
 export default function LandingFooter() {
+    const handleScroll = (e, id) => {
+        e.preventDefault();
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+
     return (
         <footer className="bg-black border-t border-white/10 pt-20 pb-10">
             <div className="max-w-7xl mx-auto px-6">
@@ -18,15 +26,15 @@ export default function LandingFooter() {
                     <div>
                         <h4 className="font-bold mb-6">PRODUCT</h4>
                         <ul className="space-y-4 text-sm text-gray-500">
-                            <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                            <li><a href="#integration" className="hover:text-white transition-colors">Integrations</a></li>
-                            <li><a href="#pricing" className="hover:text-white transition-colors">Enterprise</a></li>
+                            <li><a href="#features" onClick={(e) => handleScroll(e, 'features')} className="hover:text-white transition-colors cursor-pointer">Features</a></li>
+                            <li><a href="#integration" onClick={(e) => handleScroll(e, 'integration')} className="hover:text-white transition-colors cursor-pointer">Integrations</a></li>
+                            <li><a href="#pricing" onClick={(e) => handleScroll(e, 'pricing')} className="hover:text-white transition-colors cursor-pointer">Enterprise</a></li>
                         </ul>
                     </div>
                     <div>
                         <h4 className="font-bold mb-6">COMPANY</h4>
                         <ul className="space-y-4 text-sm text-gray-500">
-                            <li><a href="#about" className="hover:text-white transition-colors">About</a></li>
+                            <li><a href="#about" onClick={(e) => handleScroll(e, 'about')} className="hover:text-white transition-colors cursor-pointer">About</a></li>
                         </ul>
                     </div>
                 </div>

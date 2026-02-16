@@ -4,7 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import logoXa from '../../assets/logo-xa.png';
 
 export default function LandingNavbar({ isScanning, onStartScan }) {
-    // Navigate is now handled by parent
+    const handleScroll = (e, id) => {
+        e.preventDefault();
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
 
     return (
         <nav className="fixed w-full z-50 backdrop-blur-md bg-black/50 border-b border-white/10">
@@ -20,9 +26,9 @@ export default function LandingNavbar({ isScanning, onStartScan }) {
                 </div>
 
                 <div className="hidden md:flex items-center gap-8">
-                    <a href="#features" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">FEATURES</a>
-                    <a href="#how-it-works" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">HOW IT WORKS</a>
-                    <a href="#pricing" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">PRICING</a>
+                    <a href="#features" onClick={(e) => handleScroll(e, 'features')} className="text-sm font-medium text-gray-400 hover:text-white transition-colors cursor-pointer">FEATURES</a>
+                    <a href="#how-it-works" onClick={(e) => handleScroll(e, 'how-it-works')} className="text-sm font-medium text-gray-400 hover:text-white transition-colors cursor-pointer">HOW IT WORKS</a>
+                    <a href="#pricing" onClick={(e) => handleScroll(e, 'pricing')} className="text-sm font-medium text-gray-400 hover:text-white transition-colors cursor-pointer">PRICING</a>
                 </div>
 
                 <div className="flex items-center gap-4">
