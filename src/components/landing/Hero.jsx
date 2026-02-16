@@ -35,9 +35,10 @@ export default function Hero({ onStartScan }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"></path>
                             </svg>
                         </button>
-                        <button className="group clip-angle-button border border-white/20 bg-black text-white px-8 py-4 font-bold text-lg hover:border-white transition-colors flex items-center justify-center gap-2 relative z-30">
-                            <span>VIEW DEMO</span>
-                            <span className="group-hover:translate-x-1 transition-transform font-mono">&gt;</span>
+                        <button
+                            onClick={onStartScan}
+                            className="group clip-angle-button border border-white/20 bg-black text-white px-8 py-4 font-bold text-lg hover:border-white transition-colors flex items-center justify-center gap-2 relative z-30 cursor-pointer">
+                            <span>LAUNCH WEB AUDIT</span>
                         </button>
                     </div>
                     <div className="mt-6 flex flex-wrap gap-6 text-sm text-gray-400 font-mono">
@@ -49,17 +50,6 @@ export default function Hero({ onStartScan }) {
                             <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                             <span>FREE FOREVER</span>
                         </div>
-                    </div>
-
-                    <div className="mt-12 flex items-center gap-4 text-sm text-gray-500 font-mono">
-                        <span>TRUSTED BY ENGINEERS AT</span>
-                        <div className="h-px w-12 bg-gray-800"></div>
-                    </div>
-                    <div className="mt-4 flex gap-8 opacity-50 grayscale">
-                        {/* Placeholder Logistics Logos with simple geometry */}
-                        <svg className="h-6 w-auto" viewBox="0 0 100 30" fill="currentColor"><path d="M10,15 L20,5 L30,15 L20,25 Z M40,5 H50 V25 H40 Z M60,5 H70 V25 H60 Z M60,15 H70" stroke="white" strokeWidth="3"></path></svg>
-                        <svg className="h-6 w-auto" viewBox="0 0 100 30" fill="currentColor"><circle cx="15" cy="15" r="10" stroke="white" strokeWidth="3"></circle><rect x="40" y="5" width="20" height="20" stroke="white" strokeWidth="3"></rect><path d="M80,5 L90,25 L70,25 Z" stroke="white" strokeWidth="3"></path></svg>
-                        <svg className="h-6 w-auto" viewBox="0 0 100 30" fill="currentColor"><path d="M10,5 L30,5 L30,25 L10,25 Z M10,15 H30" stroke="white" strokeWidth="3"></path><circle cx="50" cy="15" r="8" stroke="white" strokeWidth="3"></circle><path d="M80,5 V25 M70,15 H90" stroke="white" strokeWidth="3"></path></svg>
                     </div>
                 </div>
 

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 export default function HowItWorksSection() {
     return (
-        <section className="py-24 bg-black border-t border-white/10 relative overflow-hidden">
+        <section id="how-it-works" className="py-24 bg-black border-t border-white/10 relative overflow-hidden">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="reveal mb-16">
                     <h2 className="text-4xl md:text-5xl font-bold mb-6">HOW XAUDIT WORKS</h2>

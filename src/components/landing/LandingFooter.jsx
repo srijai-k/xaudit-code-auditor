@@ -18,30 +18,20 @@ export default function LandingFooter() {
                     <div>
                         <h4 className="font-bold mb-6">PRODUCT</h4>
                         <ul className="space-y-4 text-sm text-gray-500">
-                            <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Enterprise</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Changelog</a></li>
+                            <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
+                            <li><a href="#integration" className="hover:text-white transition-colors">Integrations</a></li>
+                            <li><a href="#pricing" className="hover:text-white transition-colors">Enterprise</a></li>
                         </ul>
                     </div>
                     <div>
                         <h4 className="font-bold mb-6">COMPANY</h4>
                         <ul className="space-y-4 text-sm text-gray-500">
-                            <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Legal</a></li>
+                            <li><a href="#about" className="hover:text-white transition-colors">About</a></li>
                         </ul>
                     </div>
                 </div>
                 <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/10 text-sm text-gray-600">
-                    <div>© 2024 XAUDIT AI Inc. All rights reserved.</div>
-                    <div className="flex gap-6 mt-4 md:mt-0">
-                        <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                        <a href="#" className="hover:text-white transition-colors">Terms</a>
-                        <a href="#" className="hover:text-white transition-colors">Twitter</a>
-                        <a href="#" className="hover:text-white transition-colors">GitHub</a>
-                    </div>
+                    <div>© 2025 XAUDIT AI Inc. All rights reserved.</div>
                 </div>
             </div>
         </footer>

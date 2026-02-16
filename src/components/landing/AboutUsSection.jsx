@@ -3,7 +3,7 @@ import React from 'react';
 
 export default function AboutUsSection() {
     return (
-        <section className="py-24 bg-neutral-900 border-t border-white/10 relative overflow-hidden">
+        <section id="about" className="py-24 bg-neutral-900 border-t border-white/10 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
 
             <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">

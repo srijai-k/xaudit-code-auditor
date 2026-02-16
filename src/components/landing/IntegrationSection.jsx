@@ -3,7 +3,7 @@ import React from 'react';
 
 export default function IntegrationSection() {
     return (
-        <section className="py-24 border-t border-white/5 bg-black relative overflow-hidden">
+        <section id="integration" className="py-24 border-t border-white/5 bg-black relative overflow-hidden">
             {/* Background Gradient */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-neutral-900/50 to-transparent -z-10"></div>
 
