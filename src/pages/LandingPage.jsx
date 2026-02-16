@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LandingNavbar from '../components/landing/LandingNavbar';
 import Hero from '../components/landing/Hero';
+import logoXa from '../assets/logo-xa.png';
 import StatsSection from '../components/landing/StatsSection';
 import ServicesSection from '../components/landing/ServicesSection';
 import FeaturesSection from '../components/landing/FeaturesSection';
@@ -26,7 +27,7 @@ export default function LandingPage() {
         // Delay navigation to show animation
         setTimeout(() => {
             navigate('/audit');
-        }, 800);
+        }, 2000);
     };
 
     // Observer Logic implementation from snippets
@@ -57,6 +58,15 @@ export default function LandingPage() {
         <div className="min-h-screen font-sans text-white bg-[#050505] relative overflow-clip" style={{ zoom: 0.9 }}>
             {/* Background Texture */}
             <div className="bg-texture"></div>
+
+            {/* Centered Logo Animation Overlay */}
+            <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-xl transition-all duration-500 ${isScanning ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                <img
+                    src={logoXa}
+                    alt="Scanning..."
+                    className={`w-32 h-32 object-contain mix-blend-screen ${isScanning ? 'animate-logo-spin' : ''}`}
+                />
+            </div>
 
             <CodeSnake />
             <LandingNavbar isScanning={isScanning} onStartScan={handleStartScan} />
