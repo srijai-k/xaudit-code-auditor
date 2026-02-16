@@ -55,7 +55,7 @@ export default function LandingPage() {
 
 
     return (
-        <div className="min-h-screen font-sans text-white bg-[#050505] relative overflow-clip" style={{ zoom: 0.9 }}>
+        <div className="min-h-screen font-sans text-white bg-[#050505] relative overflow-clip" style={{ zoom: 0.95 }}>
             {/* Background Texture */}
             <div className="bg-texture"></div>
 
@@ -81,8 +81,7 @@ export default function LandingPage() {
                 <SupportedLanguagesSection />
                 <ComparisonSection />
                 <RefactoringSection />
-                <IntegrationSection />
-                <PricingSection />
+                <PricingSection onStartScan={handleStartScan} />
                 <AboutUsSection />
                 <CTASection />
             </main>

@@ -11,7 +11,7 @@ export interface AuditHistoryItem {
     report: AuditReport;
 }
 
-const HISTORY_KEY = 'auditx:auditHistory';
+const HISTORY_KEY = 'xaudit:auditHistory';
 
 export function saveAudit(report: AuditReport, code: string, language: string): string {
     const history = getAuditHistory();

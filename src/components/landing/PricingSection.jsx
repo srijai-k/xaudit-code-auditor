@@ -1,10 +1,7 @@
 
 import React from 'react';
 
-import { useNavigate } from 'react-router-dom';
-
-export default function PricingSection() {
-    const navigate = useNavigate();
+export default function PricingSection({ onStartScan }) {
     return (
         <section id="pricing" className="py-32 relative">
             <div className="max-w-7xl mx-auto px-6">
@@ -27,8 +24,8 @@ export default function PricingSection() {
                             <li className="flex gap-2"><span>+</span> Community Support</li>
                         </ul>
                         <button
-                            onClick={() => navigate('/audit')}
-                            className="w-full border border-white/20 py-3 font-bold hover:bg-white hover:text-black transition-all clip-angle-button">
+                            onClick={onStartScan}
+                            className="w-full border border-white/20 py-3 font-bold hover:bg-white hover:text-black transition-all clip-angle-button cursor-pointer">
                             START FREE
                         </button>
                     </div>
@@ -46,8 +43,8 @@ export default function PricingSection() {
                             <li className="flex gap-2"><span>+</span> Priority Queue</li>
                         </ul>
                         <button
-                            onClick={() => navigate('/audit')}
-                            className="w-full bg-white text-black py-3 font-bold hover:bg-gray-200 transition-all clip-angle-button">
+                            onClick={onStartScan}
+                            className="w-full bg-white text-black py-3 font-bold hover:bg-gray-200 transition-all clip-angle-button cursor-pointer">
                             GET STARTED
                         </button>
                     </div>
@@ -64,8 +61,8 @@ export default function PricingSection() {
                             <li className="flex gap-2"><span>+</span> 24/7 Dedicated Support</li>
                         </ul>
                         <button
-                            onClick={() => navigate('/audit')}
-                            className="w-full border border-white/20 py-3 font-bold hover:bg-white hover:text-black transition-all clip-angle-button">
+                            onClick={onStartScan}
+                            className="w-full border border-white/20 py-3 font-bold hover:bg-white hover:text-black transition-all clip-angle-button cursor-pointer">
                             GET STARTED
                         </button>
                     </div>

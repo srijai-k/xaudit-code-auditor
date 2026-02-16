@@ -1,7 +1,7 @@
 import { AuditReport } from './types';
 
-const STORAGE_KEY = 'auditx:lastReport';
-const CODE_KEY = 'auditx:lastCode';
+const STORAGE_KEY = 'xaudit:lastReport';
+const CODE_KEY = 'xaudit:lastCode';
 
 // Security: Cap storage size to prevent DOS/crash
 const MAX_STORAGE_BYTES = 2.5 * 1024 * 1024; // 2.5MB
@@ -14,23 +14,23 @@ export function saveReport(report: AuditReport): void {
     try {
         const data = JSON.stringify(report);
         const size = new Blob([data]).size;
-        console.log(`[AuditX Storage] Attempting to save report. Size: ${(size / 1024).toFixed(2)} KB`);
+        console.log(`[XAudit Storage] Attempting to save report. Size: ${(size / 1024).toFixed(2)} KB`);
 
         if (!isSafeSize(data)) {
-            console.error(`[AuditX Storage] Report too large to save safely. Size: ${(size / 1024 / 1024).toFixed(2)} MB, Limit: ${(MAX_STORAGE_BYTES / 1024 / 1024).toFixed(2)} MB`);
+            console.error(`[XAudit Storage] Report too large to save safely. Size: ${(size / 1024 / 1024).toFixed(2)} MB, Limit: ${(MAX_STORAGE_BYTES / 1024 / 1024).toFixed(2)} MB`);
             return;
         }
         localStorage.setItem(STORAGE_KEY, data);
-        console.log('[AuditX Storage] Report saved successfully.');
+        console.log('[XAudit Storage] Report saved successfully.');
     } catch (e) {
-        console.error('[AuditX Storage] Failed to save report to local storage', e);
+        console.error('[XAudit Storage] Failed to save report to local storage', e);
     }
 }
 
 export function saveCode(code: string): void {
     try {
         if (!isSafeSize(code)) {
-            console.warn('AuditX Security: Code too large to save safely.');
+            console.warn('XAudit Security: Code too large to save safely.');
             return;
         }
         localStorage.setItem(CODE_KEY, code);
@@ -46,7 +46,7 @@ export function loadLatestReport(): AuditReport | null {
 
         // Basic integrity check
         if (data.includes('<script') || data.includes('javascript:')) {
-            console.error('AuditX Security: Corrupted report detected. Clearing storage.');
+            console.error('XAudit Security: Corrupted report detected. Clearing storage.');
             localStorage.removeItem(STORAGE_KEY);
             return null;
         }

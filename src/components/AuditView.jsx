@@ -123,8 +123,7 @@ export default function AuditView({ onViewReport }) {
 
     return (
         <main
-            className="w-full max-w-[1400px] mx-auto p-4 md:p-6 lg:p-8 pt-12 flex flex-col md:flex-row gap-8 h-[calc(100vh-80px)]"
-            style={{ zoom: 0.9 }}
+            className="w-full max-w-[1400px] mx-auto p-4 md:p-6 lg:p-8 pt-20 md:pt-12 flex flex-col md:flex-row gap-8 min-h-screen md:h-[calc(100vh-80px)] overflow-y-auto md:overflow-hidden"
         >
 
             {/* Left Panel: Context & Config */}

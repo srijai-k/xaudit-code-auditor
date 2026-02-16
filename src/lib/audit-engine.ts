@@ -31,7 +31,7 @@ export function validateInput(code: string): { isValid: boolean; reason?: string
     const isJs = /(?:function\s+\w+|const\s+\w+\s*=|import\s+.*?from|=>)/i.test(trimmed);
 
     if (!isHtml && !isReact && !isJs) {
-        return { isValid: false, reason: "AuditX can’t grade this because the input doesn’t look like real code (HTML, React, or JS)." };
+        return { isValid: false, reason: "XAudit can’t grade this because the input doesn’t look like real code (HTML, React, or JS)." };
     }
 
     return { isValid: true };
@@ -352,18 +352,7 @@ function checkMobile(code: string): IssueItem[] {
         });
     }
 
-    // STRICTOR: Mention CSP
-    if (code.match(/<html/i) && !code.match(/Content-Security-Policy/i)) {
-        items.push({
-            id: 'sec-no-csp',
-            category: 'security',
-            title: 'Missing Content-Security-Policy',
-            severity: 'medium',
-            description: 'No CSP headers or meta tags found in HTML.',
-            whyItMatters: 'CSP is the primary defense against XSS and data injection.',
-            suggestion: 'Add a <meta http-equiv="Content-Security-Policy" content="..."> tag.'
-        });
-    }
+
 
     return items;
 }
@@ -388,7 +377,7 @@ function checkSecurity(code: string): IssueItem[] {
                 category: 'security',
                 title: `CRITICAL: ${p.name} Detected`,
                 severity: 'critical',
-                description: `Found potentially malicious pattern: ${p.name}. AuditX has flagged this as a severe security risk.`,
+                description: `Found potentially malicious pattern: ${p.name}. XAudit has flagged this as a severe security risk.`,
                 whyItMatters: 'These patterns can lead to Remote Code Execution (RCE) or Cross-Site Scripting (XSS).',
                 suggestion: 'Remove this code immediately. Do not run it.',
                 snippet: code.match(p.pattern)?.[0]
@@ -465,6 +454,46 @@ function checkSecurity(code: string): IssueItem[] {
             });
         }
     });
+
+    // CONTEXT-AWARE CSP CHECK
+    // Only flag if it's an HTML document
+    if (code.match(/<html/i) || code.match(/<!DOCTYPE html>/i)) {
+        const hasMetaCSP = code.match(/<meta\s+http-equiv=["']Content-Security-Policy["']/i);
+
+        if (!hasMetaCSP) {
+            // Check for High Risk Conditions
+            const hasScripts = code.match(/<script/i);
+            const hasInlineEvents = code.match(/\son[a-z]+=['"]/i); // onclick, onload, etc.
+            const hasEval = code.match(/eval\(|new Function\(/i);
+            const hasDangerHtml = code.match(/dangerouslySetInnerHTML/i);
+            const hasInnerHtml = code.match(/\.innerHTML/i);
+
+            const isHighRisk = hasScripts || hasInlineEvents || hasEval || hasDangerHtml || hasInnerHtml;
+
+            if (isHighRisk) {
+                items.push({
+                    id: 'sec-no-csp-high',
+                    category: 'security',
+                    title: 'Missing CSP (High Risk)',
+                    severity: 'high',
+                    description: 'No Content-Security-Policy found in a page with scripts or unsafe patterns.',
+                    whyItMatters: 'Scripts vary widely in trust. Without CSP, XSS is trivial.',
+                    suggestion: 'Add a CSP meta tag or server header (Netlify/Vercel) to restrict script sources.'
+                });
+            } else {
+                // Low Risk (Static Content)
+                items.push({
+                    id: 'sec-no-csp-low',
+                    category: 'security', // Keep in security but low impact
+                    title: 'Missing CSP Suggestion',
+                    severity: 'low',
+                    description: 'Content-Security-Policy is recommended even for static pages.',
+                    whyItMatters: 'Prevents future injection attacks if content changes.',
+                    suggestion: 'Consider adding a CSP header in your production environment (e.g. Vercel/Nginx).'
+                });
+            }
+        }
+    }
 
     return items;
 }

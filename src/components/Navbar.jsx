@@ -17,16 +17,15 @@ export default function Navbar({ activeView: propView, onViewChange }) {
         {/* Branding - Left */}
         <div className="flex items-center gap-3 cursor-pointer group z-20">
           <Link to="/" className="flex items-center gap-3 group">
-            <img src={logoXa} alt="AuditX" className="h-10 object-contain mix-blend-screen transition-transform group-hover:scale-105" />
+            <img src={logoXa} alt="XAudit" className="h-10 object-contain mix-blend-screen transition-transform group-hover:scale-105" />
             <span className="text-xl font-bold tracking-tighter text-white">XAUDIT</span>
           </Link>
         </div>
 
         {/* Central Navigation Pill */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center bg-white/5 p-1.5 backdrop-blur-sm cyber-shape">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-white/5 p-1.5 backdrop-blur-sm cyber-shape">
           {['audit', 'history'].map((tab) => {
             const isActive = (activeView === tab);
-            // Visual state: prioritize hover if present, otherwise active
             const isHighlight = hoverData ? hoverData === tab : isActive;
 
             return (
@@ -35,7 +34,7 @@ export default function Navbar({ activeView: propView, onViewChange }) {
                 onMouseEnter={() => setHoverData(tab)}
                 onMouseLeave={() => setHoverData(null)}
                 onClick={() => navigate(tab === 'audit' ? '/audit' : '/audit/history')}
-                className={`relative px-8 py-2.5 text-sm font-bold transition-all z-10`}
+                className={`relative px-4 md:px-8 py-2 md:py-2.5 text-xs md:text-sm font-bold transition-all z-10`}
               >
                 {isHighlight && (
                   <motion.div

@@ -165,7 +165,7 @@ export default function VisualAudit() {
                             }}
                         >
                             <div className="flex items-center justify-between mb-8 border-b border-gray-800 pb-4">
-                                <span className="font-mono text-sm font-bold text-gray-500">auditx_report.jsx</span>
+                                <span className="font-mono text-sm font-bold text-gray-500">xaudit_report.jsx</span>
                                 <span className="px-3 py-1 bg-[#22c55e] text-black text-xs font-black rounded-full">PASS: SECURE</span>
                             </div>
                             <pre className="font-mono text-sm md:text-base leading-relaxed text-gray-300">

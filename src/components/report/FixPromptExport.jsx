@@ -25,7 +25,7 @@ export default function FixPromptExport({ report, rawCode }) {
                         Generate Fix Prompt
                     </h3>
                     <p className="text-xl font-black text-black leading-tight tracking-tight">
-                        Copy to your AI tool <span className="text-auditx-blue">& fix everything.</span>
+                        Copy to your AI tool <span className="text-xaudit-blue">& fix everything.</span>
                     </p>
                 </div>
 

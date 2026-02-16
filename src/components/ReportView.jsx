@@ -1,31 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { loadLatestReport, loadLastCode } from '../lib/storage';
-import { exportReportToPDF } from '../lib/export/pdf';
+import { generatePDF } from '../lib/export/pdf-generator';
 import logoXa from '../assets/logo-xa.png';
+import cursorLogo from '../assets/cursor logo.png';
+import copilotLogo from '../assets/copilot logo.png';
+import claudeLogo from '../assets/claude logo.png';
+import chatgptLogo from '../assets/chatgpt logo 2.png';
 import '../pages/AuditTool.css'; // Ensure CSS is loaded
 
 export default function ReportView({ onBack, reportData, rawCode: propCode }) {
     const [report, setReport] = useState(null);
     const [rawCode, setRawCode] = useState('');
     const [isExporting, setIsExporting] = useState(false);
+    const [selectedFix, setSelectedFix] = useState(null);
+    const [showAllIssues, setShowAllIssues] = useState(false);
+    const [selectedTool, setSelectedTool] = useState(null); // 'cursor', 'copilot', 'windsurf', 'chatgpt'
+
+    const TOOLS = [
+        { id: 'cursor', name: 'Cursor', icon: '⚡', image: cursorLogo, color: 'border-blue-500 text-blue-400' },
+        { id: 'copilot', name: 'Copilot', icon: '🤖', image: copilotLogo, color: 'border-purple-500 text-purple-400' },
+        { id: 'claude', name: 'Claude', icon: '🧠', image: claudeLogo, color: 'border-orange-500 text-orange-400' },
+        { id: 'chatgpt', name: 'ChatGPT', icon: '💬', image: chatgptLogo, color: 'border-green-500 text-green-400' }
+    ];
+
+    const generatePrompt = (tool, fix) => {
+        const baseSnippet = fix.snippet ? `\n\`\`\`\n${fix.snippet}\n\`\`\`` : '';
+
+        switch (tool) {
+            case 'cursor':
+                return `(In Cursor)\n\nFix the "${fix.title}" issue in this file.\n\nContext: ${fix.why}\nInstruction: ${fix.howToFix}${baseSnippet}`;
+            case 'claude':
+                return `Act as a senior software engineer. Fix the following issue in my code:\n\n**Issue**: ${fix.title}\n**Context**: ${fix.why}\n**Instruction**: ${fix.howToFix}\n\n**Code Snippet**:${baseSnippet}\n\nReturn only the fixed code block.`;
+            case 'copilot':
+                return `/fix Fix ${fix.title}: ${fix.howToFix}. Context: ${fix.why}`;
+            case 'chatgpt':
+            default:
+                return `Fix this issue: ${fix.title}.\nContext: ${fix.why}\nFix: ${fix.howToFix}${baseSnippet}`;
+        }
+    };
 
     const handleExportPDF = async () => {
         if (!report) return;
         setIsExporting(true);
-        await exportReportToPDF(report);
+        try {
+            // Small delay to allow UI to show loading state if needed
+            await new Promise(resolve => setTimeout(resolve, 100));
+            generatePDF(report, logoXa);
+        } catch (error) {
+            console.error("PDF Generation failed:", error);
+            alert(`Failed to generate PDF: ${error instanceof Error ? error.message : String(error)}`);
+        }
         setIsExporting(false);
     };
 
-    const [mounted, setMounted] = useState(false);
 
-    useEffect(() => {
-        // Delay setting mounted to true to ensure the initial state (height: 5%) is rendered first
-        // and the browser recognizes the transition.
-        const timer = setTimeout(() => {
-            setMounted(true);
-        }, 100);
-        return () => clearTimeout(timer);
-    }, []);
+
+
 
     useEffect(() => {
         if (reportData) {
@@ -46,10 +76,13 @@ export default function ReportView({ onBack, reportData, rawCode: propCode }) {
                 className="flex flex-col items-center justify-center min-h-[60vh] text-center"
                 style={{ zoom: 0.9 }}
             >
-                <div className="glass-panel p-12 rounded-2xl border border-white/10 flex flex-col items-center max-w-md mx-auto relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/10 rounded-full blur-2xl -z-10 group-hover:bg-brand-blue/20 transition-colors"></div>
+                <div className="glass-panel p-12 rounded-2xl border flex flex-col items-center max-w-md mx-auto relative overflow-hidden group" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                    <div
+                        className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl -z-10 transition-colors"
+                        style={{ background: 'rgba(59, 130, 246, 0.1)' }}
+                    ></div>
 
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center mb-6 border" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
                         <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
@@ -101,14 +134,14 @@ export default function ReportView({ onBack, reportData, rawCode: propCode }) {
     const criticalCount = report.topFixes.filter(f => f.impactText.includes('CRITICAL') || f.impactText.includes('HIGH')).length;
 
     return (
-        <main className="app-container" style={{ zoom: 0.9 }}>
+        <main id="report-container" className="app-container" style={{ zoom: 0.9 }}>
             {/* Dashboard Grid */}
             <div className="dashboard-grid">
 
                 {/* Header */}
                 <div className="dashboard-header">
                     <div className="flex items-center gap-4">
-                        <button onClick={onBack} className="p-2 rounded-full hover:bg-white/5 text-gray-400 transition-colors">
+                        <button onClick={onBack} className="p-2 rounded-full hover:bg-[rgba(255,255,255,0.05)] text-gray-400 transition-colors">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                         </button>
                         <div>
@@ -120,7 +153,8 @@ export default function ReportView({ onBack, reportData, rawCode: propCode }) {
                         <button
                             onClick={handleExportPDF}
                             disabled={isExporting}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium transition-colors hover:bg-white/5"
+                            style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
                         >
                             {isExporting ? <span className="animate-spin">⏳</span> : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg> Export PDF</>}
                         </button>
@@ -149,7 +183,7 @@ export default function ReportView({ onBack, reportData, rawCode: propCode }) {
                                 <div
                                     className="chart-bar"
                                     style={{
-                                        height: `${mounted ? Math.max(5, d.score) : 5}%`,
+                                        height: `${Math.max(5, Math.min(100, Number(d.score) || 0))}%`,
                                         backgroundColor: d.col,
                                         boxShadow: `0 0 20px -5px ${d.col}`
                                     }}
@@ -196,7 +230,9 @@ export default function ReportView({ onBack, reportData, rawCode: propCode }) {
                 <div className="stat-card dashboard-card">
                     <div className="text-label mb-2">Critical Fixes</div>
                     <div className="text-value-lg mt-auto text-brand-red">{criticalCount}</div>
-                    <div className="text-xs text-brand-red/60 mt-1">Requires immediate attention</div>
+                    <div className={`text-xs mt-1 ${criticalCount > 0 ? 'text-brand-red/60' : 'text-gray-500'}`}>
+                        {criticalCount > 0 ? 'Requires immediate attention' : 'No critical vulnerabilities'}
+                    </div>
                 </div>
 
                 <div className="stat-card dashboard-card">
@@ -219,7 +255,7 @@ export default function ReportView({ onBack, reportData, rawCode: propCode }) {
                 <div className="list-card dashboard-card" style={{ gridColumn: 'span 8', minHeight: '400px' }}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-bold text-white">Top Priority Fixes</h3>
-                        <button className="text-xs font-bold text-brand-blue hover:text-white transition-colors">View All Issues &rarr;</button>
+
                     </div>
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
@@ -230,18 +266,25 @@ export default function ReportView({ onBack, reportData, rawCode: propCode }) {
                             </div>
                         ) : (
                             report.topFixes.map((fix, i) => (
-                                <div key={i} className="issue-item group">
-                                    <div className="issue-icon bg-gradient-to-br from-white/10 to-transparent">
+                                <div key={i} className="issue-item group" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                                    <div
+                                        className="issue-icon"
+                                        style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.1), transparent)' }}
+                                    >
                                         {fix.difficulty === 'hard' ? '🔥' : fix.difficulty === 'medium' ? '⚠️' : '🔧'}
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex justify-between mb-1">
-                                            <h4 className="font-bold text-white text-sm group-hover:text-brand-blue transition-colors">{fix.title}</h4>
+                                            <h4 className="font-bold text-white text-sm transition-colors" style={{ color: 'white' }}>{fix.title}</h4>
                                             <span className="text-xs font-mono text-gray-500">{fix.impactText.replace('POINTS', 'pts')}</span>
                                         </div>
                                         <p className="text-xs text-gray-400 line-clamp-1">{fix.why}</p>
                                     </div>
-                                    <button className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-white border border-white/10 transition-colors h-fit self-center ml-2">
+                                    <button
+                                        onClick={() => { setSelectedFix(fix); setSelectedTool(null); }}
+                                        className="px-4 py-2 rounded-lg text-xs font-bold text-white border transition-colors h-fit self-center ml-2"
+                                        style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+                                    >
                                         Fix
                                     </button>
                                 </div>
@@ -253,23 +296,23 @@ export default function ReportView({ onBack, reportData, rawCode: propCode }) {
                 {/* AI Insights (Top Crew equiv) */}
                 <div className="list-card dashboard-card" style={{ gridColumn: 'span 4', background: '#1a1a1a' }}>
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-lg bg-brand-purple/20 flex items-center justify-center relative overflow-hidden shrink-0">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center relative overflow-hidden shrink-0" style={{ backgroundColor: 'rgba(139, 92, 246, 0.2)' }}>
                             {/* CSS Robot Face */}
-                            <div className="relative w-6 h-6 bg-brand-purple rounded-md flex items-center justify-center shadow-[0_0_10px_rgba(139,92,246,0.5)]">
+                            <div className="relative w-6 h-6 rounded-md flex items-center justify-center shadow-[0_0_10px_rgba(139,92,246,0.5)]" style={{ backgroundColor: '#8b5cf6' }}>
                                 {/* Eyes */}
                                 <div className="flex gap-1">
                                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
                                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
                                 </div>
                                 {/* Antenna */}
-                                <div className="absolute -top-1 right-1 w-0.5 h-2 bg-brand-purple/80"></div>
+                                <div className="absolute -top-1 right-1 w-0.5 h-2" style={{ backgroundColor: 'rgba(139, 92, 246, 0.8)' }}></div>
                                 <div className="absolute -top-1.5 right-0.5 w-1.5 h-1.5 bg-white rounded-full animate-ping opacity-50"></div>
                             </div>
                         </div>
                         <h3 className="text-lg font-bold text-white">AI Verdict</h3>
                     </div>
 
-                    <div className="bg-black/20 rounded-xl p-4 mb-4 border border-white/5">
+                    <div className="rounded-xl p-4 mb-4 border" style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderColor: 'rgba(255,255,255,0.05)' }}>
                         <p className="text-sm text-gray-400 leading-relaxed italic">
                             "{report.finalReviewerComment || report.summaryText}"
                         </p>
@@ -277,19 +320,179 @@ export default function ReportView({ onBack, reportData, rawCode: propCode }) {
 
                     <div className="mt-auto">
                         <div className="text-label mb-3">AI Detection Confidence</div>
-                        <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-brand-purple w-[85%] relative">
-                                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#1f2937' }}>
+                            <div className="h-full w-[85%] relative" style={{ backgroundColor: '#8b5cf6' }}>
+                                <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}></div>
                             </div>
                         </div>
                         <div className="flex justify-between mt-2 text-xs text-gray-500">
                             <span>Analysis Depth</span>
-                            <span className="text-brand-purple">High (v2.5)</span>
+                            <span style={{ color: '#8b5cf6' }}>High (v2.5)</span>
                         </div>
                     </div>
                 </div>
 
             </div>
+
+            {/* Fix Suggestion Modal */}
+            {selectedFix && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedFix(null)}>
+                    <div className="bg-[#121212] border border-white/10 rounded-2xl p-6 max-w-2xl w-full shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                        <button
+                            onClick={() => setSelectedFix(null)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                        </button>
+
+                        {!selectedTool ? (
+                            <>
+                                <h3 className="text-xl font-bold text-white mb-6">Select your Vibe Coding Tool</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {TOOLS.map(tool => (
+                                        <button
+                                            key={tool.id}
+                                            onClick={() => setSelectedTool(tool.id)}
+                                            className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-3 group ${tool.color} hover:border-current`}
+                                            style={{
+                                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                                borderColor: 'rgba(255,255,255,0.1)'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
+                                        >
+                                            {tool.image ? (
+                                                <img src={tool.image} alt={tool.name} className="w-8 h-8 object-contain group-hover:scale-110 transition-transform" />
+                                            ) : (
+                                                <span className="text-3xl group-hover:scale-110 transition-transform">{tool.icon}</span>
+                                            )}
+                                            <span className="font-bold text-gray-200 group-hover:text-white">{tool.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <button
+                                        onClick={() => setSelectedTool(null)}
+                                        className="p-1 -ml-2 rounded-full text-gray-400"
+                                        style={{ backgroundColor: 'transparent' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+                                    </button>
+                                    <h3 className="text-xl font-bold text-white">Generate Prompt for {TOOLS.find(t => t.id === selectedTool)?.name}</h3>
+                                </div>
+
+                                <div className="rounded-xl p-4 border font-mono text-xs md:text-sm text-gray-300 mb-6 overflow-x-auto whitespace-pre-wrap max-h-[300px] custom-scrollbar shadow-inner relative group" style={{ backgroundColor: 'rgba(0,0,0,0.5)', borderColor: 'rgba(255,255,255,0.05)' }}>
+                                    {generatePrompt(selectedTool, selectedFix)}
+                                </div>
+
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        onClick={() => {
+                                            const text = generatePrompt(selectedTool, selectedFix);
+                                            navigator.clipboard.writeText(text);
+                                        }}
+                                        className="btn-cyber px-6 py-2 bg-brand-blue text-white shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(59,130,246,0.8)]"
+                                    >
+                                        Copy Prompt
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* All Issues Modal */}
+            {showAllIssues && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowAllIssues(false)}>
+                    <div className="bg-[#121212] border border-white/10 rounded-2xl p-6 max-w-4xl w-full shadow-2xl relative max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6 shrink-0">
+                            <div>
+                                <h3 className="text-xl font-bold text-white">All Audit Findings</h3>
+                                <p className="text-sm text-gray-500">Comprehensive list of all identified issues</p>
+                            </div>
+                            <button
+                                onClick={() => setShowAllIssues(false)}
+                                className="p-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        <div className="overflow-y-auto custom-scrollbar pr-2 flex-1 space-y-8">
+                            {Object.entries(report.categories).map(([key, cat]) => (
+                                cat && cat.issues && cat.issues.length > 0 && (
+                                    <div key={key} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="flex items-center gap-3 mb-4 border-b border-white/5 pb-2">
+                                            <div className={`w-2 h-8 rounded-full ${key === 'security' ? 'bg-red-500' :
+                                                key === 'performance' ? 'bg-blue-500' :
+                                                    key === 'accessibility' ? 'bg-green-500' :
+                                                        'bg-purple-500'
+                                                }`}></div>
+                                            <h4 className="text-lg font-bold text-white uppercase tracking-wider">
+                                                {key === 'codeQuality' ? 'Code Quality' : key}
+                                                <span className="ml-3 text-sm font-mono text-gray-500 bg-white/5 px-2 py-0.5 rounded">Score: {cat.score}%</span>
+                                            </h4>
+                                        </div>
+
+                                        <div className="grid gap-3">
+                                            {cat.issues.map((issue, idx) => (
+                                                <div key={idx} className="group p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300">
+                                                    <div className="flex flex-col md:flex-row gap-4 items-start">
+                                                        <div className="flex-1">
+                                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                                <span className={`text-[10px] font-bold px-2 py-1 rounded border ${issue.impactText.includes('CRITICAL') ? 'bg-red-500/10 border-red-500/20 text-red-400' :
+                                                                    issue.impactText.includes('HIGH') ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' :
+                                                                        'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                                                    }`}>
+                                                                    {issue.impactText || 'MEDIUM'}
+                                                                </span>
+                                                                <h5 className="font-bold text-gray-200 text-sm">{issue.title}</h5>
+                                                            </div>
+                                                            <p className="text-sm text-gray-400 mb-3 leading-relaxed">{issue.why || 'No context provided.'}</p>
+
+                                                            <div className="flex gap-4 text-xs text-gray-500 font-mono">
+                                                                <span className="flex items-center gap-1">
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-600"></span>
+                                                                    Difficulty: {issue.difficulty || 'medium'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedFix(issue);
+                                                                setSelectedTool(null);
+                                                                // Don't close All Issues modal, so user can return to it if they just close the fix modal
+                                                                // But since fix modal is on top (z-50), and this is z-40, it should be fine.
+                                                                // Actually, fix modal is z-50. Let's make this z-[100] to be explicitly higher than main view but lower than tool selection if possible?
+                                                                // Wait, Fix Modal (line 334) has z-50.
+                                                                // If I make this z-[100], it will cover the Fix Modal if I open Fix Modal while this is open.
+                                                                // So I should make this z-40 (lower than Fix Modal) OR close this when opening Fix.
+                                                                // Let's close this one for cleaner UX.
+                                                                setShowAllIssues(false);
+                                                            }}
+                                                            className="px-4 py-2 rounded-lg text-xs font-bold text-white border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all shrink-0 whitespace-nowrap flex items-center gap-2"
+                                                        >
+                                                            <span>Fix Issue</span>
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

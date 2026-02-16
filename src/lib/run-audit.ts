@@ -27,7 +27,7 @@ export function runAudit(code: string, mode: "html" | "react" | "javascript" | "
             topFixes: [],
             aiSmells: [],
             positives: [],
-            finalReviewerComment: "AuditX can't grade this because the input doesn't look like real code. Please provide a substantial code snippet.",
+            finalReviewerComment: "XAudit can't grade this because the input doesn't look like real code. Please provide a substantial code snippet.",
             timestamp: Date.now()
         }
 
@@ -125,7 +125,8 @@ export function runAudit(code: string, mode: "html" | "react" | "javascript" | "
             if (issue.id === 'sec-leak-api-key' || issue.id.includes('api-key')) penalty = 90;
             if (issue.id.includes('password') || issue.id.includes('token')) penalty = 80;
             if (issue.id === 'sec-suspicious-fetch') penalty = 40;
-            if (issue.id === 'sec-no-csp') penalty = 10;
+            if (issue.id === 'sec-no-csp-high') penalty = 20; // High Risk (Scripts present)
+            if (issue.id === 'sec-no-csp-low') penalty = 5;  // Low Risk (Static)
         } else {
             // Standard Overrides
             if (issue.id === 'mob-viewport') penalty = 65;
@@ -285,6 +286,7 @@ export function runAudit(code: string, mode: "html" | "react" | "javascript" | "
 
 function generateTopFixes(issues: IssueItem[]): FixItem[] {
     return issues
+        .filter(i => i.id !== 'sec-no-csp-low') // Exclude Low Risk CSP from Top Fixes
         .map(issue => {
             const impactScore = IMPACT_SCORES[issue.severity];
             const difficulty: "easy" | "medium" | "hard" = issue.severity === 'low' ? 'easy' : issue.severity === 'critical' ? 'hard' : 'medium';

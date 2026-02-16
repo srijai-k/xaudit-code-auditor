@@ -69,7 +69,7 @@ func();
 ];
 
 export function runSecurityTestSuite() {
-    console.group('🛡️ AuditX Security Test Suite');
+    console.group('🛡️ XAudit Security Test Suite');
     let passed = 0;
 
     MALICIOUS_TEST_CASES.forEach(test => {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import AuditView from '../components/AuditView';
 import ReportView from '../components/ReportView';
@@ -17,14 +18,23 @@ export default function AuditTool() {
         <div className="app-container">
             <Navbar activeView={activeView} onViewChange={setActiveView} />
 
-            {activeView === 'audit' ? (
-                <AuditView onViewReport={handleAuditComplete} />
-            ) : (
-                <ReportView
-                    onBack={() => setActiveView('audit')}
-                    reportData={reportData}
-                />
-            )}
+            <motion.div
+                key={activeView}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+            >
+                {activeView === 'audit' ? (
+                    <AuditView onViewReport={handleAuditComplete} />
+                ) : (
+                    <ReportView
+                        onBack={() => setActiveView('audit')}
+                        reportData={reportData}
+                    />
+                )}
+            </motion.div>
         </div>
     );
 }
