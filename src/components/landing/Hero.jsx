@@ -2,8 +2,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function Hero() {
-    const navigate = useNavigate();
+export default function Hero({ onStartScan }) {
+    // navigate passed via onStartScan
 
     return (
         <section className="relative min-h-screen pt-32 pb-20 flex items-center overflow-hidden">
@@ -27,7 +27,7 @@ export default function Hero() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4">
                         <button
-                            onClick={() => navigate('/audit')}
+                            onClick={onStartScan}
                             className="clip-angle-button bg-white text-black px-8 py-4 font-bold text-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                         >
                             <span>INITIATE SCAN</span>

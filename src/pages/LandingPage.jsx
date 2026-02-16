@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LandingNavbar from '../components/landing/LandingNavbar';
 import Hero from '../components/landing/Hero';
 import StatsSection from '../components/landing/StatsSection';
@@ -17,6 +18,16 @@ import LandingFooter from '../components/landing/LandingFooter';
 import CodeSnake from '../components/landing/CodeSnake';
 
 export default function LandingPage() {
+    const navigate = useNavigate();
+    const [isScanning, setIsScanning] = useState(false);
+
+    const handleStartScan = () => {
+        setIsScanning(true);
+        // Delay navigation to show animation
+        setTimeout(() => {
+            navigate('/audit');
+        }, 800);
+    };
 
     // Observer Logic implementation from snippets
     useEffect(() => {
@@ -39,16 +50,19 @@ export default function LandingPage() {
         return () => observer.disconnect();
     }, []);
 
+
+
+
     return (
         <div className="min-h-screen font-sans text-white bg-[#050505] relative overflow-clip" style={{ zoom: 0.9 }}>
             {/* Background Texture */}
             <div className="bg-texture"></div>
 
             <CodeSnake />
-            <LandingNavbar />
+            <LandingNavbar isScanning={isScanning} onStartScan={handleStartScan} />
 
             <main className="relative z-10">
-                <Hero />
+                <Hero onStartScan={handleStartScan} />
                 <StatsSection />
                 <ServicesSection />
                 <FeaturesSection />
