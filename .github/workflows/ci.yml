@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "rewrite/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test suite (must pass — this is the regression gate)
+        run: npm test
+
+      - name: Regenerate benchmark report
+        run: npm run bench
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+        continue-on-error: true
+
+      - name: Guard against network APIs entering the analysis engine
+        run: |
+          # Matches actual call/construction syntax only, so this doesn't
+          # false-positive on doc comments that mention these names while
+          # explaining that they are NOT used (see worker.ts's own header).
+          if grep -rnE "\bfetch\(|new XMLHttpRequest\(|new WebSocket\(" src/lib/analysis/; then
+            echo "::error::A network API was found inside src/lib/analysis/ — the analysis engine must never make network calls. If this is intentional, this check needs explicit review and updating, not silent removal."
+            exit 1
+          fi
+          echo "OK: no fetch/XMLHttpRequest/WebSocket call sites in src/lib/analysis/"

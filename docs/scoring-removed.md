@@ -1,0 +1,9 @@
+# Why the letter grade and ship/no-ship verdict were removed
+
+The previous version of XAUDIT computed a weighted "overall score," mapped it to a letter grade (A+ through F), and produced a `portfolio`/`client`/`saas` "YES/RISKY/NO" verdict. This was removed entirely rather than kept in a "fixed" form, for reasons worth stating explicitly:
+
+1. **No rubric could be made honest at this rule count.** A grade implies some calibrated relationship between "number and severity of findings" and "how secure/production-ready this code is." With 5 narrow rule groups and no data-flow analysis, that relationship doesn't exist — two files with the same finding count can have wildly different real risk, and this tool has no way to tell them apart.
+2. **It was empirically wrong on its own terms.** The old engine's own hand-written test suite (`qa-test-suite.ts`) expected specific grades for specific inputs, and the shipped scoring logic disagreed with its own author's expectations on 2 of 9 cases (documented in `docs/baseline-audit.md` finding #9). A rubric that can't pass its own maintainer's test cases has no business being presented to users as authoritative.
+3. **It invited exactly the wrong behavior.** A grade or a "ship it" verdict is an invitation to treat a passing result as a decision, not as a prompt to keep looking. The replacement — a plain count of findings by severity, each with its own stated limitations, plus "a clean result does not mean this code is secure" on every findings view — is deliberately less satisfying and more honest.
+
+If a real, documented, validated scoring rubric is built in the future (with published methodology and measured calibration against a real-world corpus, not this project's own regression fixtures), it can be reintroduced — but only as an addition alongside the finding list, never as a replacement for it, and never without the same disclaimer.
