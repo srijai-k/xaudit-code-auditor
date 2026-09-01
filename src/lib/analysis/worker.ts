@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import "./process-shim"; // must be the first import — see process-shim.ts
 import { analyze, type AnalysisMode, type Stagelistener } from "./analyze";
 
 /**

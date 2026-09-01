@@ -1,42 +1,47 @@
 import { AuditReport } from '../types';
+import { isSaveLocallyEnabled } from '../storage';
+
+// Privacy default: history is OFF unless the user opts in (see
+// storage.ts / setSaveLocallyEnabled). When enabled, only metadata and a
+// masked excerpt are stored — never the raw pasted code, and never an
+// unmasked finding snippet (secret findings are already masked at the rule
+// level before they ever reach this file).
 
 export interface AuditHistoryItem {
     id: string;
-    createdAt: string; // ISO string
-    grade: string;
-    overallScore: number;
-    categoryScores: Record<string, number>;
-    codeSnippet: string;
-    language: string;
-    report: AuditReport;
+    createdAt: string;
+    language: AuditReport['language'];
+    countsBySeverity: AuditReport['countsBySeverity'];
+    findingCount: number;
+    codeExcerptMasked: string;
 }
 
 const HISTORY_KEY = 'xaudit:auditHistory';
+const MAX_HISTORY_ITEMS = 50;
 
-export function saveAudit(report: AuditReport, code: string, language: string): string {
+export function saveAuditToHistory(report: AuditReport, code: string): string | null {
+    if (!isSaveLocallyEnabled()) return null;
+
     const history = getAuditHistory();
     const id = crypto.randomUUID();
 
     const item: AuditHistoryItem = {
         id,
-        createdAt: new Date().toISOString(),
-        grade: typeof report.grade === 'string' ? report.grade : (report.grade as any).grade,
-        overallScore: report.overallScore,
-        categoryScores: Object.entries(report.categories).reduce((acc, [key, val]) => {
-            acc[key] = val.score;
-            return acc;
-        }, {} as Record<string, number>),
-        codeSnippet: code.substring(0, 120),
-        language,
-        report
+        createdAt: new Date(report.timestamp).toISOString(),
+        language: report.language,
+        countsBySeverity: report.countsBySeverity,
+        findingCount: report.findings.length,
+        codeExcerptMasked: code.slice(0, 120).replace(/\s+/g, ' '),
     };
 
-    history.unshift(item); // Newest at top
+    history.unshift(item);
+    const limited = history.slice(0, MAX_HISTORY_ITEMS);
 
-    // Keep last 50 audits to avoid localStorage bloat
-    const limitedHistory = history.slice(0, 50);
-
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(limitedHistory));
+    try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(limited));
+    } catch (e) {
+        console.error('Failed to save audit history', e);
+    }
     return id;
 }
 
@@ -50,17 +55,15 @@ export function getAuditHistory(): AuditHistoryItem[] {
     }
 }
 
-export function getAuditById(id: string): AuditHistoryItem | null {
+export function deleteHistoryItem(id: string): void {
     const history = getAuditHistory();
-    return history.find(item => item.id === id) || null;
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.filter((item) => item.id !== id)));
 }
 
-export function deleteAudit(id: string): void {
-    const history = getAuditHistory();
-    const filtered = history.filter(item => item.id !== id);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(filtered));
-}
-
-export function clearAudits(): void {
-    localStorage.removeItem(HISTORY_KEY);
+export function clearAuditHistory(): void {
+    try {
+        localStorage.removeItem(HISTORY_KEY);
+    } catch {
+        // no-op
+    }
 }

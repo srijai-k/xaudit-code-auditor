@@ -8,9 +8,11 @@ import './AuditTool.css';
 export default function AuditTool() {
     const [activeView, setActiveView] = useState('audit');
     const [reportData, setReportData] = useState(null);
+    const [rawCode, setRawCode] = useState('');
 
-    const handleAuditComplete = (report) => {
+    const handleAuditComplete = (report, code) => {
         setReportData(report);
+        setRawCode(code || '');
         setActiveView('report');
     };
 
@@ -32,6 +34,7 @@ export default function AuditTool() {
                     <ReportView
                         onBack={() => setActiveView('audit')}
                         reportData={reportData}
+                        rawCode={rawCode}
                     />
                 )}
             </motion.div>

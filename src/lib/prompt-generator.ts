@@ -1,53 +1,66 @@
 import { AuditReport } from './types';
+import type { Finding, Severity } from './analysis/types';
 
+const SEVERITY_RANK: Record<Severity, number> = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
+
+function topFindings(report: AuditReport, max = 5): Finding[] {
+    return [...report.findings].sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity]).slice(0, max);
+}
+
+/**
+ * Builds a plain-text prompt a user can paste into a coding assistant of
+ * their choice. This is a static template assembled from the findings this
+ * tool already produced — it does not call any AI itself, and does not
+ * claim the resulting fix will be correct or complete.
+ */
 export function generateFixPrompt(report: AuditReport, rawCode: string, platform: string): string {
-    const topFixes = (report.topFixes || []).map(f => `- **${f.title}**: ${f.howToFix} (Effect: ${f.impactText})`).join('\n');
-    const categoriesLine = report.categories ? Object.entries(report.categories)
-        .map(([name, cat]) => `${name}: ${cat.score}/100`)
-        .join(', ') : 'N/A';
+    const findings = topFindings(report);
+    const findingsBlock = findings
+        .map((f) => `- **[${f.severity.toUpperCase()}] ${f.title}**: ${f.saferExample} (${f.message})`)
+        .join('\n');
+
+    const countsLine = Object.entries(report.countsBySeverity)
+        .filter(([, count]) => count > 0)
+        .map(([severity, count]) => `${count} ${severity}`)
+        .join(', ') || 'none';
 
     let platformInstruction = "";
-
     switch (platform) {
         case 'ChatGPT':
         case 'Claude':
-            platformInstruction = "Please provide the full updated code file. Briefly explain the major security or accessibility improvements made.";
+            platformInstruction = "Please provide the full updated code file and briefly explain what changed and why.";
             break;
         case 'v0':
-            platformInstruction = "Please treat this as a component refinement. Preserve all layout and styling exactness while fixing these production issues. Provide the updated component code.";
+            platformInstruction = "Treat this as a component refinement. Preserve layout and styling; only change what's needed to address the findings below.";
             break;
         case 'Cursor':
         case 'Windsurf':
-            platformInstruction = "Please output the fix in a way that is easy to apply as a minimal diff or patch. Ensure only necessary lines are changed to fix the specific issues while keeping everything else identical.";
+            platformInstruction = "Output the fix as a minimal diff/patch — change only the lines needed to address the specific findings.";
             break;
         case 'Bolt':
         case 'Lovable':
-            platformInstruction = "Maintain exact UI fidelity. Only modify the logic or tags required to clear the audit warnings. Do not introduce new dependencies.";
+            platformInstruction = "Maintain exact UI fidelity. Only modify logic or tags required to address these findings. Do not introduce new dependencies.";
             break;
         default:
             platformInstruction = "Provide the corrected code while keeping the original design and structure intact.";
     }
 
-    return `You are a senior frontend engineer. Fix my AI-generated code based on professional auditing standards.
+    return `Review and, where appropriate, fix the following findings from a client-side static pattern checker (XAUDIT). These are pattern matches that require human judgment, not confirmed vulnerabilities — verify each one applies before changing anything.
 
-### Audit Summary
-- **Current Grade**: ${report.grade} (${report.overallScore}/100)
-- **Category Breakdown**: ${categoriesLine}
+### Findings summary
+${countsLine}
 
-### Required Fixes
-${topFixes}
+### Findings to review
+${findingsBlock || '(No findings were reported for this code.)'}
 
-### Strict Engineering Rules
-1. **DO NOT** rewrite the entire project.
-2. **DO NOT** change the design, colors, or layout unless strictly required for a fix (e.g., responsive meta).
-3. **ONLY** modify the lines necessary to resolve the issues.
-4. Keep the component structure identical to the original where possible.
-5. ${platformInstruction}
+### Rules
+1. Do not rewrite the whole file — change only what's needed to address the findings above.
+2. Do not change design, layout, or unrelated logic.
+3. ${platformInstruction}
 
-### Original Code
+### Code
 \`\`\`
 ${rawCode}
 \`\`\`
-
-Tip: paste this into your vibe-coding tool and replace the output file.`;
+`;
 }
