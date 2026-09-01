@@ -1,0 +1,546 @@
+{
+  "xss-inner-html-user-input": {
+    "path": "fixtures/vulnerable/xss-inner-html-user-input.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-inner-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "raw innerHTML from parameter"
+  },
+  "xss-outer-html-alias": {
+    "path": "fixtures/vulnerable/xss-outer-html-alias.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-outer-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "outerHTML via aliased element"
+  },
+  "xss-insert-adjacent-html": {
+    "path": "fixtures/vulnerable/xss-insert-adjacent-html.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-insert-adjacent-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "insertAdjacentHTML with dynamic value"
+  },
+  "xss-document-write": {
+    "path": "fixtures/vulnerable/xss-document-write.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-document-write"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "document.write with template interpolation"
+  },
+  "xss-document-writeln": {
+    "path": "fixtures/vulnerable/xss-document-writeln.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-document-writeln"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "document.writeln with concatenation"
+  },
+  "xss-dangerously-set-inner-html": {
+    "path": "fixtures/vulnerable/xss-dangerously-set-inner-html.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-dangerously-set-inner-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "React dangerouslySetInnerHTML, unsanitized"
+  },
+  "xss-template-literal-inner-html": {
+    "path": "fixtures/vulnerable/xss-template-literal-inner-html.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-inner-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "template literal built into innerHTML"
+  },
+  "xss-sanitized-dompurify": {
+    "path": "fixtures/safe/xss-sanitized-dompurify.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "sanitized via DOMPurify before innerHTML (should be low, not high)"
+  },
+  "xss-static-literal-inner-html": {
+    "path": "fixtures/safe/xss-static-literal-inner-html.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "constant literal HTML, no dynamic value at all"
+  },
+  "xss-react-escaped-text": {
+    "path": "fixtures/safe/xss-react-escaped-text.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "React default text interpolation (auto-escaped)"
+  },
+  "sqli-concat-db-query": {
+    "path": "fixtures/vulnerable/sqli-concat-db-query.ts",
+    "group": "sqli",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "sqli-dynamic-query"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "string concatenation directly in the db.query() call"
+  },
+  "sqli-concat-via-variable-not-caught": {
+    "path": "fixtures/edge-cases/sqli-concat-via-variable-not-caught.ts",
+    "group": "sqli",
+    "bucket": "edge-cases",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "KNOWN FALSE NEGATIVE, documented on purpose: concatenation built in an intermediate variable, then passed by reference, is NOT caught — this rule tracks direct AST relationships only, not data flow"
+  },
+  "sqli-template-client-query": {
+    "path": "fixtures/vulnerable/sqli-template-client-query.ts",
+    "group": "sqli",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "sqli-dynamic-query"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "template literal interpolation into client.query"
+  },
+  "sqli-knex-raw-concat": {
+    "path": "fixtures/vulnerable/sqli-knex-raw-concat.ts",
+    "group": "sqli",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "sqli-dynamic-query"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "knex.raw with concatenation"
+  },
+  "sqli-connection-query-concat": {
+    "path": "fixtures/vulnerable/sqli-connection-query-concat.ts",
+    "group": "sqli",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "sqli-dynamic-query"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "connection.query direct concatenation"
+  },
+  "sqli-pool-execute-template": {
+    "path": "fixtures/vulnerable/sqli-pool-execute-template.ts",
+    "group": "sqli",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "sqli-dynamic-query"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": ".execute with template interpolation"
+  },
+  "sqli-unsafe-concat": {
+    "path": "fixtures/vulnerable/sqli-unsafe-concat.ts",
+    "group": "sqli",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "sqli-dynamic-query"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": ".unsafe with concatenation"
+  },
+  "sqli-parameterized-placeholder": {
+    "path": "fixtures/safe/sqli-parameterized-placeholder.ts",
+    "group": "sqli",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "parameterized query with $1 placeholder — must NOT flag"
+  },
+  "sqli-parameterized-question-mark": {
+    "path": "fixtures/safe/sqli-parameterized-question-mark.ts",
+    "group": "sqli",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "parameterized query with ? placeholder — must NOT flag"
+  },
+  "sqli-orm-prisma": {
+    "path": "fixtures/safe/sqli-orm-prisma.ts",
+    "group": "sqli",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "ORM query builder, no raw SQL at all"
+  },
+  "sqli-orm-active-record-style": {
+    "path": "fixtures/safe/sqli-orm-active-record-style.ts",
+    "group": "sqli",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "query-builder .query on non-db-shaped receiver name — not qualified, must NOT flag"
+  },
+  "secret-openai-key": {
+    "path": "fixtures/vulnerable/secret-openai-key.ts",
+    "group": "secrets",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "secret-openai"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "OpenAI-shaped key literal"
+  },
+  "secret-anthropic-key": {
+    "path": "fixtures/vulnerable/secret-anthropic-key.ts",
+    "group": "secrets",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "secret-anthropic"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "Anthropic-shaped key literal"
+  },
+  "secret-stripe-live-key": {
+    "path": "fixtures/vulnerable/secret-stripe-live-key.ts",
+    "group": "secrets",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "secret-stripe"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "Stripe live secret key"
+  },
+  "secret-aws-access-key": {
+    "path": "fixtures/vulnerable/secret-aws-access-key.ts",
+    "group": "secrets",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "secret-aws"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "AWS access key ID"
+  },
+  "secret-github-pat": {
+    "path": "fixtures/vulnerable/secret-github-pat.ts",
+    "group": "secrets",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "secret-github-pat"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "GitHub PAT"
+  },
+  "secret-generic-password-assignment": {
+    "path": "fixtures/vulnerable/secret-generic-password-assignment.ts",
+    "group": "secrets",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "secret-generic-assignment"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "generic PASSWORD-named variable with a real-looking value"
+  },
+  "secret-env-var-usage": {
+    "path": "fixtures/safe/secret-env-var-usage.ts",
+    "group": "secrets",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "proper env-var usage, no literal secret at all"
+  },
+  "secret-placeholder-example": {
+    "path": "fixtures/safe/secret-placeholder-example.ts",
+    "group": "secrets",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "documentation placeholder value must be excluded outright"
+  },
+  "secret-firebase-public-config": {
+    "path": "fixtures/edge-cases/secret-firebase-public-config.ts",
+    "group": "secrets",
+    "bucket": "edge-cases",
+    "expectRuleIds": [
+      "secret-google-api-key"
+    ],
+    "expectSeverity": "info",
+    "forbidSeverity": null,
+    "note": "intentionally-public Firebase web config key — must be labelled informational, not a leak, and must NOT be mislabeled as a different vendor"
+  },
+  "secret-uuid-not-flagged": {
+    "path": "fixtures/safe/secret-uuid-not-flagged.ts",
+    "group": "secrets",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a bare UUID (e.g. a React key or trace id) must NOT be reported as any vendor secret"
+  },
+  "exec-eval-dynamic": {
+    "path": "fixtures/vulnerable/exec-eval-dynamic.ts",
+    "group": "exec",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "exec-eval"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "eval on a parameter"
+  },
+  "exec-eval-literal": {
+    "path": "fixtures/vulnerable/exec-eval-literal.ts",
+    "group": "exec",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "exec-eval"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "eval on a fixed literal — still flagged, described accurately"
+  },
+  "exec-new-function": {
+    "path": "fixtures/vulnerable/exec-new-function.ts",
+    "group": "exec",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "exec-function-ctor"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "new Function constructor"
+  },
+  "exec-function-call-form": {
+    "path": "fixtures/vulnerable/exec-function-call-form.ts",
+    "group": "exec",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "exec-function-ctor"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "Function(...) called without new"
+  },
+  "exec-set-timeout-string": {
+    "path": "fixtures/vulnerable/exec-set-timeout-string.ts",
+    "group": "exec",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "exec-set-timeout-string"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "setTimeout with a concatenated string body"
+  },
+  "exec-set-interval-string": {
+    "path": "fixtures/vulnerable/exec-set-interval-string.ts",
+    "group": "exec",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "exec-set-interval-string"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "setInterval with a template-literal string body"
+  },
+  "exec-set-timeout-function-ref": {
+    "path": "fixtures/safe/exec-set-timeout-function-ref.ts",
+    "group": "exec",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "setTimeout with a function reference — must NOT flag"
+  },
+  "exec-no-dynamic-execution": {
+    "path": "fixtures/safe/exec-no-dynamic-execution.ts",
+    "group": "exec",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "fixed, non-dynamic function call, no eval-family API at all"
+  },
+  "node-exec-dynamic": {
+    "path": "fixtures/vulnerable/node-exec-dynamic.ts",
+    "group": "node-command",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "node-command-exec-dynamic"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "exec() with concatenated user input"
+  },
+  "node-exec-sync-dynamic": {
+    "path": "fixtures/vulnerable/node-exec-sync-dynamic.ts",
+    "group": "node-command",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "node-command-exec-dynamic"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "execSync() with template literal"
+  },
+  "node-spawn-shell-true-dynamic": {
+    "path": "fixtures/vulnerable/node-spawn-shell-true-dynamic.ts",
+    "group": "node-command",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "node-command-spawn-shell"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "spawn with shell:true and dynamic arg"
+  },
+  "node-execfile-fixed-args": {
+    "path": "fixtures/safe/node-execfile-fixed-args.ts",
+    "group": "node-command",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "execFile with fixed command and static args — must NOT flag (different API, out of scope)"
+  },
+  "node-spawn-no-shell": {
+    "path": "fixtures/safe/node-spawn-no-shell.ts",
+    "group": "node-command",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "spawn without shell:true — must NOT flag"
+  },
+  "react-onclick-handler": {
+    "path": "fixtures/safe/react-onclick-handler.ts",
+    "group": "react-regression",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "standard onClick prop must never be reported as XSS/RCE"
+  },
+  "react-onchange-onsubmit": {
+    "path": "fixtures/safe/react-onchange-onsubmit.ts",
+    "group": "react-regression",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "onChange/onSubmit props must never be reported as XSS/RCE"
+  },
+  "react-usememo-usecallback-correct": {
+    "path": "fixtures/safe/react-usememo-usecallback-correct.ts",
+    "group": "react-regression",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "idiomatic memoization must not itself be flagged as a security issue"
+  },
+  "react-inline-object-and-onclick": {
+    "path": "fixtures/safe/react-inline-object-and-onclick.ts",
+    "group": "react-regression",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "inline object/arrow props with onClick — a performance nit at most, never a critical XSS finding"
+  },
+  "react-dangerously-set-sanitized": {
+    "path": "fixtures/safe/react-dangerously-set-sanitized.ts",
+    "group": "react-regression",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "dangerouslySetInnerHTML wrapped in DOMPurify.sanitize must be low severity, not high/critical"
+  },
+  "safe-plain-component": {
+    "path": "fixtures/safe/safe-plain-component.ts",
+    "group": "general-safe",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "ordinary, unremarkable React component"
+  },
+  "safe-math-utils": {
+    "path": "fixtures/safe/safe-math-utils.ts",
+    "group": "general-safe",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "plain utility functions, nothing dangerous"
+  },
+  "safe-fetch-json": {
+    "path": "fixtures/safe/safe-fetch-json.ts",
+    "group": "general-safe",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "typical async data-fetching code"
+  },
+  "safe-typescript-interfaces": {
+    "path": "fixtures/safe/safe-typescript-interfaces.ts",
+    "group": "general-safe",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "plain TypeScript types/interfaces, verifies TS syntax parses cleanly"
+  },
+  "safe-class-component": {
+    "path": "fixtures/safe/safe-class-component.ts",
+    "group": "general-safe",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "legacy class component with lifecycle methods, no dangerous patterns"
+  }
+}
