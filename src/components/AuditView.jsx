@@ -54,9 +54,8 @@ export default function AuditView({ onViewReport }) {
     const [activeTab, setActiveTab] = useState('HTML');
     const [hoverData, setHoverData] = useState(null);
     const [code, setCode] = useState('');
-    const [status, setStatus] = useState('empty'); // 'empty', 'loading', 'result', 'error'
+    const [status, setStatus] = useState('empty'); // 'empty', 'loading', 'error' — no 'result' step: a successful run auto-opens the findings view instead
     const [stageLine, setStageLine] = useState(null);
-    const [report, setReport] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
     const [saveLocally, setSaveLocally] = useState(false);
     const textAreaRef = useRef(null);
@@ -94,10 +93,9 @@ export default function AuditView({ onViewReport }) {
                 return;
             }
 
-            setReport(result);
             saveReportLocally(result, code);
             saveAuditToHistory(result, code);
-            setStatus('result');
+            onViewReport(result, code); // auto-open the findings — no extra click needed
         } catch (error) {
             console.error('Audit failed:', error);
             setErrorMessage('Something went wrong while analyzing this code. Try again with a smaller or simpler snippet.');
@@ -185,22 +183,6 @@ export default function AuditView({ onViewReport }) {
                         )}
                         {status === 'error' && (
                             <div className="text-yellow-400">{errorMessage}</div>
-                        )}
-                        {status === 'result' && (
-                            <div>
-                                <div className="text-green-400 mb-4">
-                                    Analysis complete. {report?.findings?.length ?? 0} finding(s)
-                                    {report?.findings?.length > 0 && (
-                                        <> — {Object.entries(report.countsBySeverity).filter(([, c]) => c > 0).map(([s, c]) => `${c} ${s}`).join(', ')}</>
-                                    )}.
-                                </div>
-                                <button
-                                    onClick={() => onViewReport(report, code)}
-                                    className="px-4 py-2 bg-brand-blue text-white text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-600 transition-colors"
-                                >
-                                    View Findings &rarr;
-                                </button>
-                            </div>
                         )}
                         {status === 'empty' && <div className="text-gray-600 italic">// Waiting for input...</div>}
                     </div>
