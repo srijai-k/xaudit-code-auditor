@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-    --font-sans: "Space Grotesk", sans-serif;
-    --font-mono: "JetBrains Mono", monospace;
+    /* System font stacks only — no Google Fonts or any other third-party
+       font/script request. This is a deliberate privacy choice, not an
+       oversight: it's what makes the "no external requests" claim true. */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
     --color-bg-dark: #050505;
     --color-accent: #ffffff;
     --color-secondary: #333333;
