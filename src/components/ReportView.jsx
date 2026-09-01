@@ -92,7 +92,7 @@ export default function ReportView({ onBack, reportData, rawCode }) {
         );
     }
 
-    if (report.status === 'invalid' || report.status === 'parse-error' || report.status === 'too-large' || report.status === 'empty') {
+    if (report.status === 'parse-error' || report.status === 'too-large' || report.status === 'empty') {
         return (
             <main className="w-full max-w-4xl mx-auto p-6 pt-20 text-center">
                 <h2 className="text-3xl font-bold text-white mb-4">Could Not Analyze This Input</h2>

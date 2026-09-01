@@ -88,13 +88,8 @@ export default function AuditView({ onViewReport }) {
                 },
             });
 
-            if (result.status !== 'ok' && result.status !== 'invalid') {
+            if (result.status !== 'ok') {
                 setErrorMessage(result.statusMessage || 'Analysis could not complete.');
-                setStatus('error');
-                return;
-            }
-            if (result.status === 'invalid') {
-                setErrorMessage(result.statusMessage || "This doesn't look like analyzable code.");
                 setStatus('error');
                 return;
             }

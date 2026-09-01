@@ -17,34 +17,15 @@ import { IssueItem, PatternSmell } from './types';
  * (JSX `onClick={handler}` was being reported as a critical XSS/RCE
  * finding by a case-insensitive `/onclick=/i` regex that also matched the
  * JSX prop text).
+ *
+ * There used to be a validateInput() here too (reject anything under 40
+ * chars / 3 lines / not matching a crude HTML-or-React-or-JS regex,
+ * BEFORE any real analysis ran). It was removed — see run-audit.ts's
+ * comment for why: it silently skipped real analysis on legitimately
+ * short, valid code, which is precisely the "it's not checking my code"
+ * bug it caused. The real parser's own empty/too-large/parse-error
+ * outcomes are the validator now.
  */
-
-export function validateInput(code: string): { isValid: boolean; reason?: string } {
-    const trimmed = code.trim();
-
-    if (trimmed.length < 40) {
-        return { isValid: false, reason: "Not enough code to analyze. Paste a real file or component (min 40 characters)." };
-    }
-
-    const lineCount = trimmed.split('\n').length;
-    if (lineCount < 3) {
-        return { isValid: false, reason: "Code must be at least 3 lines long." };
-    }
-
-    if (!/[<={};]/.test(trimmed)) {
-        return { isValid: false, reason: "Input lacks common code symbols (<, {, ;, =)." };
-    }
-
-    const isHtml = /<html|<head|<body|<section|<script|<style/i.test(trimmed) || (/<div/i.test(trimmed) && /<\/div>/i.test(trimmed));
-    const isReact = /export\s+default|import\s+React|return\s*\(\s*<|<[A-Z][a-zA-Z0-9]+\s*\/>/i.test(trimmed);
-    const isJs = /(?:function\s+\w+|const\s+\w+\s*=|import\s+.*?from|=>)/i.test(trimmed);
-
-    if (!isHtml && !isReact && !isJs) {
-        return { isValid: false, reason: "This doesn't look like HTML, JavaScript, TypeScript, or React/JSX — those are the only inputs this checker analyzes." };
-    }
-
-    return { isValid: true };
-}
 
 export function runLegacyPatternChecks(code: string) {
     const issues: IssueItem[] = [];

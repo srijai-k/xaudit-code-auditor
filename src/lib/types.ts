@@ -35,7 +35,7 @@ export interface PatternSmell {
 }
 
 export interface AuditReport {
-    status: "ok" | "invalid" | "parse-error" | "too-large" | "empty";
+    status: "ok" | "parse-error" | "too-large" | "empty";
     /** Present only for non-"ok" statuses. */
     statusMessage?: string;
     language: "javascript" | "typescript" | "jsx" | "html" | "unknown";

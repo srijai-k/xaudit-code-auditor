@@ -1,5 +1,5 @@
 import { AuditReport, CategoryResult, AuditCategory } from './types';
-import { validateInput, runLegacyPatternChecks } from './audit-engine';
+import { runLegacyPatternChecks } from './audit-engine';
 import { runAnalysis, type Stage } from './analysis/client';
 import { countBySeverity } from './analysis/types';
 import type { AnalysisMode } from './analysis/analyze';
@@ -16,27 +16,25 @@ export interface RunAuditOptions {
  * passes over the same size-capped input, not full AST work, so they are
  * not worker-isolated — see docs/architecture.md for that tradeoff).
  *
+ * There used to be a heuristic pre-gate here (audit-engine.ts's old
+ * validateInput(): reject anything under 40 characters / 3 lines, or that
+ * didn't match a crude "looks like HTML/React/JS" regex) that ran BEFORE
+ * the real engine and silently skipped analysis entirely on rejection.
+ * That made sense when the underlying engine was itself just regex
+ * guessing and needed to be protected from nonsense input — it does not
+ * make sense now that there is a real parser: a genuine one-line
+ * `el.innerHTML = x` or a short .ts interface file would be rejected by
+ * that heuristic and never analyzed at all, which is exactly the "it's
+ * not checking my code" failure mode. The real parser's own "empty" /
+ * "too-large" / "parse-error" statuses (see analyze.ts) are a strictly
+ * better and more honest validator than an arbitrary line-count guess, so
+ * the old gate is removed rather than tuned.
+ *
  * Returns no grade, no verdict, no "ship it" recommendation of any kind.
  */
 export async function runAudit(code: string, mode: AnalysisMode | "auto" = "auto", options: RunAuditOptions = {}): Promise<AuditReport> {
     const timestamp = Date.now();
     const start = performance.now();
-
-    const validation = validateInput(code);
-    if (!validation.isValid) {
-        return {
-            status: "invalid",
-            statusMessage: validation.reason,
-            language: "unknown",
-            findings: [],
-            countsBySeverity: countBySeverity([]),
-            categories: {},
-            patternSmells: [],
-            rawCodeLength: code.length,
-            timestamp,
-            durationMs: performance.now() - start,
-        };
-    }
 
     const engineResult = await runAnalysis(code, mode, { onStage: options.onStage });
 
