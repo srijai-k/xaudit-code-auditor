@@ -12,18 +12,18 @@ export default function AboutUsSection() {
                         Our Mission
                     </div>
                     <h2 className="text-4xl md:text-5xl font-bold mb-8 leading-tight">
-                        DEMOCRATIZING <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">CODE SECURITY</span>
+                        A SMALLER, HONEST <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">CODE CHECKER</span>
                     </h2>
                     <div className="space-y-6 text-gray-400 text-lg leading-relaxed">
                         <p>
-                            We started XAUDIT because we were tired of choosing between security and speed. Traditional tools were too slow, too expensive, or required uploading our proprietary code to the cloud.
+                            XAUDIT started as a much bigger set of claims than the code behind it could back up. This rebuild narrowed the scope on purpose: a defined set of pattern-based checks for JavaScript, TypeScript, React/JSX, and HTML, built on a real AST parser instead of regex guesswork, with a test suite that has to pass before anything ships.
                         </p>
                         <p>
-                            We believe that <span className="text-white font-bold">security should be a default, not a luxury</span>. That's why we built the world's first local-first, AI-powered audit engine that runs directly in your browser.
+                            <span className="text-white font-bold">It is not AI-powered, and it does not certify code as secure.</span> It runs entirely in your browser, flags patterns that need a human look, and tells you plainly what it doesn't check — see "Current supported checks" and "Known limitations" below.
                         </p>
                         <p>
-                            Our goal is simple: To eliminate vulnerability classes entirely by making advanced static analysis accessible to every developer, open-source maintainer, and enterprise team.
+                            The goal is narrow and correct rather than broad and misleading: a tool worth trusting for what it actually does, not for what a landing page used to say it did.
                         </p>
                     </div>
 
@@ -45,18 +45,18 @@ export default function AboutUsSection() {
 
                 <div className="reveal relative" style={{ transitionDelay: '200ms' }}>
                     <div className="aspect-square bg-gradient-to-tr from-neutral-800 to-black border border-white/10 rounded-2xl p-8 relative overflow-hidden group">
-                        {/* Abstract Neural Grid */}
+                        {/* Abstract grid decoration */}
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]"></div>
 
                         <div className="relative z-10 h-full flex flex-col justify-between">
                             <div className="text-right">
-                                <div className="text-6xl font-bold text-white/10">AI</div>
+                                <div className="text-6xl font-bold text-white/10">AST</div>
                             </div>
 
                             <div>
-                                <div className="text-xl font-bold text-white mb-2">Neural Engine</div>
-                                <div className="text-gray-400">Active Learning</div>
-                                <div className="text-gray-500 text-sm mt-1">Processing millions of lines</div>
+                                <div className="text-xl font-bold text-white mb-2">Babel-based parser</div>
+                                <div className="text-gray-400">5 rule groups, unit-tested</div>
+                                <div className="text-gray-500 text-sm mt-1">See docs/benchmark-report.md for real numbers</div>
                             </div>
                         </div>
 

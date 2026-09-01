@@ -20,15 +20,15 @@ export default function LandingFooter() {
                             <span className="text-xl font-bold">XAUDIT</span>
                         </div>
                         <p className="text-gray-500 max-w-sm">
-                            The AI-powered code auditing platform for the modern web. Built for security, designed for speed.
+                            A client-side, open-source static code checker for JavaScript, TypeScript, React/JSX, and HTML patterns. Not AI-powered, not a substitute for a professional security review.
                         </p>
                     </div>
                     <div>
                         <h4 className="font-bold mb-6">PRODUCT</h4>
                         <ul className="space-y-4 text-sm text-gray-500">
                             <li><a href="#features" onClick={(e) => handleScroll(e, 'features')} className="hover:text-white transition-colors cursor-pointer">Features</a></li>
-                            <li><a href="#integration" onClick={(e) => handleScroll(e, 'integration')} className="hover:text-white transition-colors cursor-pointer">Integrations</a></li>
-                            <li><a href="#pricing" onClick={(e) => handleScroll(e, 'pricing')} className="hover:text-white transition-colors cursor-pointer">Enterprise</a></li>
+                            <li><a href="#integration" onClick={(e) => handleScroll(e, 'integration')} className="hover:text-white transition-colors cursor-pointer">How It Works</a></li>
+                            <li><a href="#pricing" onClick={(e) => handleScroll(e, 'pricing')} className="hover:text-white transition-colors cursor-pointer">Pricing</a></li>
                         </ul>
                     </div>
                     <div>
@@ -39,7 +39,7 @@ export default function LandingFooter() {
                     </div>
                 </div>
                 <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/10 text-sm text-gray-600">
-                    <div>© 2025 XAUDIT AI Inc. All rights reserved.</div>
+                    <div>© {new Date().getFullYear()} XAUDIT. Open source. Not a company, not a security guarantee.</div>
                 </div>
             </div>
         </footer>

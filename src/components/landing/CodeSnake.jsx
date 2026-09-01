@@ -113,38 +113,38 @@ export default function CodeSnake() {
 
                 <text className="font-mono text-sm font-bold tracking-widest uppercase" dy="-10">
                     <motion.textPath href="#globalSnakePath" startOffset={finalStartOffset}>
-                        {/* Content */}
-                        <tspan fill="#ef4444">var user = db.get(id);</tspan>
-                        <tspan fill="#6b7280" dx="30"> // VULNERABLE </tspan>
-                        <tspan fill="#eab308" dx="60"> [ SCANNING ] </tspan>
-                        <tspan fill="#22c55e" dx="60"> const safe = await db.query(sql, [id]);</tspan>
-                        <tspan fill="#6b7280" dx="30"> // SECURED </tspan>
+                        {/* Illustrative examples of patterns this checker flags — not a live scan, not an enforcement system. */}
+                        <tspan fill="#ef4444">db.query("... WHERE id = " + id)</tspan>
+                        <tspan fill="#6b7280" dx="30"> // POSSIBLE SQL INJECTION </tspan>
+                        <tspan fill="#eab308" dx="60"> [ FLAGGED ] </tspan>
+                        <tspan fill="#22c55e" dx="60"> db.query("... WHERE id = $1", [id])</tspan>
+                        <tspan fill="#6b7280" dx="30"> // SAFER EXAMPLE </tspan>
 
                         <tspan fill="#6b7280" dx="150"> ... </tspan>
 
-                        <tspan fill="#ef4444" dx="150">system('rm -rf /');</tspan>
-                        <tspan fill="#6b7280" dx="30"> // CRITICAL_ERROR </tspan>
-                        <tspan fill="#eab308" dx="60"> [ BLOCKING ] </tspan>
-                        <tspan fill="#22c55e" dx="60"> throw new Error('Illegal Operation');</tspan>
-                        <tspan fill="#6b7280" dx="30"> // PREVENTED </tspan>
+                        <tspan fill="#ef4444" dx="150">el.innerHTML = user.bio;</tspan>
+                        <tspan fill="#6b7280" dx="30"> // UNSANITIZED HTML SINK </tspan>
+                        <tspan fill="#eab308" dx="60"> [ FLAGGED ] </tspan>
+                        <tspan fill="#22c55e" dx="60"> el.innerHTML = DOMPurify.sanitize(user.bio);</tspan>
+                        <tspan fill="#6b7280" dx="30"> // SAFER EXAMPLE </tspan>
 
                         <tspan fill="#6b7280" dx="150"> ... </tspan>
 
-                        <tspan fill="#ef4444" dx="150">if (password == 'admin')</tspan>
-                        <tspan fill="#6b7280" dx="30"> // WEAK_AUTH </tspan>
-                        <tspan fill="#eab308" dx="60"> [ HARDENING ] </tspan>
-                        <tspan fill="#22c55e" dx="60"> if (await verifyHash(password, hash))</tspan>
-                        <tspan fill="#6b7280" dx="30"> // ENCRYPTED </tspan>
+                        <tspan fill="#ef4444" dx="150">const apiKey = "sk-live-...";</tspan>
+                        <tspan fill="#6b7280" dx="30"> // HARDCODED SECRET </tspan>
+                        <tspan fill="#eab308" dx="60"> [ FLAGGED ] </tspan>
+                        <tspan fill="#22c55e" dx="60"> const apiKey = process.env.API_KEY;</tspan>
+                        <tspan fill="#6b7280" dx="30"> // SAFER EXAMPLE </tspan>
 
                         <tspan fill="#6b7280" dx="150"> ... </tspan>
 
-                        <tspan fill="#fff" dx="150"> // XAUDIT CONTINUOUS MONITORING ACTIVE // SYSTEM STABLE // NO THREATS DETECTED</tspan>
+                        <tspan fill="#fff" dx="150"> // findings are patterns to review, not confirmed vulnerabilities — a clean result is not proof of security</tspan>
 
                         {/* Repeat content to ensure it covers long scrolls */}
-                        <tspan fill="#ef4444" dx="150">while(true) fork();</tspan>
-                        <tspan fill="#6b7280" dx="30"> // DOS_ATTACK </tspan>
-                        <tspan fill="#eab308" dx="60"> [ MITIGATING ] </tspan>
-                        <tspan fill="#22c55e" dx="60"> process.limitResources();</tspan>
+                        <tspan fill="#ef4444" dx="150">eval(userExpression);</tspan>
+                        <tspan fill="#6b7280" dx="30"> // DYNAMIC EXECUTION </tspan>
+                        <tspan fill="#eab308" dx="60"> [ FLAGGED ] </tspan>
+                        <tspan fill="#22c55e" dx="60"> JSON.parse(userExpression);</tspan>
                     </motion.textPath>
                 </text>
             </svg>

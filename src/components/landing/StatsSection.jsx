@@ -19,7 +19,7 @@ export default function StatsSection() {
                 </div>
                 <div className="reveal text-center" style={{ transitionDelay: '300ms' }}>
                     <div className="text-4xl md:text-5xl font-mono font-bold text-purple-500 mb-2">PWA</div>
-                    <div className="text-sm text-gray-400 uppercase tracking-widest">Offline Capable</div>
+                    <div className="text-sm text-gray-400 uppercase tracking-widest">Installable App Shell</div>
                 </div>
             </div>
         </section>

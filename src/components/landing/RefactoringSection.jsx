@@ -24,73 +24,55 @@ export default function RefactoringSection() {
 
                                 <div className="absolute inset-0 border border-white/20 transform -rotate-3 hover:rotate-0 transition-transform duration-500 bg-black/80 backdrop-blur-sm clip-angle-card-reverse p-6 flex items-center justify-center">
                                     <div className="flex flex-col gap-4 w-full h-full">
-                                        {/* Before */}
-                                        <div className="flex-1 bg-black/50 p-6 rounded-lg border border-red-500/30 relative">
-                                            <div className="absolute top-4 right-4 text-red-500 text-xs font-bold px-2 py-1 bg-red-500/10 rounded">
-                                                LEGACY
+                                        {/* Flagged */}
+                                        <div className="flex-1 bg-black/50 p-6 rounded-lg border border-orange-500/30 relative">
+                                            <div className="absolute top-4 right-4 text-orange-500 text-xs font-bold px-2 py-1 bg-orange-500/10 rounded">
+                                                FLAGGED
                                             </div>
                                             <div className="font-mono text-xs md:text-sm text-gray-300 overflow-x-auto">
-                                                <div className="text-gray-500 mb-2">// BEFORE: Legacy Class Component</div>
-                                                <div className="text-red-400">- class UserProfile extends React.Component {'{'}</div>
-                                                <div className="text-red-400">-   componentDidMount() {'{'}</div>
-                                                <div className="text-red-400">-     this.loadData();</div>
-                                                <div className="text-red-400">-   {'}'}</div>
-                                                <div className="text-red-400">-   render() {'{'}</div>
-                                                <div className="text-red-400">-     return &lt;div&gt;{'{'}this.state.name{'}'}&lt;/div&gt;;</div>
-                                                <div className="text-red-400">-   {'}'}</div>
-                                                <div className="text-red-400">- {'}'}</div>
+                                                <div className="text-gray-500 mb-2">// what the checker found</div>
+                                                <div className="text-orange-400">HIGH — Unsanitized assignment to .innerHTML</div>
+                                                <div className="text-gray-500 mt-2">el.innerHTML = comment.body;</div>
                                             </div>
                                         </div>
 
-                                        {/* After */}
+                                        {/* Safer example */}
                                         <div className="flex-1 bg-black/50 p-6 rounded-lg border border-green-500/30 relative">
                                             <div className="absolute top-4 right-4 text-green-500 text-xs font-bold px-2 py-1 bg-green-500/10 rounded">
-                                                MODERNIZED
+                                                SAFER EXAMPLE
                                             </div>
                                             <div className="font-mono text-xs md:text-sm text-gray-300 overflow-x-auto">
-                                                <div className="text-gray-500 mb-2">// AFTER: Functional Component + Hooks</div>
-                                                <div className="text-green-400">+ const UserProfile = () =&gt; {'{'}</div>
-                                                <div className="text-green-400">+   const [user, setUser] = useState(null);</div>
-                                                <div className="text-green-400">+ </div>
-                                                <div className="text-green-400">+   useEffect(() =&gt; {'{'}</div>
-                                                <div className="text-green-400">+     loadData().then(setUser);</div>
-                                                <div className="text-green-400">+   {'}'}, []);</div>
-                                                <div className="text-green-400">+ </div>
-                                                <div className="text-green-400">+   return &lt;div&gt;{'{'}user?.name{'}'}&lt;/div&gt;;</div>
-                                                <div className="text-green-400">+ {'}'};</div>
+                                                <div className="text-gray-500 mb-2">// suggested in the finding — you apply it</div>
+                                                <div className="text-green-400">el.innerHTML = DOMPurify.sanitize(comment.body);</div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="absolute -right-4 top-10 bg-white text-black font-mono text-xs font-bold px-4 py-2 clip-angle-button shadow-lg shadow-white/20">
-                                    0 VULNERABILITIES
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="order-1 lg:order-2 reveal">
-                        <h2 className="text-4xl font-bold mb-6">ACTIONABLE <br /> INSIGHTS</h2>
+                        <h2 className="text-4xl font-bold mb-6">EVERY FINDING <br /> EXPLAINS ITSELF</h2>
                         <p className="text-gray-400 mb-8 leading-relaxed">
-                            XAUDIT doesn't just find problems. It explains the intent of your code and generates context-aware code snippets to fast-track your refactoring.
+                            Every finding ships with what matched, why it matters, a safer example, and — just as importantly — what this specific check can't see. XAUDIT doesn't rewrite your code for you; it tells you what to look at and why.
                         </p>
                         <ul className="space-y-4 font-mono text-sm mb-10">
                             <li className="flex items-center gap-3">
                                 <span className="w-1.5 h-1.5 bg-white"></span>
-                                <span>Semantic Code Understanding</span>
+                                <span>What Matched, In Plain Language</span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <span className="w-1.5 h-1.5 bg-white"></span>
-                                <span>Ready-to-use Fix Snippets</span>
+                                <span>Safer-Example Snippets</span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <span className="w-1.5 h-1.5 bg-white"></span>
-                                <span>Custom Rule Definitions</span>
+                                <span>Stated Limitations, Every Time</span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <span className="w-1.5 h-1.5 bg-white"></span>
-                                <span>Zero False Positives</span>
+                                <span>Measured, Published Precision — Not a Promise of Zero False Positives</span>
                             </li>
                         </ul>
                     </div>

@@ -60,9 +60,9 @@ export default function HowItWorksSection() {
                                     </div>
                                 </div>
                             </motion.div>
-                            <h3 className="text-2xl font-bold mb-4">Heuristic Analysis</h3>
+                            <h3 className="text-2xl font-bold mb-4">Click Run Analysis</h3>
                             <p className="text-gray-400 leading-relaxed">
-                                XAUDIT analyzes your code structure using static heuristics to detect patterns, smells, and security risks in real-time.
+                                A Web Worker parses your code and runs the pattern rules. On-demand, not continuous — typically well under a second on a normal-sized file.
                             </p>
                         </div>
 
@@ -83,9 +83,9 @@ export default function HowItWorksSection() {
                                     <div className="inline-block px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded">VIEW REPORT</div>
                                 </div>
                             </motion.div>
-                            <h3 className="text-2xl font-bold mb-4">Instant Report</h3>
+                            <h3 className="text-2xl font-bold mb-4">Review the Findings</h3>
                             <p className="text-gray-400 leading-relaxed">
-                                View a comprehensive interactive report immediately. Export to PDF or JSON without ever leaving your tab.
+                                See findings by severity, each with a safer example and its limitations. Export to PDF if you want a copy — findings are patterns to review, not proof of a vulnerability.
                             </p>
                         </div>
                     </div>

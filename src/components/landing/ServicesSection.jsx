@@ -25,7 +25,7 @@ export default function ServicesSection() {
                     </span>
                     <h2 className="text-6xl md:text-[5vw] font-bold leading-[0.9] tracking-tighter text-white uppercase"
                         style={{ fontFamily: '"Oswald", sans-serif' }}>
-                        Enterprise-grade security for modern web applications
+                        A narrow set of checks, done honestly
                     </h2>
                 </div>
 
@@ -49,32 +49,32 @@ export default function ServicesSection() {
 const services = [
     {
         number: "01",
-        title: "Frontend Security",
-        description: "Automated detection of XSS vulnerabilities, sensitive data leaks, and insecure dependencies in your React/JS code before you ship.",
+        title: "DOM XSS & Dynamic Execution",
+        description: "Flags unsanitized innerHTML/outerHTML/insertAdjacentHTML/document.write, dangerouslySetInnerHTML, eval, Function, and string-based setTimeout/setInterval — via a real AST, not regex.",
         icon: ShieldCheck,
         color: "text-cyan-400",
         shadow: "shadow-cyan-500/20"
     },
     {
         number: "02",
-        title: "Real-time Analysis",
-        description: "Instant feedback on logic errors, type safety, and accessibility issues as you type. No more waiting for CI/CD pipelines.",
+        title: "On-Demand, Not Continuous",
+        description: "You click Run Analysis and get a result in well under a second on typical input. This is not a live-as-you-type linter and does not replace your IDE's type checker.",
         icon: Activity,
         color: "text-green-400",
         shadow: "shadow-green-500/20"
     },
     {
         number: "03",
-        title: "Performance Ops",
-        description: "Identify unnecessary re-renders, large bundle sizes, and memory leaks. Optimize your application's speed and user experience.",
+        title: "Hardcoded Secrets, Conservatively",
+        description: "Vendor-prefixed key formats plus a name-context fallback — not generic hex/alphanumeric guessing. No performance profiling, bundle analysis, or memory-leak detection is included.",
         icon: Zap,
         color: "text-yellow-400",
         shadow: "shadow-yellow-500/20"
     },
     {
         number: "04",
-        title: "Production Ready",
-        description: "Get a comprehensive A-F grade for your codebase. Verify compliance with industry best practices before deployment.",
+        title: "No Grade, No Verdict",
+        description: "You get a list of findings by severity, each with its own limitations spelled out — not a letter grade or a ship/no-ship verdict. A clean result is not proof the code is secure.",
         icon: FileCheck,
         color: "text-blue-400",
         shadow: "shadow-blue-500/20"

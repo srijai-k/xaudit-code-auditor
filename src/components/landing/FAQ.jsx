@@ -27,16 +27,24 @@ const FAQItem = ({ question, answer }) => {
 export default function FAQ() {
     const questions = [
         {
-            question: "Does this work with Python/Backend code?",
-            answer: "Currently, XAUDIT runs entirely in your browser using WebAssembly. It supports JavaScript, TypeScript, and JSON files instantly. Backend language support (Python, Go) is in beta via our experimental WASM parsers."
+            question: "What languages does this actually support?",
+            answer: "JavaScript, TypeScript, React/JSX, and basic HTML. That's it. Vue, Svelte, Astro, Solid, Next.js-specific patterns, Node.js backend analysis, Python, and Go are not supported — see \"Current supported checks\" below."
+        },
+        {
+            question: "Is this AI-powered?",
+            answer: "No. It's a rule-based static checker: a real JavaScript/TypeScript AST parser (Babel) plus a small set of hand-written pattern rules, run in a Web Worker in your browser. There is no model, no inference call, and no cloud component of any kind."
+        },
+        {
+            question: "Does a clean result mean my code is secure?",
+            answer: "No. It means the specific patterns this tool checks for weren't found. It does not detect all vulnerability classes (see \"Unsupported vulnerability classes\"), does not perform data-flow or taint analysis, and is not a substitute for a professional security review."
         },
         {
             question: "Is my code kept private?",
-            answer: "Yes. Your code never leaves your browser. Analysis happens in-memory within your local browser sandbox. No code is ever sent to a server."
+            answer: "Yes. Analysis runs entirely in your browser via a Web Worker; your code is never sent anywhere by this app. Nothing is saved to your browser either, unless you explicitly turn on \"Save report summaries locally\" — and even then, only counts, language, and a masked excerpt are stored, never raw code or secret values."
         },
         {
             question: "Can I integrate this into CI/CD?",
-            answer: "XAUDIT is currently designed for instant local feedback during development. A standalone CLI tool for CI/CD pipelines is currently in private beta."
+            answer: "Not currently. This is a browser-only tool today; there is no CLI or CI integration."
         }
     ];
 

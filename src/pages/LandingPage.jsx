@@ -12,8 +12,8 @@ import SecurityStandardsSection from '../components/landing/SecurityStandardsSec
 import SupportedLanguagesSection from '../components/landing/SupportedLanguagesSection';
 import AboutUsSection from '../components/landing/AboutUsSection';
 import RefactoringSection from '../components/landing/RefactoringSection';
-import IntegrationSection from '../components/landing/IntegrationSection';
 import PricingSection from '../components/landing/PricingSection';
+import FAQ from '../components/landing/FAQ';
 import CTASection from '../components/landing/CTASection';
 import LandingFooter from '../components/landing/LandingFooter';
 import CodeSnake from '../components/landing/CodeSnake';
@@ -82,6 +82,7 @@ export default function LandingPage() {
                 <ComparisonSection />
                 <RefactoringSection />
                 <PricingSection onStartScan={handleStartScan} />
+                <FAQ />
                 <AboutUsSection />
                 <CTASection />
             </main>
