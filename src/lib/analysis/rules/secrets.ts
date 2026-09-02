@@ -28,13 +28,44 @@ import type { Finding, Severity } from "../types";
  *
  * Every finding's `snippet` is masked (first 4 + last 4 characters) before
  * it is ever constructed — the raw secret value never appears in a
- * Finding, and therefore never reaches the UI, history, PDF export, or
- * fix-prompt clipboard text.
+ * Finding, and therefore never reaches the UI, PDF export, or fix-prompt
+ * clipboard text through that path.
+ *
+ * That masking does NOT, by itself, protect a separate thing:
+ * storage.ts/storage/history.ts build a short "masked excerpt" of the raw
+ * pasted code (for opt-in local history) by slicing the first ~120
+ * characters of the *original* code — not by reading anything out of a
+ * Finding. If a real secret happened to sit in the first 120 characters,
+ * slicing alone would put it into localStorage in plaintext. redactSecrets()
+ * below exists specifically to close that gap: storage.ts/history.ts run
+ * the raw excerpt through it before ever calling localStorage.setItem.
+ * This was a real, live gap in an earlier version of this file — caught by
+ * manually testing the save-to-history flow with an actual secret pasted
+ * near the start of the input — not something designed in from the start.
  */
 
 export function maskSecret(raw: string): string {
     if (raw.length <= 10) return "*".repeat(raw.length);
     return `${raw.slice(0, 4)}${"*".repeat(Math.max(4, raw.length - 8))}${raw.slice(-4)}`;
+}
+
+/**
+ * Redacts vendor-shaped secrets out of arbitrary raw text (not an AST —
+ * this runs on a plain string, e.g. a code excerpt about to be written to
+ * localStorage). Only the fixed-prefix vendor patterns are applied here,
+ * not the name-context generic fallback (that one needs AST binding
+ * context — a variable/property name — that isn't available for raw text,
+ * so it's intentionally not run here; this is a real, disclosed limitation,
+ * not silently pretended away). Safe to call on text with no secrets in it
+ * at all — it's a no-op in that case.
+ */
+export function redactSecrets(text: string): string {
+    let out = text;
+    for (const vp of VENDOR_PATTERNS) {
+        vp.regex.lastIndex = 0;
+        out = out.replace(vp.regex, (match) => maskSecret(match));
+    }
+    return out;
 }
 
 interface VendorPattern {

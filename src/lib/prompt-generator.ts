@@ -1,10 +1,9 @@
-import { AuditReport } from './types';
-import type { Finding, Severity } from './analysis/types';
+import type { AnalysisResult, Finding, Severity } from './analysis/types';
 
 const SEVERITY_RANK: Record<Severity, number> = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
 
-function topFindings(report: AuditReport, max = 5): Finding[] {
-    return [...report.findings].sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity]).slice(0, max);
+function topFindings(result: AnalysisResult, max = 5): Finding[] {
+    return [...result.findings].sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity]).slice(0, max);
 }
 
 /**
@@ -13,13 +12,13 @@ function topFindings(report: AuditReport, max = 5): Finding[] {
  * tool already produced — it does not call any AI itself, and does not
  * claim the resulting fix will be correct or complete.
  */
-export function generateFixPrompt(report: AuditReport, rawCode: string, platform: string): string {
-    const findings = topFindings(report);
+export function generateFixPrompt(result: AnalysisResult, rawCode: string, platform: string): string {
+    const findings = topFindings(result);
     const findingsBlock = findings
         .map((f) => `- **[${f.severity.toUpperCase()}] ${f.title}**: ${f.saferExample} (${f.message})`)
         .join('\n');
 
-    const countsLine = Object.entries(report.countsBySeverity)
+    const countsLine = Object.entries(result.countsBySeverity)
         .filter(([, count]) => count > 0)
         .map(([severity, count]) => `${count} ${severity}`)
         .join(', ') || 'none';

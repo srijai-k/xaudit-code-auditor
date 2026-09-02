@@ -1,4 +1,5 @@
-import { AuditReport } from './types';
+import type { AnalysisResult } from './analysis/types';
+import { redactSecrets } from './analysis/rules/secrets';
 
 // Privacy defaults (see docs/baseline-audit.md findings #8/#9 and the
 // project's privacy commitment): nothing is persisted to localStorage
@@ -16,10 +17,21 @@ const MAX_STORAGE_BYTES = 256 * 1024; // metadata-only, so this is generous
 
 export interface StoredReportMeta {
     timestamp: number;
-    language: AuditReport['language'];
-    countsBySeverity: AuditReport['countsBySeverity'];
+    language: AnalysisResult['language'];
+    countsBySeverity: AnalysisResult['countsBySeverity'];
     findingTitles: string[]; // titles only — never raw snippets or secrets
-    codeExcerptMasked: string; // first ~120 chars, with any secret-shaped substrings pre-masked by the rules already
+    codeExcerptMasked: string; // built by maskCodeExcerpt() below — first ~120 chars, with vendor-shaped secrets redacted first
+}
+
+/**
+ * Builds the short excerpt that's safe to persist locally: redact
+ * vendor-shaped secrets across the WHOLE input first (not just the slice —
+ * a match could straddle where a naive slice-then-redact would cut it),
+ * then take the first ~120 characters. Shared by storage.ts and
+ * storage/history.ts so this fix lives in exactly one place.
+ */
+export function maskCodeExcerpt(code: string): string {
+    return redactSecrets(code).slice(0, 120).replace(/\s+/g, ' ');
 }
 
 function isSafeSize(data: string): boolean {
@@ -48,7 +60,7 @@ export function setSaveLocallyEnabled(enabled: boolean): void {
 }
 
 /** Only called when the user has explicitly opted in via setSaveLocallyEnabled(true). */
-export function saveReportLocally(report: AuditReport, rawCode: string): void {
+export function saveReportLocally(report: AnalysisResult, rawCode: string): void {
     if (!isSaveLocallyEnabled()) return;
     try {
         const meta: StoredReportMeta = {
@@ -56,7 +68,7 @@ export function saveReportLocally(report: AuditReport, rawCode: string): void {
             language: report.language,
             countsBySeverity: report.countsBySeverity,
             findingTitles: report.findings.map((f) => f.title),
-            codeExcerptMasked: rawCode.slice(0, 120).replace(/\s+/g, ' '),
+            codeExcerptMasked: maskCodeExcerpt(rawCode),
         };
         const data = JSON.stringify(meta);
         if (!isSafeSize(data)) return;

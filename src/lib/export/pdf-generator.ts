@@ -1,6 +1,5 @@
 import { jsPDF } from "jspdf";
-import type { AuditReport } from "../types";
-import type { Severity } from "../analysis/types";
+import type { AnalysisResult, Severity } from "../analysis/types";
 
 /**
  * PDF export. Renders only what the report already computed — no grade, no
@@ -18,7 +17,7 @@ const SEVERITY_COLOR: Record<Severity, [number, number, number]> = {
     info: [156, 163, 175],
 };
 
-export const generatePDF = (report: AuditReport, logoUrl?: string) => {
+export const generatePDF = (report: AnalysisResult, logoUrl?: string) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();

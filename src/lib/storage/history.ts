@@ -1,25 +1,27 @@
-import { AuditReport } from '../types';
-import { isSaveLocallyEnabled } from '../storage';
+import type { AnalysisResult } from '../analysis/types';
+import { isSaveLocallyEnabled, maskCodeExcerpt } from '../storage';
 
 // Privacy default: history is OFF unless the user opts in (see
-// storage.ts / setSaveLocallyEnabled). When enabled, only metadata and a
-// masked excerpt are stored — never the raw pasted code, and never an
-// unmasked finding snippet (secret findings are already masked at the rule
-// level before they ever reach this file).
+// storage.ts / setSaveLocallyEnabled). When enabled, only metadata and an
+// excerpt are stored — never the full raw pasted code, and the excerpt
+// itself goes through maskCodeExcerpt() (storage.ts), which redacts
+// vendor-shaped secrets before truncating. That redaction pass was added
+// after testing found the excerpt was previously just a raw slice — see
+// storage.ts's comment on maskCodeExcerpt for the full story.
 
 export interface AuditHistoryItem {
     id: string;
     createdAt: string;
-    language: AuditReport['language'];
-    countsBySeverity: AuditReport['countsBySeverity'];
+    language: AnalysisResult['language'];
+    countsBySeverity: AnalysisResult['countsBySeverity'];
     findingCount: number;
-    codeExcerptMasked: string;
+    codeExcerptMasked: string; // built by maskCodeExcerpt() — see storage.ts
 }
 
 const HISTORY_KEY = 'xaudit:auditHistory';
 const MAX_HISTORY_ITEMS = 50;
 
-export function saveAuditToHistory(report: AuditReport, code: string): string | null {
+export function saveAuditToHistory(report: AnalysisResult, code: string): string | null {
     if (!isSaveLocallyEnabled()) return null;
 
     const history = getAuditHistory();
@@ -31,7 +33,7 @@ export function saveAuditToHistory(report: AuditReport, code: string): string | 
         language: report.language,
         countsBySeverity: report.countsBySeverity,
         findingCount: report.findings.length,
-        codeExcerptMasked: code.slice(0, 120).replace(/\s+/g, ' '),
+        codeExcerptMasked: maskCodeExcerpt(code),
     };
 
     history.unshift(item);

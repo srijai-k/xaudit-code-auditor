@@ -26,7 +26,7 @@ export default function LandingPage() {
         setIsScanning(true);
         // Delay navigation to show animation
         setTimeout(() => {
-            navigate('/audit');
+            navigate('/check');
         }, 2000);
     };
 
