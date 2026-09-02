@@ -1,6 +1,7 @@
 import type { Node } from "@babel/types";
 import * as t from "@babel/types";
 import _traverse from "@babel/traverse";
+import type { NodePath } from "@babel/traverse";
 import type { SourceLocation } from "./types";
 
 // @babel/traverse's interop between CJS and ESM bundlers is inconsistent:
@@ -27,11 +28,12 @@ export function locOf(node: { loc?: Node["loc"] | null }): SourceLocation | unde
  * Anything else (identifiers, member expressions, calls, template literals
  * with interpolation, binary `+` concatenation) is treated as dynamic.
  *
- * Limitation: a `const x = "<b>hi</b>"; el.innerHTML = x;` is NOT recognized
- * as a literal here (we only look at the expression written at the sink
- * call-site, not at variable definitions elsewhere) — this is a direct AST
- * relationship check, not data-flow analysis. Documented, not silently
- * pretended away.
+ * This function itself never looks past the expression it's handed — it has
+ * no notion of "where did this identifier come from." Rules that want that
+ * (xss.ts, sqli.ts) call `resolveSingleAssignment` first and pass the
+ * resolved expression in; this function stays a pure, one-node syntax check
+ * either way, which is what makes it safe to reuse from multiple rules with
+ * different resolution strategies around it.
  */
 export function isStaticStringExpression(node: t.Node): boolean {
     if (t.isStringLiteral(node)) return true;
@@ -69,6 +71,45 @@ export function isSanitizerWrapped(node: t.Node): boolean {
     }
     if (t.isIdentifier(callee) && SANITIZER_CALLEE_NAMES.has(callee.name)) return true;
     return false;
+}
+
+export interface ResolvedBinding {
+    resolved: boolean;
+    initNode?: t.Node;
+}
+
+/**
+ * Same-scope variable resolution — the one piece of "follow the value back"
+ * every rule that needs it shares. Given an Identifier used at a sink/call
+ * site, finds where it was declared and returns that declaration's
+ * initializer, but ONLY when the answer is unambiguous:
+ *
+ *   - the identifier must resolve to a real binding in this file
+ *     (`path.scope.getBinding`, Babel's own scope resolution — not a
+ *     hand-rolled text search),
+ *   - that binding must never be reassigned after its declaration
+ *     (`binding.constant` — Babel tracks this for us), and
+ *   - the declaration must be a `const`/`let`/`var` with an initializer
+ *     (`const x = <expr>`), not a bare `let x;` or a function parameter.
+ *
+ * If any of that doesn't hold — reassigned, a parameter, destructured, no
+ * initializer, declared in an outer function this rule doesn't chase into —
+ * this returns `resolved: false` and callers fall back to their existing,
+ * already-conservative default for "I don't know what this is." This is
+ * deliberately one hop only: it does not chase `const a = b; const c = a;`
+ * through a second identifier, and it does not cross function boundaries.
+ * That is a real, disclosed limitation — see each rule's own comment for
+ * what specifically it does and doesn't catch as a result.
+ */
+export function resolveSingleAssignment(path: NodePath, node: t.Node): ResolvedBinding {
+    if (!t.isIdentifier(node)) return { resolved: false };
+    const binding = path.scope.getBinding(node.name);
+    if (!binding || !binding.constant) return { resolved: false };
+    const declarator = binding.path.node;
+    if (t.isVariableDeclarator(declarator) && declarator.init) {
+        return { resolved: true, initNode: declarator.init };
+    }
+    return { resolved: false };
 }
 
 /** Renders a short, single-line source excerpt for a node, capped in length. */

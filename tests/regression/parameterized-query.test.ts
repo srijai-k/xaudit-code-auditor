@@ -29,8 +29,14 @@ describe("regression: parameterized/ORM queries must not be flagged as SQL injec
         expect(result.findings.some((f) => f.ruleId === "sqli-dynamic-query")).toBe(true);
     });
 
-    it("KNOWN LIMITATION: concatenation built in an intermediate variable is NOT caught (no data-flow analysis)", () => {
+    it("FIXED: concatenation built one variable hop before the call IS now caught (same-scope tracing)", () => {
         const code = `function getUser(id) {\n  const query = "SELECT * FROM users WHERE id = " + id;\n  return db.query(query);\n}\n`;
+        const result = analyze(code, "script");
+        expect(result.findings.some((f) => f.ruleId === "sqli-dynamic-query")).toBe(true);
+    });
+
+    it("KNOWN LIMITATION: a value passed through a SECOND variable is still NOT caught (tracing is exactly one hop)", () => {
+        const code = `function getUser(id) {\n  const raw = "SELECT * FROM users WHERE id = " + id;\n  const query = raw;\n  return db.query(query);\n}\n`;
         const result = analyze(code, "script");
         expect(result.findings.filter((f) => f.category === "sqli")).toHaveLength(0);
     });
