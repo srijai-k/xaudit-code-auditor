@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SEVERITY_ORDER, SEVERITY_COLOR } from './severity';
 import { generatePDF } from '../../lib/export/pdf-generator';
 import FindingDetailModal from './FindingDetailModal';
+import ReportOverview from './ReportOverview';
 
 /**
  * Renders findings for a completed analysis. Handles the non-"ok" statuses
@@ -62,13 +63,10 @@ export default function FindingsResults({ result, resultsRef }) {
                 </button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-                {SEVERITY_ORDER.map((sev) => (
-                    <div key={sev} className={`rounded-xl border p-3 text-center ${SEVERITY_COLOR[sev].bg} ${SEVERITY_COLOR[sev].border}`}>
-                        <div className="text-[10px] uppercase tracking-wider text-gray-400">{sev}</div>
-                        <div className={`text-2xl font-bold ${SEVERITY_COLOR[sev].text}`}>{result.countsBySeverity[sev] ?? 0}</div>
-                    </div>
-                ))}
+            <ReportOverview result={result} />
+
+            <div className="text-xs uppercase tracking-wider text-gray-500 mb-3">
+                Detailed findings {sortedFindings.length > 0 && `(${sortedFindings.length})`}
             </div>
 
             {sortedFindings.length === 0 ? (
