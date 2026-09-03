@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "bench": "tsx scripts/run-benchmark.ts"
+    "bench": "tsx scripts/run-benchmark.ts",
+    "bench:independent": "tsx scripts/run-independent-benchmark.ts"
   },
   "dependencies": {
     "@babel/parser": "^7.28.5",

@@ -1,0 +1,99 @@
+{
+  "_readme": "Ground truth for tests/independent-benchmark/samples/*, determined by manual security review of each file BEFORE running the engine against it — not derived from, or tuned to match, the unit-test fixtures in tests/fixtures/. Each entry lists every finding the file should honestly produce, including known/accepted false positives and false negatives that are already disclosed limitations elsewhere in this project. See docs/independent-benchmark-report.md for what this is and is not, and scripts/run-independent-benchmark.ts for how it's scored.",
+  "files": [
+    {
+      "file": "blog-comment-widget.jsx",
+      "expectedFindings": [
+        { "ruleId": "xss-dangerously-set-inner-html", "severity": "low" },
+        { "ruleId": "xss-dangerously-set-inner-html", "severity": "high" }
+      ],
+      "reasoning": "comment.bodyHtml is wrapped directly in DOMPurify.sanitize() at the sink -> low. comment.quotedHtml reaches the sink completely unsanitized -> high. The onClick/onChange/onSubmit handlers must not produce anything."
+    },
+    {
+      "file": "user-profile-api.js",
+      "expectedFindings": [
+        { "ruleId": "sqli-dynamic-query", "severity": "high" }
+      ],
+      "reasoning": "The /users search route builds SQL by string concatenation one variable hop before db.query(sql) -> caught by same-scope tracing. The two $1-parameterized routes must not be flagged."
+    },
+    {
+      "file": "analytics-loader.js",
+      "expectedFindings": [
+        { "ruleId": "xss-document-write", "severity": "high" }
+      ],
+      "reasoning": "document.write() is called with string concatenation of two function parameters — dynamic, unresolvable to a literal."
+    },
+    {
+      "file": "config.js",
+      "expectedFindings": [
+        { "ruleId": "secret-stripe", "severity": "critical" }
+      ],
+      "reasoning": "The Stripe key literal matches the vendor format regardless of sitting inside a `process.env.X || \"literal\"` fallback expression — the vendor check runs on any StringLiteral node, independent of its parent shape. DATABASE_URL's postgres:// literal is excluded by the entropy fallback's URL-shape filter and has no vendor/name match, so it correctly produces nothing."
+    },
+    {
+      "file": "search-page.jsx",
+      "expectedFindings": [
+        { "ruleId": "xss-dangerously-set-inner-html", "severity": "low" }
+      ],
+      "reasoning": "r.highlightedSnippet is wrapped directly in DOMPurify.sanitize() at the sink -> low. searchIndex.query() must NOT be flagged as SQLi — 'searchIndex' is not a DB-shaped receiver name."
+    },
+    {
+      "file": "websocket-client.js",
+      "expectedFindings": [
+        { "ruleId": "exec-eval", "severity": "high" }
+      ],
+      "reasoning": "eval() is called on a non-literal (binary-concatenated) argument. The setTimeout call passes a function reference, not a string, so it must not be flagged."
+    },
+    {
+      "file": "backup-script.js",
+      "expectedFindings": [
+        { "ruleId": "node-command-exec-dynamic", "severity": "high" },
+        { "ruleId": "node-command-exec-dynamic", "severity": "high" }
+      ],
+      "reasoning": "Both execSync() calls receive a non-literal command (a template literal with interpolation, and a string concatenation)."
+    },
+    {
+      "file": "session-cache.js",
+      "expectedFindings": [
+        { "ruleId": "secret-high-entropy-string", "severity": "low" }
+      ],
+      "reasoning": "SESSION_SIGNING_SALT does not match the credential-shaped name pattern (no API_KEY/SECRET/TOKEN/PASSWORD substring), so only the entropy fallback can catch this hardcoded, high-entropy salt value."
+    },
+    {
+      "file": "build-info.js",
+      "expectedFindings": [],
+      "reasoning": "A 40-char git SHA (canonical hex hash length), a CDN URL, and an npm-style SRI integrity hash are all real, realistic non-secret shapes the entropy fallback was specifically calibrated to exclude. The short SHA and ISO timestamp are low-entropy/short and were also checked directly (see docs/independent-benchmark-report.md and the calibration notes in secrets.ts)."
+    },
+    {
+      "file": "admin-panel.jsx",
+      "expectedFindings": [
+        { "ruleId": "xss-dangerously-set-inner-html", "severity": "high" }
+      ],
+      "reasoning": "KNOWN, ACCEPTED FALSE POSITIVE: the notice HTML is genuinely a static literal, but it reaches the __html value through two identifier hops (formattedNotice -> noticeHtml), one more than the engine's one-hop tracing can chase. This file also verified a real fix made during this benchmarking pass: dangerouslySetInnerHTML={noticeProps} (the whole props object as a variable, not an inline literal) used to be invisible to this rule outright before that fix — see docs/model-improvements.md."
+    },
+    {
+      "file": "dashboard-widgets.jsx",
+      "expectedFindings": [],
+      "reasoning": "Ordinary, realistic React data-fetching/rendering code with no dangerous patterns at all — a noise-floor check on a non-trivial file, not just a one-line safe fixture."
+    },
+    {
+      "file": "order-service.ts",
+      "expectedFindings": [],
+      "reasoning": "Plain TypeScript interfaces/class/business logic, no I/O, no dangerous APIs, no string literals resembling secrets."
+    },
+    {
+      "file": "github-sync.js",
+      "expectedFindings": [
+        { "ruleId": "secret-github-pat", "severity": "critical" }
+      ],
+      "reasoning": "The GitHub PAT literal matches the vendor format. The variable holding it ('githubAuth') deliberately does NOT match the generic name-context pattern, so this specifically exercises the vendor-format path, not the name-context path."
+    },
+    {
+      "file": "report-export.js",
+      "expectedFindings": [
+        { "ruleId": "sqli-dynamic-query", "severity": "high" }
+      ],
+      "reasoning": "exportUsersByStatus concatenates raw SQL into sequelize.query() — 'sequelize' is a newly-added qualified receiver name. exportUsersByStatusSafe uses Sequelize's own named-replacement parameterization and must not be flagged."
+    }
+  ]
+}

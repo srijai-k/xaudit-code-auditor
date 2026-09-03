@@ -16,6 +16,16 @@ import type { Finding, Severity } from "../types";
  * flagged (these APIs are error-prone and hard to audit even with
  * constant input), but the message says so plainly instead of implying
  * an exploit exists.
+ *
+ * A non-literal import()/require() specifier was tried and removed (see
+ * docs/model-improvements.md, "Reverted: dynamic import()/require()
+ * check") — it fired "high" on the standard, extremely common
+ * code-splitting-by-route/locale idiom (`import(\`./pages/${page}.jsx\`)`),
+ * which is structurally indistinguishable via AST shape alone from an
+ * actually dangerous computed specifier. Unlike innerHTML/db.query, where
+ * a `+`/`${}` at the sink is a strong signal, "a computed module path" is
+ * itself completely normal software engineering, so this never cleared
+ * the noise bar the rest of this rule set holds itself to.
  */
 
 function isStringCodeArg(node: t.Node): boolean {

@@ -12,7 +12,7 @@ import type { Finding, Severity } from "../types";
  * prefix and collided constantly (a single real key would be mislabeled as
  * five different vendors' keys at once — see docs/baseline-audit.md #5).
  *
- * Two detection paths only:
+ * Three detection paths:
  *   1. Vendor-specific prefixes with enough fixed structure to be a real
  *      identifying signal (OpenAI, Anthropic, Stripe, AWS, GitHub, GitLab,
  *      Slack, Google API key format, PEM private-key blocks).
@@ -20,11 +20,24 @@ import type { Finding, Severity } from "../types";
  *      says what it is (API_KEY, SECRET, TOKEN, PASSWORD, ...), with
  *      placeholder-shaped values excluded outright rather than merely
  *      downgraded.
+ *   3. A conservative, low-severity entropy fallback (see
+ *      isHighEntropySecretCandidate below) for a string that has NEITHER a
+ *      vendor format NOR a credential-shaped name — e.g. a bearer token
+ *      passed directly as a header value with no named variable at all,
+ *      which path 2 can't see because there's no name to check. This is
+ *      the least precise check here by a wide margin, always "low"
+ *      severity, and was calibrated empirically (see
+ *      docs/model-improvements.md) against realistic non-secret shapes
+ *      before shipping — git/SRI hashes, UUIDs, URLs, base64 image/font
+ *      data, i18n keys, identifiers — specifically because a naive
+ *      Shannon-entropy check misfires constantly without that shape
+ *      filtering.
  *
- * No bare hex/alphanumeric pattern without a vendor prefix or a naming
- * context is included. That is a deliberate precision-over-recall choice:
- * this rule will miss custom/internal secret formats (false negative,
- * disclosed) rather than mislabel arbitrary hashes/UUIDs as vendor keys.
+ * No bare hex/alphanumeric pattern without a vendor prefix, a naming
+ * context, or the entropy shape filters below is included. That is a
+ * deliberate precision-over-recall choice: this rule will still miss some
+ * custom/internal secret formats (false negative, disclosed) rather than
+ * mislabel arbitrary hashes/UUIDs as vendor keys.
  *
  * Every finding's `snippet` is masked (first 4 + last 4 characters) before
  * it is ever constructed — the raw secret value never appears in a
@@ -99,6 +112,55 @@ const FIREBASE_SIBLING_KEYS = new Set(["authDomain", "projectId", "messagingSend
 
 function isPlaceholderValue(value: string): boolean {
     return PLACEHOLDER_VALUE_PATTERN.test(value) || value.length < 8;
+}
+
+// ---- Entropy fallback (detection path 3) ------------------------------
+//
+// Thresholds below were picked by computing Shannon entropy for a batch of
+// realistic strings — a real-looking random token vs. a git SHA-1/SHA-256
+// hash, a UUID, an npm/yarn "integrity" SRI hash, a CDN URL, a base64
+// font/image blob, an i18n dotted key, a SNAKE_CASE constant name, a
+// camelCase identifier, minified-looking short tokens — and choosing a bar
+// that every non-secret sample fell under while real-token-shaped strings
+// cleared it. See docs/model-improvements.md for the actual numbers; this
+// is not a "shipped and hoped" heuristic.
+const MIN_ENTROPY_CANDIDATE_LENGTH = 24;
+const MIN_ENTROPY_BITS_PER_CHAR = 4.5;
+const CONTAINS_WHITESPACE = /\s/;
+const URL_OR_PATH_LIKE = /:\/\/|^data:|^\.{1,2}\/|^\/|^www\.|\\/i;
+const INTEGRITY_HASH_PREFIX = /^sha(1|256|384|512)-/i; // npm/yarn/SRI "integrity" field format
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PURE_HEX_PATTERN = /^[0-9a-f]+$/i;
+const CANONICAL_HASH_LENGTHS = new Set([32, 40, 64]); // MD5 / SHA-1 / SHA-256 hex digest lengths
+
+function shannonEntropyBitsPerChar(value: string): number {
+    const counts = new Map<string, number>();
+    for (const ch of value) counts.set(ch, (counts.get(ch) ?? 0) + 1);
+    let entropy = 0;
+    for (const count of counts.values()) {
+        const p = count / value.length;
+        entropy -= p * Math.log2(p);
+    }
+    return entropy;
+}
+
+/**
+ * True only for a string that (a) is long and unbroken enough to plausibly
+ * be a token, (b) doesn't structurally match a known non-secret shape
+ * (URL/path, npm integrity hash, UUID, a canonical-length pure-hex hash),
+ * (c) mixes letters and digits (excludes pure-prose and pure-identifier
+ * strings), and (d) clears the empirically-calibrated entropy bar. All
+ * four conditions are required — this is intentionally conservative.
+ */
+function isHighEntropySecretCandidate(value: string): boolean {
+    if (value.length < MIN_ENTROPY_CANDIDATE_LENGTH) return false;
+    if (CONTAINS_WHITESPACE.test(value)) return false;
+    if (URL_OR_PATH_LIKE.test(value)) return false;
+    if (INTEGRITY_HASH_PREFIX.test(value)) return false;
+    if (UUID_PATTERN.test(value)) return false;
+    if (PURE_HEX_PATTERN.test(value) && CANONICAL_HASH_LENGTHS.has(value.length)) return false;
+    if (!/[0-9]/.test(value) || !/[a-zA-Z]/.test(value)) return false;
+    return shannonEntropyBitsPerChar(value) >= MIN_ENTROPY_BITS_PER_CHAR;
 }
 
 function propertyKeyName(node: t.ObjectProperty): string | undefined {
@@ -192,24 +254,51 @@ export const secretsRule: Rule = {
                 } else if (t.isAssignmentExpression(parent) && t.isIdentifier(parent.left)) {
                     contextName = parent.left.name;
                 }
-                if (!contextName || !GENERIC_NAME_PATTERN.test(contextName)) return;
+                if (contextName && GENERIC_NAME_PATTERN.test(contextName)) {
+                    addFinding(
+                        {
+                            ruleId: "secret-generic-assignment",
+                            title: `Hardcoded value assigned to "${contextName}"`,
+                            severity: "medium",
+                            category: "secrets",
+                            message: `A string literal is assigned directly to "${contextName}", a name that suggests a credential. No known vendor format matched, so this is a lower-confidence, name-based signal only.`,
+                            whyItMatters: "If this is a real credential, hardcoding it means it ships wherever this source does, and cannot be rotated without a code change.",
+                            saferExample: `Load ${contextName} from an environment variable (process.env.${contextName.toUpperCase()} or your framework's env mechanism) instead of a literal.`,
+                            limitations:
+                                "Name-based heuristic, not a format match — this can miss secrets assigned to unconventionally-named variables (false negative) and can still occasionally flag a non-secret string that happens to sit in a credential-shaped variable (false positive). Placeholder-shaped values (containing 'example', 'your_key', etc.) are excluded outright, not just downgraded.",
+                            location: locOf(node),
+                            snippet: maskSecret(value),
+                        },
+                        rangeKey,
+                    );
+                    return;
+                }
 
-                addFinding(
-                    {
-                        ruleId: "secret-generic-assignment",
-                        title: `Hardcoded value assigned to "${contextName}"`,
-                        severity: "medium",
-                        category: "secrets",
-                        message: `A string literal is assigned directly to "${contextName}", a name that suggests a credential. No known vendor format matched, so this is a lower-confidence, name-based signal only.`,
-                        whyItMatters: "If this is a real credential, hardcoding it means it ships wherever this source does, and cannot be rotated without a code change.",
-                        saferExample: `Load ${contextName} from an environment variable (process.env.${contextName.toUpperCase()} or your framework's env mechanism) instead of a literal.`,
-                        limitations:
-                            "Name-based heuristic, not a format match — this can miss secrets assigned to unconventionally-named variables (false negative) and can still occasionally flag a non-secret string that happens to sit in a credential-shaped variable (false positive). Placeholder-shaped values (containing 'example', 'your_key', etc.) are excluded outright, not just downgraded.",
-                        location: locOf(node),
-                        snippet: maskSecret(value),
-                    },
-                    rangeKey,
-                );
+                // 3. Entropy fallback — no vendor format, no credential-shaped
+                //    name (or no name at all, e.g. a bare header-value
+                //    argument). See isHighEntropySecretCandidate's own
+                //    comment for exactly what this does and doesn't do.
+                if (isHighEntropySecretCandidate(value)) {
+                    addFinding(
+                        {
+                            ruleId: "secret-high-entropy-string",
+                            title: "Possible hardcoded secret (high-entropy string)",
+                            severity: "low",
+                            category: "secrets",
+                            message:
+                                "This string has no recognized vendor key format and isn't assigned to a credential-shaped name, but it is long, unbroken, and statistically random-looking — a shape real tokens/secrets commonly have.",
+                            whyItMatters:
+                                "A hardcoded token is sometimes passed directly as a header or call argument rather than stored in a named constant (e.g. a bearer token inline in a fetch call) — the name-based check above only looks at named variables/properties and can't see this case at all.",
+                            saferExample:
+                                "If this is a real credential or token, move it to an environment variable. If it's a hash, checksum, generated ID, or other non-secret data, this finding can be dismissed.",
+                            limitations:
+                                "The least precise check in this rule group: a purely statistical guess (character-entropy + shape heuristics), with no vendor format and no naming context to anchor it. Calibrated against realistic non-secret shapes (hashes, UUIDs, URLs, base64 blobs, identifiers — see docs/model-improvements.md) but will still occasionally misfire on an unusual non-secret format those exclusions don't cover, and will miss real secrets that are hex-only or otherwise land under the entropy threshold. 'Low' severity reflects that lower confidence — treat it as 'worth a second look,' not 'confirmed.'",
+                            location: locOf(node),
+                            snippet: maskSecret(value),
+                        },
+                        rangeKey,
+                    );
+                }
             },
         });
 

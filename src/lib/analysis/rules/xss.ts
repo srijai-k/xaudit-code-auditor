@@ -10,9 +10,13 @@ import type { Finding } from "../types";
  * Detects, via direct AST relationships plus one same-scope variable hop
  * (see ast-utils.ts's resolveSingleAssignment — not general data-flow):
  *   - `x.innerHTML = expr` / `x.outerHTML = expr`
+ *   - `x.srcdoc = expr` (an iframe's inline document — same risk class as
+ *     innerHTML: it's rendered as a full HTML document, scripts and all)
  *   - `x.insertAdjacentHTML(pos, expr)`
  *   - `document.write(expr)` / `document.writeln(expr)`
- *   - React `dangerouslySetInnerHTML={{ __html: expr }}`
+ *   - React `dangerouslySetInnerHTML={{ __html: expr }}`, including when
+ *     the whole `{ __html: expr }` object is itself one variable hop away
+ *     (`const props = { __html: expr }; <div dangerouslySetInnerHTML={props} />`)
  *
  * A finding is only raised when the value isn't provably a static string —
  * checked either directly at the sink, or by tracing an identifier back one
@@ -51,7 +55,13 @@ import type { Finding } from "../types";
  *     variable trace.
  */
 
-const HTML_MEMBER_PROPS = new Set(["innerHTML", "outerHTML"]);
+const HTML_MEMBER_PROPS = new Set(["innerHTML", "outerHTML", "srcdoc"]);
+
+const HTML_PROP_RULE_ID: Record<string, string> = {
+    innerHTML: "xss-inner-html",
+    outerHTML: "xss-outer-html",
+    srcdoc: "xss-iframe-srcdoc",
+};
 
 function memberPropName(node: t.Node): string | undefined {
     if (t.isMemberExpression(node) && !node.computed && t.isIdentifier(node.property)) {
@@ -127,7 +137,7 @@ export const xssRule: Rule = {
                 if (resolution.isStatic) return; // literal HTML, directly or traced — not flagged
                 findings.push(
                     makeFinding(
-                        propName === "innerHTML" ? "xss-inner-html" : "xss-outer-html",
+                        HTML_PROP_RULE_ID[propName],
                         `Unsanitized assignment to .${propName}`,
                         node,
                         code,
@@ -175,7 +185,22 @@ export const xssRule: Rule = {
                 const { node } = path;
                 if (!t.isJSXIdentifier(node.name) || node.name.name !== "dangerouslySetInnerHTML") return;
                 if (!node.value || !t.isJSXExpressionContainer(node.value)) return;
-                const expr = node.value.expression;
+                let expr = node.value.expression;
+                // The prop is very commonly built as a separate variable —
+                // `const props = { __html: x }; <div dangerouslySetInnerHTML={props} />`
+                // — rather than an inline object literal. Without this, that
+                // whole (extremely common) pattern was invisible to this
+                // rule: `expr` was an Identifier, never an ObjectExpression,
+                // so the check below returned unconditionally and no finding
+                // was ever possible, safe or not. Found via
+                // tests/independent-benchmark, not written to fix a known
+                // gap — see docs/model-improvements.md.
+                if (t.isIdentifier(expr)) {
+                    const resolved = resolveSingleAssignment(path, expr);
+                    if (resolved.resolved && resolved.initNode && t.isObjectExpression(resolved.initNode)) {
+                        expr = resolved.initNode;
+                    }
+                }
                 if (!t.isObjectExpression(expr)) return;
                 const htmlProp = expr.properties.find(
                     (p) => t.isObjectProperty(p) && !p.computed && t.isIdentifier(p.key) && p.key.name === "__html",

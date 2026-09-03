@@ -25,14 +25,29 @@ import type { Finding } from "../types";
  * (false negative, disclosed, not hidden).
  *
  * `.query` is additionally gated on the receiver name looking like a
- * database handle (db/client/connection/pool/conn/sql, case-insensitive, or
- * a member access ending in one of those names) to avoid flagging unrelated
- * `.query()` methods on unrelated objects. `.execute`/`.raw`/`.unsafe` are
- * flagged regardless of receiver name, per the specified scope.
+ * database handle (db/client/connection/pool/conn/sql/sequelize/
+ * datasource/queryrunner, case-insensitive, or a member access ending in
+ * one of those names) to avoid flagging unrelated `.query()` methods on
+ * unrelated objects. `.execute`/`.raw`/`.unsafe`/`.$queryRawUnsafe`/
+ * `.$executeRawUnsafe` are flagged regardless of receiver name, per the
+ * specified scope — those method names are specific enough (nothing but a
+ * raw-SQL escape hatch is plausibly named `$queryRawUnsafe`) that
+ * qualifying the receiver would only lose real recall for no precision
+ * gained, unlike the generic `.query`.
+ *
+ * The Prisma additions are deliberately narrow: only `$queryRawUnsafe`/
+ * `$executeRawUnsafe` (plain function calls) are in scope. Prisma's other
+ * raw-query API, `$queryRaw`/`$executeRaw` used as a TAGGED template
+ * literal — `prisma.$queryRaw\`... ${id}\`` — auto-parameterizes each
+ * `${}` and is safe by Prisma's own design; it's also a different AST node
+ * type (TaggedTemplateExpression, never visited by the CallExpression
+ * visitor below) so it was never at risk of being flagged, but this is
+ * called out explicitly rather than left to accident — see the dedicated
+ * safe fixture for this in the test corpus.
  */
 
-const QUALIFIED_QUERY_RECEIVER = /^(db|client|connection|conn|pool|sql)$/i;
-const UNQUALIFIED_METHODS = new Set(["execute", "raw", "unsafe"]);
+const QUALIFIED_QUERY_RECEIVER = /^(db|client|connection|conn|pool|sql|sequelize|datasource|queryrunner)$/i;
+const UNQUALIFIED_METHODS = new Set(["execute", "raw", "unsafe", "$queryRawUnsafe", "$executeRawUnsafe"]);
 
 function isDynamicSqlArg(node: t.Node): boolean {
     if (t.isTemplateLiteral(node)) return node.expressions.length > 0;
@@ -111,7 +126,7 @@ export const sqliRule: Rule = {
                     saferExample:
                         "Use parameterized queries: db.query(\"SELECT * FROM users WHERE id = $1\", [id]) or an ORM/query builder call (e.g. prisma.user.findUnique({ where: { id } })).",
                     limitations:
-                        "Detects concatenation/interpolation at the call site for .query/.execute/.raw/.unsafe, or one variable hop back to a never-reassigned declaration. Does not perform interprocedural taint analysis — a value assembled in a different function, or passed through a second variable, is not tracked. Does not detect SQL injection in ORMs' raw-query escape hatches beyond the method names listed, nor in non-JS/TS backends.",
+                        "Detects concatenation/interpolation at the call site for .query/.execute/.raw/.unsafe/.$queryRawUnsafe/.$executeRawUnsafe, or one variable hop back to a never-reassigned declaration. Does not perform interprocedural taint analysis — a value assembled in a different function, or passed through a second variable, is not tracked. Does not detect SQL injection in ORMs' raw-query escape hatches beyond the method names listed (e.g. TypeORM's .query() on a receiver this rule doesn't recognize as DB-shaped), nor in non-JS/TS backends.",
                     location: locOf(node),
                     snippet: excerptOf(code, node),
                 });
