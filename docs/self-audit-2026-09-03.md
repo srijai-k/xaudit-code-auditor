@@ -1,13 +1,13 @@
 # XAUDIT Self-Audit — 2026-09-03
 
-> **Status update, same day.** F-01 through F-05 below, and the DEPLOY.md
-> gap referenced by F-03, have all since been addressed — see the strike-
-> through status lines added to each finding. F-06 (an automated e2e
-> zero-network-request test using a real browser-automation framework, as
-> opposed to the CI static-analysis guard added for it) remains open. This
-> file is being kept as the historical record of what was found and when,
-> not rewritten to look like everything was already fine — `git log` and
-> `docs/model-improvements.md` carry the actual before/after detail.
+> **Status update, same day.** F-01 through F-06 have all since been
+> addressed, including a real Playwright e2e test that closes F-06's
+> remaining gap and, in the process, found a second real blind spot (a
+> CSP-blocked request is invisible to Playwright's network events, only a
+> console listener catches it). This file is being kept as the historical
+> record of what was found and when, not rewritten to look like everything
+> was already fine — `git log` and `docs/model-improvements.md` carry the
+> actual before/after detail.
 
 Conducted against this repository's actual current state (not the archived
 upstream `srijai-k/xaudit-code-auditor`, and not the claims list in the
@@ -156,16 +156,16 @@ happened.
 **Verification test**: 4 new cases in `tests/unit/html-rules.test.ts`. Re-verified against the exact original reproduction from this audit (a Vue SFC under manually-selected HTML mode) via `analyze()` directly and live in the running app — the report now shows the disclosure instead of a silent 0-finding result.
 **Affects**: Trust.
 
-### F-06 — INFORMATIONAL — Mostly fixed same day (engine covered; UI still open)
+### F-06 — INFORMATIONAL — FULLY closed, three layers deep
 **Title**: The "0 KB uploaded" / zero-network claim has no automated regression test
 **Affected**: Process gap, not a code file.
 **Evidence**: `worker.ts`'s own comment states it "never touches fetch/XHR/WebSocket" but this is asserted in a comment and spot-checked manually (including by this audit), not enforced by an automated test that would fail CI if a future dependency or contributor introduced one.
-**Remediation, two layers**:
+**Remediation, three layers**:
 1. The existing CI static-analysis guard (`.github/workflows/ci.yml`) was widened from `src/lib/analysis/` only to the entire `src/` tree — verified the exact new command passes locally before making it a hard gate.
-2. `tests/regression/no-network-at-runtime.test.ts` (new): actually **runs** `analyze()` — the same function the Web Worker calls — with `fetch`/`XMLHttpRequest`/`WebSocket` replaced by traps that throw the instant they're touched, across representative input for every rule group (all three secrets-detection paths included). This is strictly stronger than a grep: it would catch a dynamically-constructed call (`globalThis['fe'+'tch']`) that no static pattern could match. **Verified this test has real teeth, not just cosmetic coverage**: temporarily injected an actual `fetch()` call into `analyze()`, confirmed all 11 cases failed and pinpointed exactly where, then reverted and confirmed green again.
+2. `tests/regression/no-network-at-runtime.test.ts`: actually **runs** `analyze()` — the same function the Web Worker calls — with `fetch`/`XMLHttpRequest`/`WebSocket` replaced by traps that throw the instant they're touched, across representative input for every rule group (all three secrets-detection paths included). Strictly stronger than a grep: it would catch a dynamically-constructed call (`globalThis['fe'+'tch']`) that no static pattern could match. Verified this has real teeth: temporarily injected an actual `fetch()` call into `analyze()`, confirmed all 11 cases failed and pinpointed exactly where, then reverted and confirmed green again.
+3. `tests/e2e/no-network.spec.ts` (Playwright, new): a real Chromium browser, the real production build, real clicks — landing page → checker → run a scan → opt into local history → export a PDF → clear local data — with a hard assertion that zero non-local network activity occurred anywhere in that flow. **This closed the actual remaining gap (the React UI itself) and, in the process, found a second real blind spot in the test technique, not the app**: this app's own CSP blocks a cross-origin request client-side before Chromium's network stack ever creates a request object, so a CSP-blocked call fires neither Playwright's `request` nor `requestfailed` events — only a console warning. Proved this by temporarily adding a real `fetch()` call into the PDF-export path the test exercises: with only network-event listeners, the test *passed* — a false negative that would have silently defeated the entire test's purpose for any CSP-blocked violation. Added a `console` listener watching for CSP-violation messages specifically; re-ran the same injected `fetch()` and confirmed the test now fails and pinpoints it; reverted and confirmed clean. Wired into CI with its own Chromium install step and an HTML-report upload on failure.
 
-**Still open**: neither layer exercises the React UI itself (PDF export, clipboard-copy prompt, the landing page) — only the core engine. A true end-to-end browser test (Playwright/Puppeteer, loading the real app and asserting zero network requests fired while clicking through it) would close that remaining piece; this project has no browser-automation test framework set up yet, so that specific addition remains a real infrastructure decision, not a one-line fix.
-**Affects**: Trust (regression-prevention, not a current live issue).
+**Affects**: Trust (regression-prevention, not a current live issue). All three layers together mean: a static call site is caught by (1), a dynamically-constructed call in the engine is caught by (2), and a call anywhere in the real UI — including one the CSP itself would silently swallow — is caught by (3).
 
 ---
 

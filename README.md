@@ -89,6 +89,11 @@ npm run preview    # serve the production build locally with the same
                     # CSP/security headers as vercel.json, to verify the
                     # app works under CSP without needing a live deployment
 npm run bench       # regenerate docs/benchmark-report.md from tests/fixtures/
+npm run bench:independent  # regenerate docs/independent-benchmark-report.md
+npm run test:e2e    # Playwright, real Chromium: proves the built app makes
+                    # zero network requests during a real click-through
+                    # (landing page, a scan, PDF export, local history) —
+                    # requires `npm run build` first; see playwright.config.ts
 ```
 
 Architecture notes, parser choice rationale, and the Web Worker design are documented in [`docs/architecture.md`](docs/architecture.md).
