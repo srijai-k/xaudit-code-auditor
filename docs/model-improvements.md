@@ -208,3 +208,17 @@ After the decorator-parsing fix proved this category has real teeth, probed the 
 **The lesson, stated plainly:** this was a bug in my own test-writing, not in the product, and it's worth naming exactly that rather than glossing over it — a slow or failing test is a claim about reality too, and it needed the same "verify before believing it" treatment as everything else in this file, in either direction.
 
 **Full suite after this:** 174/174 unit tests passing (was 169).
+
+## New sink: `javascript:` URI construction (2026-09-03)
+
+**The problem:** `docs/self-audit-2026-09-03.md` §6b flagged this as a real, currently-undetected gap: no rule inspected `location.href`/`window.location` assignment, `setAttribute('href'/'src', ...)`, or JSX `href`/`src` props at all — so a classic `javascript:` URI XSS (build an executable URI out of a user-controlled value, get it clicked or navigated to) was completely invisible.
+
+**Why this was deliberately left undetected until now, and what changed:** the obvious version of this check — "flag any dynamic value reaching `location.href`" — is exactly the shape of mistake that got the `import()`/`require()` check reverted earlier this session. Redirecting to a dynamically-built path (`location.href = "/profile/" + userId`) is one of the most common, completely benign patterns in real web code. What made this safe to implement narrowly: requiring the literal string `javascript:` to actually appear in the source, concatenated or interpolated with a dynamic value. Nobody writing a normal redirect ever types the literal characters `javascript:` into a URL-building expression — that shape is close to unique to either a deliberate (static) bookmarklet or a real vulnerability, which gave a genuinely narrow, high-confidence signal instead of a broad "any redirect" heuristic.
+
+**What's covered:** `location`/`location.href`/`window.location`/`window.location.href`/`document.location`(`.href`) assignment, `el.setAttribute('href'|'src', ...)`, and a JSX `href`/`src` prop — all with the same one-variable-hop tracing already used everywhere else in `xss.ts`.
+
+**What's explicitly still missed, by design:** a `javascript:` scheme held in a *variable* rather than written as a literal in the same expression (`el.setAttribute('href', callbackScheme + callbackTarget)` where `callbackScheme` might be `"javascript:"` at runtime) is invisible to this check — there's no way to know that without data-flow analysis this engine doesn't have. This is a real, disclosed limitation, not an oversight — see the independent-benchmark file below, which includes exactly this case as a deliberate non-catch alongside the real one.
+
+**How this was verified:** 8 new unit-test fixtures (4 vulnerable, 4 safe) — all matched on the first run. A realistic independent-benchmark file (`redirect-handler.js`) deliberately mixes two ordinary safe redirects, one real `javascript:` URI bug (traced through a variable hop), one intentionally-static bookmarklet (must not flag), and one real miss (the variable-held-scheme case above) — matched its prediction on the first scoring run too. Re-verified live in the browser: the ordinary redirect produces zero findings, the real bug is caught with the correct trace note.
+
+**Full suite after this:** 180/180 unit tests passing (was 174); independent benchmark: 20 files, 19 TP, 0 FP, 0 FN.

@@ -128,6 +128,13 @@
         { "ruleId": "auth-jwt-decode-without-verify", "severity": "medium" }
       ],
       "reasoning": "jwt.decode() is called and jwt.verify() is never called anywhere in this file -> flagged. Whether an upstream gateway actually validates the token first is invisible to this rule by design (a disclosed, whole-file-only limitation, not a cross-service/cross-file claim)."
+    },
+    {
+      "file": "redirect-handler.js",
+      "expectedFindings": [
+        { "ruleId": "xss-location-javascript-uri", "severity": "high" }
+      ],
+      "reasoning": "renderCustomAction builds 'javascript:' + actionPayload and assigns it to location.href through one variable hop -> flagged. Every other function in this file is a deliberate non-catch: redirectAfterLogin/redirectToPartner are ordinary dynamic redirects with no javascript: literal (must NOT flag, this is the entire point of the narrow scoping); buildKnownJsBookmarklet is a fully static javascript: URI, not built from a dynamic value (must NOT flag); buildCallbackLink is a REAL, disclosed miss -- the javascript: scheme there is held in a variable (callbackScheme), not a literal in the source, which this check cannot see by design (see xss.ts's own doc comment on this limitation)."
     }
   ]
 }

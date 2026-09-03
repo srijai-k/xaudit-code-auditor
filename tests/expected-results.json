@@ -225,23 +225,85 @@
     "forbidSeverity": "high",
     "note": "regression: a .html() method on an object that is neither jQuery-rooted nor $-prefixed must NOT be flagged — 'report' is not a jQuery-shaped receiver"
   },
-  "xss-location-href-javascript-uri-not-covered": {
-    "path": "fixtures/edge-cases/xss-location-href-javascript-uri-not-covered.ts",
+  "xss-location-href-javascript-uri": {
+    "path": "fixtures/vulnerable/xss-location-href-javascript-uri.ts",
     "group": "xss",
-    "bucket": "edge-cases",
-    "expectRuleIds": [],
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-location-javascript-uri"
+    ],
     "expectSeverity": null,
-    "forbidSeverity": "high",
-    "note": "KNOWN GAP, documented on purpose (docs/self-audit-2026-09-03.md §6b): no rule inspects location.href/window.location assignment at all, so a javascript: URI XSS built from user input is currently invisible. Not implemented yet specifically because location.href assignment is an extremely common, almost always legitimate redirect pattern — a naive 'any dynamic value reaching location.href' check would repeat the exact false-positive mistake the reverted import()/require() check made; this needs its own careful, javascript:-prefix-specific scoping before shipping, not a broad check."
+    "forbidSeverity": null,
+    "note": "new sink, previously a documented gap (fixed 2026-09-03): location.href built by concatenating the literal javascript: scheme with a dynamic value"
   },
-  "xss-setattribute-href-javascript-uri-not-covered": {
-    "path": "fixtures/edge-cases/xss-setattribute-href-javascript-uri-not-covered.ts",
+  "xss-window-location-javascript-uri-one-hop": {
+    "path": "fixtures/vulnerable/xss-window-location-javascript-uri-one-hop.ts",
     "group": "xss",
-    "bucket": "edge-cases",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-location-javascript-uri"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "new sink: window.location assigned a javascript: URI traced back one variable hop"
+  },
+  "xss-setattribute-href-javascript-uri": {
+    "path": "fixtures/vulnerable/xss-setattribute-href-javascript-uri.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-setattribute-javascript-uri"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "new sink, previously a documented gap (fixed 2026-09-03): setAttribute('href', ...) with a javascript: URI built from a dynamic value"
+  },
+  "xss-jsx-href-javascript-uri-template": {
+    "path": "fixtures/vulnerable/xss-jsx-href-javascript-uri-template.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-jsx-href-javascript-uri"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "new sink: a JSX href prop built as a template literal starting with the javascript: scheme"
+  },
+  "xss-location-href-plain-redirect-not-flagged": {
+    "path": "fixtures/safe/xss-location-href-plain-redirect-not-flagged.ts",
+    "group": "xss",
+    "bucket": "safe",
     "expectRuleIds": [],
     "expectSeverity": null,
     "forbidSeverity": "high",
-    "note": "KNOWN GAP, documented on purpose (docs/self-audit-2026-09-03.md §6b): setAttribute('href', ...) is never inspected by any rule, so a javascript: URI built via setAttribute is also currently invisible. Same reasoning as the location.href gap above — setAttribute('href', ...) is used constantly for entirely safe purposes."
+    "note": "the entire reason this check is scoped narrowly: an ordinary, extremely common redirect with no javascript: literal anywhere must NOT be flagged, even though the value is fully dynamic"
+  },
+  "xss-location-href-external-url-not-flagged": {
+    "path": "fixtures/safe/xss-location-href-external-url-not-flagged.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "a normal external-URL redirect built dynamically must NOT be flagged — no javascript: scheme literal present"
+  },
+  "xss-setattribute-href-normal-url-not-flagged": {
+    "path": "fixtures/safe/xss-setattribute-href-normal-url-not-flagged.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "setAttribute('href', ...) with an ordinary dynamic URL (no javascript: literal) must NOT be flagged"
+  },
+  "xss-jsx-href-normal-not-flagged": {
+    "path": "fixtures/safe/xss-jsx-href-normal-not-flagged.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "a normal JSX href prop built dynamically, no javascript: scheme, must NOT be flagged"
   },
   "sqli-concat-db-query": {
     "path": "fixtures/vulnerable/sqli-concat-db-query.ts",

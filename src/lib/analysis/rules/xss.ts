@@ -17,6 +17,21 @@ import type { Finding } from "../types";
  *   - React `dangerouslySetInnerHTML={{ __html: expr }}`, including when
  *     the whole `{ __html: expr }` object is itself one variable hop away
  *     (`const props = { __html: expr }; <div dangerouslySetInnerHTML={props} />`)
+ *   - A `javascript:` URI assigned to `location`/`location.href` (or
+ *     `window.location`/`document.location`), passed to
+ *     `el.setAttribute('href'|'src', ...)`, or used as a JSX `href` prop —
+ *     but ONLY when the literal string `javascript:` actually appears in
+ *     the source, concatenated or interpolated with a dynamic value (see
+ *     isJavascriptUriConcatenation below). This was deliberately NOT
+ *     implemented as "any dynamic value reaching location.href" — that
+ *     shape is an extremely common, almost always legitimate redirect
+ *     pattern, and flagging it broadly would repeat the exact mistake the
+ *     reverted import()/require() check made. Requiring the `javascript:`
+ *     scheme literal to be physically present in the code narrows this to
+ *     a shape that's vanishingly rare in legitimate code (nobody
+ *     constructs a `javascript:` URI from scratch for a normal redirect)
+ *     while still catching the real, classic vulnerability: building an
+ *     executable URI by hand instead of validating a scheme/allowlist.
  *   - jQuery/AngularJS-jqLite `x.html(expr)`, but ONLY when `x` is
  *     recognizably jQuery/jqLite-sourced (see isJquerySourced below) — a
  *     bare `.html()` call name alone is not a strong enough signal by
@@ -131,6 +146,76 @@ function isJquerySourced(path: NodePath, node: t.Node): boolean {
     return false;
 }
 
+const JAVASCRIPT_URI_SCHEME = /^\s*javascript:/i;
+
+/**
+ * True only when `node` is a `+` concatenation or template literal whose
+ * FIRST literal segment is physically the `javascript:` scheme in the
+ * source — not "any dynamic value," which would be far too broad (see the
+ * module doc comment for why). One-hop variable resolution is handled by
+ * the caller via resolveSingleAssignment, same as every other sink here.
+ */
+function isJavascriptUriConcatenation(node: t.Node): boolean {
+    if (t.isBinaryExpression(node) && node.operator === "+") {
+        let left: t.Node = node.left;
+        while (t.isBinaryExpression(left) && left.operator === "+") left = left.left;
+        return t.isStringLiteral(left) && JAVASCRIPT_URI_SCHEME.test(left.value);
+    }
+    if (t.isTemplateLiteral(node)) {
+        const first = node.quasis[0];
+        if (!first || node.expressions.length === 0) return false;
+        return JAVASCRIPT_URI_SCHEME.test(first.value.cooked ?? first.value.raw ?? "");
+    }
+    return false;
+}
+
+/** Resolves a javascript:-URI check through one variable hop, mirroring resolveForXss. */
+function resolveForJavascriptUri(path: NodePath, node: t.Node): { isJsUri: boolean; tracedVia?: string } {
+    if (isJavascriptUriConcatenation(node)) return { isJsUri: true };
+    if (t.isIdentifier(node)) {
+        const resolved = resolveSingleAssignment(path, node);
+        if (resolved.resolved && resolved.initNode && isJavascriptUriConcatenation(resolved.initNode)) {
+            return { isJsUri: true, tracedVia: node.name };
+        }
+    }
+    return { isJsUri: false };
+}
+
+function makeJavascriptUriFinding(ruleId: string, title: string, node: t.Node, code: string, tracedVia: string | undefined): Finding {
+    const traceNote = tracedVia ? ` (traced back one step to the declaration of \`${tracedVia}\`)` : "";
+    return {
+        ruleId,
+        title,
+        severity: "high",
+        category: "xss",
+        message: `${title}: the value is built by concatenating the literal \`javascript:\` scheme with a dynamic value${traceNote}, which executes as script when navigated to or set as an href/src.`,
+        whyItMatters:
+            "A javascript: URI runs as script the moment it's navigated to (a click, a redirect, or certain img/iframe src contexts). Building one by hand from a dynamic value is a direct code-execution path if any part of that value is attacker-influenced.",
+        saferExample:
+            "Validate the destination against an allowlist of schemes/paths before using it (e.g. reject anything not starting with '/' or 'https://'), and never construct a javascript: URI programmatically.",
+        limitations:
+            "Only catches the scheme literal `javascript:` written directly in the source and concatenated with a dynamic value — a value that merely *might* contain \"javascript:\" at runtime (e.g. a plain `location.href = userInput` with no literal scheme in sight) is not flagged at all, deliberately, since that shape is indistinguishable from an ordinary, legitimate redirect without data-flow analysis this engine doesn't have.",
+        location: locOf(node),
+        snippet: excerptOf(code, node),
+    };
+}
+
+const LOCATION_ASSIGNMENT_TARGETS = new Set(["location", "href"]);
+
+/** True for `location`, `location.href`, `window.location`, `window.location.href`, `document.location`, `document.location.href`. */
+function isLocationAssignmentTarget(node: t.Node): boolean {
+    if (t.isIdentifier(node)) return node.name === "location";
+    if (!t.isMemberExpression(node) || node.computed || !t.isIdentifier(node.property)) return false;
+    if (!LOCATION_ASSIGNMENT_TARGETS.has(node.property.name)) return false;
+    const obj = node.object;
+    if (t.isIdentifier(obj)) return obj.name === "location" || obj.name === "window" || obj.name === "document";
+    // window.location.href / document.location.href
+    if (t.isMemberExpression(obj) && !obj.computed && t.isIdentifier(obj.property) && obj.property.name === "location") {
+        return t.isIdentifier(obj.object) && (obj.object.name === "window" || obj.object.name === "document");
+    }
+    return false;
+}
+
 function memberPropName(node: t.Node): string | undefined {
     if (t.isMemberExpression(node) && !node.computed && t.isIdentifier(node.property)) {
         return node.property.name;
@@ -201,6 +286,15 @@ export const xssRule: Rule = {
             AssignmentExpression(path) {
                 const { node } = path;
                 if (node.operator !== "=") return;
+
+                if (isLocationAssignmentTarget(node.left) && t.isExpression(node.right)) {
+                    const jsUri = resolveForJavascriptUri(path, node.right);
+                    if (jsUri.isJsUri) {
+                        findings.push(makeJavascriptUriFinding("xss-location-javascript-uri", "javascript: URI assigned to location", node, code, jsUri.tracedVia));
+                    }
+                    return;
+                }
+
                 const propName = memberPropName(node.left);
                 if (!propName || !HTML_MEMBER_PROPS.has(propName)) return;
                 const resolution = resolveForXss(path, node.right);
@@ -227,6 +321,19 @@ export const xssRule: Rule = {
                             if (!resolution.isStatic) {
                                 findings.push(
                                     makeFinding("xss-insert-adjacent-html", "Unsanitized insertAdjacentHTML() call", node, code, resolution),
+                                );
+                            }
+                        }
+                        return;
+                    }
+                    if (propName === "setAttribute" && node.arguments.length >= 2) {
+                        const attrArg = node.arguments[0];
+                        const valueArg = node.arguments[1];
+                        if (t.isStringLiteral(attrArg) && /^(href|src)$/i.test(attrArg.value) && t.isExpression(valueArg)) {
+                            const jsUri = resolveForJavascriptUri(path, valueArg);
+                            if (jsUri.isJsUri) {
+                                findings.push(
+                                    makeJavascriptUriFinding("xss-setattribute-javascript-uri", `javascript: URI passed to setAttribute('${attrArg.value}', ...)`, node, code, jsUri.tracedVia),
                                 );
                             }
                         }
@@ -265,6 +372,15 @@ export const xssRule: Rule = {
             },
             JSXAttribute(path) {
                 const { node } = path;
+                if (t.isJSXIdentifier(node.name) && /^(href|src)$/i.test(node.name.name) && node.value && t.isJSXExpressionContainer(node.value) && t.isExpression(node.value.expression)) {
+                    const jsUri = resolveForJavascriptUri(path, node.value.expression);
+                    if (jsUri.isJsUri) {
+                        findings.push(
+                            makeJavascriptUriFinding("xss-jsx-href-javascript-uri", `javascript: URI in JSX ${node.name.name} prop`, node, code, jsUri.tracedVia),
+                        );
+                    }
+                    return;
+                }
                 if (!t.isJSXIdentifier(node.name) || node.name.name !== "dangerouslySetInnerHTML") return;
                 if (!node.value || !t.isJSXExpressionContainer(node.value)) return;
                 let expr = node.value.expression;
