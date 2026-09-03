@@ -63,14 +63,22 @@ export function maskSecret(raw: string): string {
 }
 
 /**
- * Redacts vendor-shaped secrets out of arbitrary raw text (not an AST —
- * this runs on a plain string, e.g. a code excerpt about to be written to
- * localStorage). Only the fixed-prefix vendor patterns are applied here,
- * not the name-context generic fallback (that one needs AST binding
- * context — a variable/property name — that isn't available for raw text,
- * so it's intentionally not run here; this is a real, disclosed limitation,
- * not silently pretended away). Safe to call on text with no secrets in it
- * at all — it's a no-op in that case.
+ * Redacts secrets out of arbitrary raw text (not an AST — this runs on a
+ * plain string, e.g. a code excerpt about to be written to localStorage).
+ * Two passes: fixed-prefix vendor patterns, then the entropy-shape check
+ * (see redactHighEntropyStrings above — added as a regression fix, not
+ * part of the original design).
+ *
+ * Still NOT covered: the name-context generic fallback (`secret-generic-
+ * assignment` — a string assigned to an `API_KEY`/`SECRET`/`TOKEN`-shaped
+ * name with no vendor format) for values shorter than the entropy
+ * fallback's 24-character floor. That check needs to see a variable/
+ * property NAME, which isn't available from raw text without re-parsing —
+ * and a short, low-entropy value (e.g. `const API_KEY = "hunter2!";`)
+ * won't be caught by the entropy pass either. This is a real, disclosed,
+ * still-open gap, not silently pretended away — see docs/model-
+ * improvements.md's self-audit entry. Safe to call on text with no
+ * secrets in it at all — it's a no-op in that case.
  */
 export function redactSecrets(text: string): string {
     let out = text;
@@ -78,6 +86,7 @@ export function redactSecrets(text: string): string {
         vp.regex.lastIndex = 0;
         out = out.replace(vp.regex, (match) => maskSecret(match));
     }
+    out = redactHighEntropyStrings(out);
     return out;
 }
 
@@ -161,6 +170,35 @@ function isHighEntropySecretCandidate(value: string): boolean {
     if (PURE_HEX_PATTERN.test(value) && CANONICAL_HASH_LENGTHS.has(value.length)) return false;
     if (!/[0-9]/.test(value) || !/[a-zA-Z]/.test(value)) return false;
     return shannonEntropyBitsPerChar(value) >= MIN_ENTROPY_BITS_PER_CHAR;
+}
+
+/**
+ * REGRESSION FIX (found live, in this browser's own localStorage, during a
+ * self-audit — not by a rule, not by a fixture): once the entropy fallback
+ * above existed, redactSecrets() below still only ever scanned for
+ * vendor-prefixed formats, so a real, non-vendor high-entropy secret
+ * (exactly the case that fallback exists to catch in the findings report)
+ * sailed straight into the "safe to persist locally" history excerpt
+ * completely unmasked — confirmed reproducible: a bearer token passed as a
+ * header value, saved to history, sat in `localStorage` in plaintext.
+ *
+ * This pass is deliberately biased toward OVER-redacting relative to the
+ * detection rule it mirrors, on purpose: a false positive here just turns
+ * a harmless fragment of a stored preview excerpt into asterisks (cheap,
+ * and visible only to the same user in their own browser); a false
+ * negative means a real secret sits in plaintext in someone's localStorage
+ * — the exact bug this exists to close. So the candidate regex here is
+ * intentionally looser than the AST rule's string-literal boundaries (any
+ * 20+ character run of token-shaped characters is checked, not just whole
+ * string-literal values pulled from a parsed AST), while
+ * isHighEntropySecretCandidate's own shape/entropy gate is reused
+ * completely unchanged — this does not loosen or re-calibrate detection,
+ * it only widens where candidates are looked for.
+ */
+const ENTROPY_CANDIDATE_PATTERN = /[A-Za-z0-9_+/=-]{20,}/g;
+
+function redactHighEntropyStrings(text: string): string {
+    return text.replace(ENTROPY_CANDIDATE_PATTERN, (match) => (isHighEntropySecretCandidate(match) ? maskSecret(match) : match));
 }
 
 function propertyKeyName(node: t.ObjectProperty): string | undefined {

@@ -66,7 +66,7 @@ export default function FindingDetailModal({ finding, onClose }) {
 
                 {!selectedTool ? (
                     <>
-                        <div className="text-xs uppercase text-gray-500 mt-6 mb-2">Send to a coding assistant</div>
+                        <div className="text-xs uppercase text-gray-500 mt-6 mb-2">Copy a prompt for a coding assistant</div>
                         <div className="grid grid-cols-4 gap-2">
                             {TOOLS.map((tool) => (
                                 <button key={tool} onClick={() => setSelectedTool(tool)} className="px-3 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300">

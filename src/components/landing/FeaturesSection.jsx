@@ -11,7 +11,7 @@ export default function FeaturesSection() {
                 <div className="reveal mb-16">
                     <h2 className="text-4xl md:text-5xl font-bold mb-6">WHAT IT ACTUALLY CHECKS</h2>
                     <p className="text-xl text-gray-400 max-w-2xl">
-                        Three narrow, tested rule groups over a real AST — not a general linter, not a security guarantee. No performance profiling, no bundle analysis, no dead-code detection: this tool doesn't do those.
+                        Five narrow, tested rule groups over a real AST — not a general linter, not a security guarantee. No performance profiling, no bundle analysis, no dead-code detection: this tool doesn't do those.
                     </p>
                 </div>
 
