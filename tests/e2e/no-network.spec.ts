@@ -76,6 +76,23 @@ test.describe("E2E: zero network requests during a full real-browser user flow",
         const download = await downloadPromise;
         expect(download, "Export PDF should trigger a real client-side download").not.toBeNull();
 
+        // SARIF/JSON export: same Blob-URL-plus-anchor mechanism, but this
+        // is the first time it's been checked against the real CSP-enforced
+        // production build rather than the CSP-exempt dev server (vite.config.js's
+        // preview.headers only applies to `npm run preview`, which is what
+        // this e2e suite's webServer runs) — a blob: download could plausibly
+        // have been blocked by connect-src/default-src, so this isn't a
+        // redundant check of the PDF path.
+        const sarifDownloadPromise = page.waitForEvent("download", { timeout: 5000 }).catch(() => null);
+        await page.getByRole("button", { name: /export sarif/i }).click();
+        const sarifDownload = await sarifDownloadPromise;
+        expect(sarifDownload, "Export SARIF should trigger a real client-side download under the enforced CSP").not.toBeNull();
+
+        const jsonDownloadPromise = page.waitForEvent("download", { timeout: 5000 }).catch(() => null);
+        await page.getByRole("button", { name: /export json/i }).click();
+        const jsonDownload = await jsonDownloadPromise;
+        expect(jsonDownload, "Export JSON should trigger a real client-side download under the enforced CSP").not.toBeNull();
+
         // Clean up local storage via the UI's own control, still observed.
         await page.getByRole("button", { name: /clear local data/i }).click();
 

@@ -49,6 +49,14 @@ Not implemented, and not claimed: general authentication/session-management anal
 
 This data is **plaintext** in `localStorage` (not encrypted) — see [`docs/baseline-audit.md`](docs/baseline-audit.md) finding #9 for why the old "LocalStorage encrypted" claim was removed rather than kept. A "Clear local data" button is available on the findings page.
 
+## Exporting a report
+
+Three formats, all generated client-side from the exact findings already on screen (no re-analysis, no second interpretation of the results):
+
+- **PDF** — a formatted report for sharing/archiving.
+- **SARIF 2.1.0** — the standard format [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning), VS Code's SARIF viewer extension, and most CI security tooling already read. Each result carries the same safer-example and limitations text shown in the app directly in its `properties` — there is no per-finding "remediation link" (`helpUri`), a deliberate choice: this project doesn't host stable, deep-linkable documentation for every individual rule ID, and a fabricated or generic link would be worse than none.
+- **JSON** — the full analysis result (every finding's rule ID, severity, message, why it matters, safer example, limitations, location, and masked snippet, plus which rules ran and the detected language), wrapped with a tool identifier and the same on-screen disclaimer.
+
 ## Benchmark methodology and latest metrics
 
 Two benchmark reports, deliberately kept separate because they measure different things:
