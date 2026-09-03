@@ -154,6 +154,77 @@
     "forbidSeverity": "high",
     "note": "new sink, safe case: a fixed literal assigned to iframe.srcdoc must NOT be flagged"
   },
+  "xss-jquery-html-direct-chain": {
+    "path": "fixtures/vulnerable/xss-jquery-html-direct-chain.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-jquery-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "new sink: $('...').html(dynamic) — direct jQuery-rooted chain"
+  },
+  "xss-jquery-html-cached-object-one-hop": {
+    "path": "fixtures/vulnerable/xss-jquery-html-cached-object-one-hop.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-jquery-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "new sink: a jQuery object cached in a variable one hop before .html() — the common $el = $(...) convention"
+  },
+  "xss-jquery-html-dollar-prefixed-param": {
+    "path": "fixtures/vulnerable/xss-jquery-html-dollar-prefixed-param.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-jquery-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "new sink: a jQuery/jqLite object passed in as a $-prefixed parameter (jQuery plugin / AngularJS 1.x directive link function convention) — unresolvable to a declaration, caught by the naming-convention fallback"
+  },
+  "xss-jquery-html-this-dollar-property-chain": {
+    "path": "fixtures/vulnerable/xss-jquery-html-this-dollar-property-chain.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-jquery-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "new sink: this.$container.find(...).html(dynamic) — the Backbone.View/jQuery-widget convention of caching a jQuery object as a $-prefixed instance property, then chaining off it"
+  },
+  "xss-jquery-html-static-literal": {
+    "path": "fixtures/safe/xss-jquery-html-static-literal.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "new sink, safe case: a fixed literal passed to jQuery .html() must NOT be flagged"
+  },
+  "xss-jquery-html-sanitized": {
+    "path": "fixtures/safe/xss-jquery-html-sanitized.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "new sink, safe case: jQuery .html() wrapped in DOMPurify.sanitize() must be downgraded to low, not high"
+  },
+  "xss-html-method-on-unrelated-object": {
+    "path": "fixtures/safe/xss-html-method-on-unrelated-object.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "regression: a .html() method on an object that is neither jQuery-rooted nor $-prefixed must NOT be flagged — 'report' is not a jQuery-shaped receiver"
+  },
   "sqli-concat-db-query": {
     "path": "fixtures/vulnerable/sqli-concat-db-query.ts",
     "group": "sqli",

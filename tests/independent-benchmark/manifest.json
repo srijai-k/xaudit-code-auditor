@@ -101,6 +101,14 @@
         { "ruleId": "sqli-dynamic-query", "severity": "high" }
       ],
       "reasoning": "A realistic NestJS controller/service with class, method, and parameter decorators throughout. Before decorators-legacy was added to the parser, this entire file would have failed to parse (a hard parse error) regardless of content. findByStatus concatenates raw SQL into this.dataSource.query() — 'dataSource' is a qualified receiver name, matched via the member-expression property check. findById uses a $1 placeholder and must not be flagged."
+    },
+    {
+      "file": "legacy-widget.js",
+      "expectedFindings": [
+        { "ruleId": "xss-jquery-html", "severity": "high" },
+        { "ruleId": "xss-jquery-html", "severity": "low" }
+      ],
+      "reasoning": "renderBio calls this.$container.find('.bio').html(bio) with an unsanitized parameter -> high (this file's construction directly surfaced a real gap: the initial jQuery-detection implementation didn't recognize this.$-prefixed-property chains, only bare $-prefixed identifiers — fixed before this was scored, see docs/model-improvements.md). renderSafeSummary wraps the same shape in DOMPurify.sanitize() -> low. The unrelated `report.html(data)` object method must NOT be flagged — 'report' is not jQuery/$-shaped by any of the recognized signals."
     }
   ]
 }

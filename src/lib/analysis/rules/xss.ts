@@ -17,6 +17,19 @@ import type { Finding } from "../types";
  *   - React `dangerouslySetInnerHTML={{ __html: expr }}`, including when
  *     the whole `{ __html: expr }` object is itself one variable hop away
  *     (`const props = { __html: expr }; <div dangerouslySetInnerHTML={props} />`)
+ *   - jQuery/AngularJS-jqLite `x.html(expr)`, but ONLY when `x` is
+ *     recognizably jQuery/jqLite-sourced (see isJquerySourced below) — a
+ *     bare `.html()` call name alone is not a strong enough signal by
+ *     itself, the same reasoning that gates `.query()` in sqli.ts by
+ *     receiver shape rather than flagging every `.query()` in existence.
+ *     Deliberately narrower than jQuery's full HTML-injection surface:
+ *     `.append()`/`.prepend()`/`.after()`/`.before()`/`.replaceWith()` are
+ *     NOT covered, because unlike `.html()` those are routinely called
+ *     with a DOM/jQuery element reference (completely safe) rather than a
+ *     string, and "the argument isn't a literal" is a much weaker signal
+ *     there — exactly the kind of gap between "technically possible" and
+ *     "would actually misfire on real code" that the reverted
+ *     import()/require() check got wrong. See docs/model-improvements.md.
  *
  * A finding is only raised when the value isn't provably a static string —
  * checked either directly at the sink, or by tracing an identifier back one
@@ -62,6 +75,61 @@ const HTML_PROP_RULE_ID: Record<string, string> = {
     outerHTML: "xss-outer-html",
     srcdoc: "xss-iframe-srcdoc",
 };
+
+/**
+ * True for `$(...)`/`jQuery(...)` and any member/call chain rooted at one
+ * of those — `$('.x').find('.y')`, `$('.x').html(...)`'s own object, etc.
+ * Depth-capped defensively; jQuery chains are never meaningfully deep.
+ */
+function isJqueryRootedChain(node: t.Node, depth = 0): boolean {
+    if (depth > 8) return false;
+    if (t.isCallExpression(node) && t.isIdentifier(node.callee) && (node.callee.name === "$" || node.callee.name === "jQuery")) {
+        return true;
+    }
+    if (t.isCallExpression(node) && t.isMemberExpression(node.callee)) {
+        return isJqueryRootedChain(node.callee.object, depth + 1);
+    }
+    if (t.isMemberExpression(node)) {
+        // `this.$el`/`self.$container`-style cached-object access (the
+        // Backbone.View/jQuery-widget convention) matches the naming
+        // convention on its own, regardless of what it's accessed off —
+        // checked before recursing into the object, so a chain like
+        // `this.$container.find('.bio')` matches at the `this.$container`
+        // link without needing `this` itself to resolve to anything.
+        if (!node.computed && t.isIdentifier(node.property) && node.property.name.startsWith("$") && node.property.name.length > 1) {
+            return true;
+        }
+        return isJqueryRootedChain(node.object, depth + 1);
+    }
+    return false;
+}
+
+/**
+ * True when the receiver of a `.html(...)` call is recognizably a
+ * jQuery/jqLite object: a direct `$(...)`/`jQuery(...)`-rooted chain, a
+ * variable one hop back that was assigned from one, or — since neither of
+ * those catches the extremely common case of a jQuery/jqLite object passed
+ * in as a function parameter, e.g. a jQuery plugin's `function(el) { ... }`
+ * or an AngularJS 1.x directive's `link(scope, $element)`, or a
+ * Backbone.View-style `this.$el`/`this.$container` cached on an instance —
+ * a bare identifier, OR a `.$name` property access on anything, that
+ * follows the jQuery convention of a `$`-prefixed name (`$el`,
+ * `$container`, AngularJS's own `$element`/`$document`, which are real
+ * jqLite-wrapped objects supporting the same `.html()` API). That
+ * last check is a naming-convention heuristic, not a structural one —
+ * disclosed as such in the finding's limitations, same as this project's
+ * other name-based signals (secrets.ts's credential-name pattern,
+ * sqli.ts's db-receiver-name pattern).
+ */
+function isJquerySourced(path: NodePath, node: t.Node): boolean {
+    if (isJqueryRootedChain(node)) return true;
+    if (t.isIdentifier(node)) {
+        if (node.name.startsWith("$") && node.name.length > 1) return true;
+        const resolved = resolveSingleAssignment(path, node);
+        if (resolved.resolved && resolved.initNode && isJqueryRootedChain(resolved.initNode)) return true;
+    }
+    return false;
+}
 
 function memberPropName(node: t.Node): string | undefined {
     if (t.isMemberExpression(node) && !node.computed && t.isIdentifier(node.property)) {
@@ -113,7 +181,9 @@ function makeFinding(ruleId: string, title: string, node: t.Node, code: string, 
             ? "Sanitizer detected. Confirm it is imported from a real, maintained library (e.g. `dompurify`) and configured with an allowlist appropriate for your content."
             : "Use `element.textContent = value` for plain text, or sanitize first: `element.innerHTML = DOMPurify.sanitize(value)`.",
         limitations:
-            "Direct AST match plus one same-scope variable hop — not full data-flow/taint analysis. A value traced through two or more variables, or assembled in a different function, will not be resolved (false negative). A sanitizer name match does not verify safe configuration.",
+            ruleId === "xss-jquery-html"
+                ? "Direct AST match plus one same-scope variable hop, same as the other sinks in this rule — but the receiver check that gates this one is partly a naming convention (a `$`-prefixed identifier, e.g. `$el`), not purely structural, so a non-jQuery/jqLite object that happens to be named that way and happens to have its own unrelated `.html()` method could misfire (false positive), and a jQuery object passed under a differently-named variable through an unresolvable path could be missed (false negative)."
+                : "Direct AST match plus one same-scope variable hop — not full data-flow/taint analysis. A value traced through two or more variables, or assembled in a different function, will not be resolved (false negative). A sanitizer name match does not verify safe configuration.",
         location: locOf(node),
         snippet: excerptOf(code, node),
     };
@@ -157,6 +227,18 @@ export const xssRule: Rule = {
                             if (!resolution.isStatic) {
                                 findings.push(
                                     makeFinding("xss-insert-adjacent-html", "Unsanitized insertAdjacentHTML() call", node, code, resolution),
+                                );
+                            }
+                        }
+                        return;
+                    }
+                    if (propName === "html" && isJquerySourced(path, callee.object)) {
+                        const arg = node.arguments[0];
+                        if (arg && t.isExpression(arg)) {
+                            const resolution = resolveForXss(path, arg);
+                            if (!resolution.isStatic) {
+                                findings.push(
+                                    makeFinding("xss-jquery-html", "Unsanitized jQuery .html() call", node, code, resolution),
                                 );
                             }
                         }
