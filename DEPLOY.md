@@ -58,6 +58,13 @@ Two things are configured here, both required, not optional:
 1. **SPA routing** — a rewrite so refreshing `/audit` or `/audit/history` doesn't 404.
 2. **Security headers** — a strict `Content-Security-Policy` (no `unsafe-inline`, no `unsafe-eval`, `frame-ancestors 'none'`), `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and `Strict-Transport-Security`. These were verified locally against the production build via `npm run preview` (see `vite.config.js`'s matching `preview.headers` block) before being written here — **the live Vercel deployment's headers have not been independently re-verified after deploy**, so check them with `curl -I <your-deployed-url>` once live and compare against `vercel.json`.
 
+**These headers are Vercel-specific, and that's a real gap, not a footnote.** `vercel.json`'s `headers` block is only honored by Vercel's own routing layer — nothing in `index.html` (no CSP `<meta>` tag) or the built `dist/` output itself carries this protection. If you deploy the same build to Netlify, Cloudflare Pages, GitHub Pages, S3, or a plain nginx/Docker static host instead, you get **none** of it unless you configure the equivalent yourself:
+- **Netlify**: add a `public/_headers` file with the same header set.
+- **Cloudflare Pages**: same idea, a `_headers` file in the publish directory.
+- **GitHub Pages / S3 / plain static hosting**: no first-party header mechanism — you'd need a reverse proxy (nginx, CloudFront + Lambda@Edge, etc.) in front of the static files.
+
+Found and disclosed during a self-audit (`docs/self-audit-2026-09-03.md`, finding F-03) — not fixed by adding a universal mechanism (there isn't one that works identically across every static host), fixed by disclosing it clearly instead.
+
 ```json
 {
     "rewrites": [

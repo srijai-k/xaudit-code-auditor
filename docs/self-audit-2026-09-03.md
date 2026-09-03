@@ -1,5 +1,14 @@
 # XAUDIT Self-Audit — 2026-09-03
 
+> **Status update, same day.** F-01 through F-05 below, and the DEPLOY.md
+> gap referenced by F-03, have all since been addressed — see the strike-
+> through status lines added to each finding. F-06 (an automated e2e
+> zero-network-request test using a real browser-automation framework, as
+> opposed to the CI static-analysis guard added for it) remains open. This
+> file is being kept as the historical record of what was found and when,
+> not rewritten to look like everything was already fine — `git log` and
+> `docs/model-improvements.md` carry the actual before/after detail.
+
 Conducted against this repository's actual current state (not the archived
 upstream `srijai-k/xaudit-code-auditor`, and not the claims list in the
 audit request that prompted this — see §2, "claims that no longer exist").
@@ -108,9 +117,9 @@ happened.
 **Remediation** (implemented): Added a second redaction pass (`redactHighEntropyStrings`) that scans raw text for 20+ character token-shaped runs and applies the exact same `isHighEntropySecretCandidate()` gate the AST rule uses, deliberately biased toward over-redaction (a masked non-secret fragment in a locally-stored preview is a negligible cost; an unmasked real secret is not).
 **Verification test**: `tests/unit/excerpt-redaction.test.ts` — 4 new cases: the exact reproduction above now redacts correctly; a git SHA and a CDN URL (adversarial, high-entropy-adjacent but non-secret) remain untouched; an already vendor-masked secret isn't double-mangled. Re-verified live in-browser after the fix: the same input now produces `"kJ8x********************************jH2p"` in `localStorage`.
 **Affects**: Privacy (primary), Trust.
-**Residual gap, disclosed, not fixed in this pass**: the name-context fallback (`secret-generic-assignment`, e.g. `const API_KEY = "shortvalue"`) is still not covered by text-based redaction for values under the entropy pass's 24-character floor. Lower severity than F-01 was (that path requires a credential-shaped variable *name*, which is a narrower real-world occurrence than a bare high-entropy value with no name context at all), but real and open — see the 14-day roadmap.
+**Residual gap noted at the time this was written — since closed, same day**: the name-context fallback (`secret-generic-assignment`, e.g. `const API_KEY = "shortvalue"`) was not yet covered by text-based redaction for values under the entropy pass's 24-character floor. Closed via a third `redactSecrets()` pass (`redactNameContextAssignments`) mirroring the AST rule's own name-context check, with 4 new regression tests.
 
-### F-02 — MEDIUM (Trust) — Not fixed
+### F-02 — MEDIUM (Trust) — FIXED same day
 **Title**: Internally inconsistent rule-group count on the landing page
 **Affected**: `src/components/landing/FeaturesSection.jsx` ("Three narrow, tested rule groups") vs. `src/components/landing/AboutUsSection.jsx` ("5 rule groups, unit-tested") — same page, both visible in the initial scroll.
 **Evidence**: Direct file read of both components; `analyze.ts`'s `SCRIPT_RULES` array confirms 5 is correct.
@@ -119,7 +128,7 @@ happened.
 **Verification**: Visual diff of the landing page; grep for "Three narrow" / "rule groups" returning a single consistent count.
 **Affects**: Trust.
 
-### F-03 — MEDIUM (Privacy claim precision) — Not fixed
+### F-03 — MEDIUM (Privacy claim precision) — DISCLOSED same day (DEPLOY.md + README)
 **Title**: Security headers are Vercel-specific and this is not disclosed
 **Affected**: `vercel.json`, `DEPLOY.md`, README (no mention of hosting-portability at all)
 **Evidence**: See truth table §2b. Verified the headers exist locally via `vite.config.js`'s `preview.headers` (a genuine, deliberate mirror for local verification) and via `vercel.json` for actual Vercel hosting — but nothing in the static build output itself carries them.
@@ -128,7 +137,7 @@ happened.
 **Verification**: `curl -I` against a non-Vercel deployment of the same build, documented as part of any future hosting-guide addition.
 **Affects**: Privacy/Integrity (indirectly, for non-Vercel deployments), Trust.
 
-### F-04 — LOW (Trust/UX precision) — Not fixed
+### F-04 — LOW (Trust/UX precision) — FIXED same day
 **Title**: "Send to a coding assistant" wording implies an active transmission the feature doesn't perform
 **Affected**: `src/components/checker/FindingDetailModal.jsx`
 **Evidence**: See truth table §2b. Function is `navigator.clipboard.writeText()` only.
@@ -137,21 +146,21 @@ happened.
 **Verification**: Visual/copy review.
 **Affects**: Trust.
 
-### F-05 — LOW (Coverage gap, already partially disclosed) — Not fixed
+### F-05 — LOW (Coverage gap, already partially disclosed) — FIXED same day
 **Title**: Manually selecting "HTML" mode on non-HTML input (e.g. a Vue SFC) produces a silent, clean "0 findings" result instead of an error
 **Affected**: `src/lib/analysis/rules/html.ts`, `src/components/checker/CodeInput.jsx` (mode selector)
 **Evidence**: Live test: a Vue single-file component (`<template>`/`<script>`/`<style>` blocks) run under **auto-detect** (the actual default mode) correctly produces `status: "parse-error"` with a clear message — auto-detect's own heuristic (`/^<!doctype html/i` or `/<html[\s>]/i`) doesn't match a Vue SFC, so it correctly falls through to the JS/TS/JSX parser, which correctly rejects it. The *same* file, if a user **manually** selects "HTML" mode, returns `status: "ok"`, zero findings, having never examined the real JavaScript inside the `<script>` block at all — a document-hygiene pass that has nothing to hygiene-check in a template fragment.
 **Exploit scenario / failure mode**: Low likelihood (requires the user to override the sensible default), but a user who does select HTML mode for Vue/Svelte/templating-language content — plausible, since these files visually resemble HTML — gets a clean bill of health for code that was never actually analyzed by any of the five real detection rules.
 **Why this is lower severity than it might first appear**: the default path (auto-detect) does not have this problem; this only manifests under manual mode override, and README's own scope section already states HTML mode is "not AST, not security-grade" and "never looks at JSX at all" — so the underlying behavior is documented. The gap is specifically that a 0-finding result under manual HTML mode looks identical in the UI to a 0-finding result under script mode, with no in-report indicator of which happened.
-**Remediation**: Either (a) have HTML mode surface an explicit note when the input contains a `<script>` tag with non-trivial content ("this HTML mode does not analyze the JavaScript inside `<script>` tags — switch to JS/TS/React mode to check it"), or (b) have the report itself always state which mode actually ran, not just what was found.
-**Verification test**: A new fixture pairing a `<script>`-bearing HTML fragment with an assertion that the report explicitly discloses script-content was skipped.
+**Remediation (implemented, option (a))**: `html.ts` now emits an `info`-severity `html-script-content-not-analyzed` finding whenever the input has a non-trivial inline `<script>` block, naming exactly which real detection rules never ran against it.
+**Verification test**: 4 new cases in `tests/unit/html-rules.test.ts`. Re-verified against the exact original reproduction from this audit (a Vue SFC under manually-selected HTML mode) via `analyze()` directly and live in the running app — the report now shows the disclosure instead of a silent 0-finding result.
 **Affects**: Trust.
 
-### F-06 — INFORMATIONAL — Not fixed
+### F-06 — INFORMATIONAL — PARTIALLY fixed same day
 **Title**: The "0 KB uploaded" / zero-network claim has no automated regression test
 **Affected**: Process gap, not a code file.
 **Evidence**: `worker.ts`'s own comment states it "never touches fetch/XHR/WebSocket" but this is asserted in a comment and spot-checked manually (including by this audit), not enforced by an automated test that would fail CI if a future dependency or contributor introduced one.
-**Remediation**: A CI-level static check (e.g. a grep-based guard, already partially present per prior session notes — verify it actually runs and covers the app's UI code, not just the analysis engine) or, more robustly, a Playwright/Puppeteer test that runs an actual scan and asserts zero network requests fired.
+**Remediation (partially implemented)**: The existing CI static-analysis guard (`.github/workflows/ci.yml`) was widened from `src/lib/analysis/` only to the entire `src/` tree — verified the exact new command passes locally before making it a hard gate. **Still open**: this is a static grep guard, not a true end-to-end test. It cannot catch a network call constructed dynamically (e.g. `window['fe' + 'tch']`) or made through a dependency's own internals rather than a literal `fetch(`/`new XMLHttpRequest(`/`new WebSocket(` call site in this repo's own source. A real Playwright/Puppeteer test that runs an actual scan in a real browser and asserts zero network requests fired would close that gap; this project has no browser-automation test framework set up yet, so this is a real infrastructure addition, not a one-line fix.
 **Affects**: Trust (regression-prevention, not a current live issue).
 
 ---
@@ -241,14 +250,14 @@ npm audit --omit=dev         # matches CI exactly; should show 0
 
 ## 8. What Must Be Removed from the Website Immediately
 
-Nothing needs removing under the strict letter of "remove overclaims" — every claim from the original audit-request list that would need removal has *already* been removed, verified by direct source search, not by trusting the changelog. What remains is a smaller, precision problem, not an overclaim problem:
+Nothing needed removing under the strict letter of "remove overclaims" — every claim from the original audit-request list that would need removal had *already* been removed, verified by direct source search, not by trusting the changelog. What remained was a smaller, precision problem, not an overclaim problem, and both items below were fixed the same day this audit was written:
 
-| Current copy | Where | Problem | Exact replacement |
+| Current copy | Where | Problem | Status |
 |---|---|---|---|
-| "Three narrow, tested rule groups" | `FeaturesSection.jsx:14` | Contradicts "5 rule groups" elsewhere on the same page | "Five narrow, tested rule groups over a real AST" |
-| "Send to a coding assistant" | `FindingDetailModal.jsx:69` | Implies active transmission; actual mechanism is clipboard-copy only | "Copy a prompt for a coding assistant" |
+| ~~"Three narrow, tested rule groups"~~ | `FeaturesSection.jsx:14` | Contradicted "5 rule groups" elsewhere on the same page | **Fixed** — now reads "Five narrow, tested rule groups over a real AST" |
+| ~~"Send to a coding assistant"~~ | `FindingDetailModal.jsx:69` | Implied active transmission; actual mechanism is clipboard-copy only | **Fixed** — now reads "Copy a prompt for a coding assistant" |
 
-That is the complete list. If a stricter bar is wanted: DEPLOY.md should gain one sentence disclosing that the security headers are Vercel-specific (F-03) — not because current wording is false, but because it's silent on a real portability gap.
+DEPLOY.md and README have also since gained the disclosure that security headers are Vercel-specific (F-03).
 
 ---
 
