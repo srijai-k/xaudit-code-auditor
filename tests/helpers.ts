@@ -16,6 +16,8 @@ export interface FixtureExpectation {
     expectSeverity: Severity | null;
     forbidSeverity: Severity | null;
     note: string;
+    /** Defaults to "script" when absent — set explicitly for non-JS/TS input, e.g. "package-json". */
+    mode?: "html" | "script" | "package-json";
 }
 
 const MANIFEST = expectedResults as Record<string, FixtureExpectation>;
@@ -33,7 +35,7 @@ export function loadFixture(id: string): { code: string; expectation: FixtureExp
 
 export function analyzeFixture(id: string): { result: AnalysisResult; expectation: FixtureExpectation } {
     const { code, expectation } = loadFixture(id);
-    const result = analyze(code, "script");
+    const result = analyze(code, expectation.mode ?? "script");
     return { result, expectation };
 }
 

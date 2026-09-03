@@ -69,7 +69,7 @@ export default function CheckerPage() {
             <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
                 <h1 className="text-3xl font-bold tracking-tight mb-2">Check your code</h1>
                 <p className="text-gray-400 text-sm mb-8 max-w-2xl">
-                    Paste HTML, JavaScript, TypeScript, or React/JSX. Analysis runs entirely in your browser in a Web Worker — nothing is sent anywhere. Findings are pattern matches that need human review, not proof of a vulnerability.
+                    Paste HTML, JavaScript, TypeScript, React/JSX, or a package.json. Analysis runs entirely in your browser in a Web Worker — nothing is sent anywhere. Findings are pattern matches that need human review, not proof of a vulnerability.
                 </p>
 
                 <CodeInput

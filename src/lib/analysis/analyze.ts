@@ -7,10 +7,11 @@ import { sqliRule } from "./rules/sqli";
 import { secretsRule } from "./rules/secrets";
 import { nodeCommandRule } from "./rules/node-command";
 import { authRule } from "./rules/auth";
+import { parsePackageJson, runDependencyHygieneChecks } from "./rules/dependency-hygiene";
 import { countBySeverity, MAX_SOURCE_BYTES, type AnalysisResult, type Language, type RuleRunSummary } from "./types";
 import type { Rule } from "./rule";
 
-export type AnalysisMode = "html" | "script";
+export type AnalysisMode = "html" | "script" | "package-json";
 
 /** Real, not simulated: called at the actual point each stage begins. */
 export type Stagelistener = (stage: "parsing" | "analyzing" | "rendering", detail?: string) => void;
@@ -21,10 +22,21 @@ function byteLength(str: string): number {
     return new TextEncoder().encode(str).length;
 }
 
+/** True for JSON that plausibly IS a package.json — not just any JSON object. */
+function looksLikePackageJson(trimmed: string): boolean {
+    if (!trimmed.startsWith("{")) return false;
+    const parsed = parsePackageJson(trimmed);
+    if (!parsed.ok) return false;
+    const data = parsed.data;
+    return typeof data.name === "string" && ("dependencies" in data || "devDependencies" in data || "scripts" in data);
+}
+
 function detectMode(code: string, requested: AnalysisMode | "auto"): AnalysisMode {
     if (requested !== "auto") return requested;
     const trimmed = code.trim();
-    return /^<!doctype html/i.test(trimmed) || /<html[\s>]/i.test(trimmed) ? "html" : "script";
+    if (/^<!doctype html/i.test(trimmed) || /<html[\s>]/i.test(trimmed)) return "html";
+    if (looksLikePackageJson(trimmed)) return "package-json";
+    return "script";
 }
 
 /**
@@ -87,6 +99,38 @@ export function analyze(code: string, requestedMode: AnalysisMode | "auto" = "au
         };
     }
 
+    if (mode === "package-json") {
+        onStage?.("parsing", "parsing package.json");
+        const parsed = parsePackageJson(source);
+        if (!parsed.ok) {
+            return {
+                status: "parse-error",
+                language: "unknown",
+                findings: [],
+                countsBySeverity: countBySeverity([]),
+                rulesRun: [],
+                durationMs: (typeof performance !== "undefined" ? performance.now() : Date.now()) - start,
+                truncated,
+                error: `Could not parse this as package.json: ${parsed.error}`,
+                timestamp,
+            };
+        }
+        onStage?.("analyzing", "1 rule set (dependency hygiene)");
+        const findings = dedupeFindings(runDependencyHygieneChecks(source, parsed.data));
+        rulesRun.push({ ruleId: "dependency-hygiene" });
+        onStage?.("rendering");
+        return {
+            status: "ok",
+            language: "json",
+            findings,
+            countsBySeverity: countBySeverity(findings),
+            rulesRun,
+            durationMs: (typeof performance !== "undefined" ? performance.now() : Date.now()) - start,
+            truncated,
+            timestamp,
+        };
+    }
+
     onStage?.("parsing", "building AST (Babel parser: JS/TS/JSX)");
     const parseResult = parseSource(source);
     if (!parseResult.ok) {
@@ -107,7 +151,7 @@ export function analyze(code: string, requestedMode: AnalysisMode | "auto" = "au
 
     const language: Language = /<\w/.test(source) && /return\s*\(/.test(source) ? "jsx" : /:\s*(string|number|boolean|void|unknown|any)\b/.test(source) ? "typescript" : "javascript";
 
-    onStage?.("analyzing", `${SCRIPT_RULES.length} rules (xss, dynamic-exec, sqli, secrets, node-command)`);
+    onStage?.("analyzing", `${SCRIPT_RULES.length} rules (xss, dynamic-exec, sqli, secrets, node-command, auth)`);
     let allFindings: ReturnType<Rule["run"]> = [];
     for (const rule of SCRIPT_RULES) {
         try {

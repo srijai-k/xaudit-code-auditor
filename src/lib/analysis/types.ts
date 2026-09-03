@@ -12,9 +12,10 @@ export type RuleCategory =
     | "secrets"
     | "node-command"
     | "auth"
+    | "dependency-hygiene"
     | "html";
 
-export type Language = "javascript" | "typescript" | "jsx" | "html" | "unknown";
+export type Language = "javascript" | "typescript" | "jsx" | "html" | "json" | "unknown";
 
 export interface SourceLocation {
     line: number;

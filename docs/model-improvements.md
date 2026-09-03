@@ -222,3 +222,27 @@ After the decorator-parsing fix proved this category has real teeth, probed the 
 **How this was verified:** 8 new unit-test fixtures (4 vulnerable, 4 safe) — all matched on the first run. A realistic independent-benchmark file (`redirect-handler.js`) deliberately mixes two ordinary safe redirects, one real `javascript:` URI bug (traced through a variable hop), one intentionally-static bookmarklet (must not flag), and one real miss (the variable-held-scheme case above) — matched its prediction on the first scoring run too. Re-verified live in the browser: the ordinary redirect produces zero findings, the real bug is caught with the correct trace note.
 
 **Full suite after this:** 180/180 unit tests passing (was 174); independent benchmark: 20 files, 19 TP, 0 FP, 0 FN.
+
+## New rule group and new input type: dependency hygiene for `package.json` (2026-09-03)
+
+**The problem, in plain terms:** everything this checker did up to now was about code — JS/TS/HTML you write. Supply-chain risk (a compromised or careless dependency) is a completely different, and currently very active, real-world attack category, and this tool had no way to look at it at all.
+
+**What this is not, said plainly up front because it matters:** this is **not** vulnerability/CVE scanning. There is no offline advisory database wired in, and nothing here claims to know whether any specific package version has a known security hole — that would need real, versioned vulnerability data this project doesn't have, and claiming otherwise is exactly the kind of overclaim the whole rewrite exists to avoid.
+
+**What it actually checks**, all directly readable from the manifest text with no network call and no advisory data:
+
+1. **Unpinned version ranges** (`"*"`, `"latest"`) — accepts any published version, including one published after a maintainer-account compromise.
+2. **Non-registry dependency sources** (git/URL/file specifiers) — skip npm's registry-level integrity checks, and a mutable git ref can change what code you get without any version bump.
+3. **Suspicious content inside a `scripts` entry** — a pattern match for shapes real supply-chain compromises have used: piping a remote download into a shell, a base64-decode step, dynamic `eval`.
+4. **Presence of an install-time lifecycle script** (`preinstall`/`postinstall`/`prepare`) — `info` severity only. The large majority of these are completely legitimate (native module builds, git hooks via husky); this exists to surface "code runs automatically here," not to accuse anything.
+5. **A well-known dev-tool package name** (a linter, test runner, bundler, `@types/*`, etc.) declared in `dependencies` instead of `devDependencies` — a name-pattern heuristic.
+
+**Deliberately left out, and why — this needed a real decision, not just more checks:**
+- **Missing-lockfile detection.** This tool only ever sees pasted text. If someone doesn't paste a `package-lock.json`, that's indistinguishable from "doesn't have one" — too weak and potentially misleading a signal to report as a finding, so it isn't one.
+- **Usage analysis for check #5.** This engine analyzes one pasted file, not a whole repository, so "is this dependency actually imported anywhere" isn't answerable — the check is a name pattern only, disclosed as such, and the independent-benchmark file below includes a real example of this heuristic making a defensible-but-debatable call (flagging `typescript` in `dependencies` for a backend service that might genuinely need it at runtime).
+
+**A new input type, not just a new rule:** `package.json` isn't JavaScript — it's parsed as plain JSON, not run through Babel at all, the same architectural pattern `html.ts` already uses (text/JSON pattern checks, not an AST). A new `AnalysisMode` (`"package-json"`) was added alongside `"html"`/`"script"`, auto-detected by checking for a `name` field plus a `dependencies`/`devDependencies`/`scripts` key — and a new mode button in the checker UI, since this isn't something auto-detection alone should silently guess at for ambiguous input.
+
+**How this was verified:** 9 new fixtures (5 vulnerable, 3 safe, 1 edge-case) — all matched on the first run, including a fixture specifically distinguishing the "info-only lifecycle script present" finding from the separate "critical suspicious pattern" finding (an ordinary `husky install` postinstall script must trigger the former, never the latter). A realistic independent-benchmark file (`backend-service-package.json`) mixes properly-pinned dependencies, a real git-dependency flag, a legitimate lifecycle script, and the disclosed `typescript`-in-`dependencies` judgment call in one file — matched its prediction on the first scoring run. Re-verified live in the browser end to end: selected the new mode, inserted the built-in example, ran it, confirmed all four expected findings with correct line numbers.
+
+**Full suite after this:** 190/190 unit tests passing (was 180); independent benchmark: 21 files, 22 TP, 0 FP, 0 FN. Seven rule groups total (this one, like `html.ts`, is intentionally not counted in the landing page's "N rule groups over a real AST" figure, since neither is AST-based).

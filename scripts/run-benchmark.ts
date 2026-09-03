@@ -23,7 +23,7 @@ const rows: Row[] = [];
 
 for (const [id, exp] of Object.entries<any>(manifest)) {
     const code = readFileSync(path.join(testsDir, exp.path), "utf8");
-    const result = analyze(code, "script");
+    const result = analyze(code, exp.mode ?? "script");
     const findingRuleIds = result.findings.map((f: any) => f.ruleId);
 
     const shouldFlag = exp.expectRuleIds.length > 0;

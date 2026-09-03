@@ -25,11 +25,29 @@ export default function Profile({ user }) {
     </div>
   );
 }`,
+    'package-json': `{
+  "name": "example-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "*",
+    "lodash": "^4.17.21",
+    "some-fork": "git+https://github.com/someuser/some-fork.git",
+    "eslint": "^9.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  },
+  "scripts": {
+    "postinstall": "node ./scripts/setup.js",
+    "build": "vite build"
+  }
+}`,
 };
 
 const MODES = [
     { id: 'html', label: 'HTML' },
     { id: 'script', label: 'JS / TS / React' },
+    { id: 'package-json', label: 'package.json' },
     { id: 'auto', label: 'Auto-detect' },
 ];
 

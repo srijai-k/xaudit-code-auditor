@@ -27,6 +27,7 @@ interface FileEntry {
     file: string;
     expectedFindings: ExpectedFinding[];
     reasoning: string;
+    mode?: "html" | "script" | "package-json";
 }
 
 interface FileResult {
@@ -45,7 +46,7 @@ const results: FileResult[] = [];
 
 for (const entry of manifest.files as FileEntry[]) {
     const code = readFileSync(path.join(benchDir, "samples", entry.file), "utf8");
-    const analysisResult = analyze(code, "script");
+    const analysisResult = analyze(code, entry.mode ?? "script");
     const actual = analysisResult.findings.map((f) => ({ ruleId: f.ruleId, severity: f.severity }));
 
     // Multiset match: consume each expected finding against an available

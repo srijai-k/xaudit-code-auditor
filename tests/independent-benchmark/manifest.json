@@ -135,6 +135,16 @@
         { "ruleId": "xss-location-javascript-uri", "severity": "high" }
       ],
       "reasoning": "renderCustomAction builds 'javascript:' + actionPayload and assigns it to location.href through one variable hop -> flagged. Every other function in this file is a deliberate non-catch: redirectAfterLogin/redirectToPartner are ordinary dynamic redirects with no javascript: literal (must NOT flag, this is the entire point of the narrow scoping); buildKnownJsBookmarklet is a fully static javascript: URI, not built from a dynamic value (must NOT flag); buildCallbackLink is a REAL, disclosed miss -- the javascript: scheme there is held in a variable (callbackScheme), not a literal in the source, which this check cannot see by design (see xss.ts's own doc comment on this limitation)."
+    },
+    {
+      "file": "backend-service-package.json",
+      "mode": "package-json",
+      "expectedFindings": [
+        { "ruleId": "dep-lifecycle-script-present", "severity": "info" },
+        { "ruleId": "dep-non-registry-source", "severity": "medium" },
+        { "ruleId": "dep-devtool-in-dependencies", "severity": "low" }
+      ],
+      "reasoning": "A realistic backend service manifest, mostly clean. 'prepare': 'husky install' is an ordinary, legitimate lifecycle script -> info only, not the suspicious-pattern check. 'internal-metrics-client' is a git+ssh dependency -> flagged as non-registry (a real, if sometimes intentional, pattern for private internal packages). 'typescript' is declared in 'dependencies' rather than 'devDependencies' -> flagged by the name-pattern heuristic -- this is a deliberately included, realistic example of the heuristic's own disclosed limitation: some backend services genuinely need typescript available at runtime (a build step in a container, ts-node, etc.), so this specific flag is a defensible judgment call, not a clear-cut bug, and is included here on purpose to keep that nuance visible rather than only showing clean wins. express/pg/jsonwebtoken (properly pinned, registry-sourced) and the devDependencies (vitest, @types/express, husky -- all correctly placed) must NOT be flagged."
     }
   ]
 }

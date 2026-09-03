@@ -24,6 +24,7 @@ const CATEGORY_LABELS = {
     secrets: 'Hardcoded Secrets',
     'node-command': 'Node Command Patterns',
     auth: 'Weak Authentication',
+    'dependency-hygiene': 'Dependency Hygiene',
     html: 'HTML Hygiene',
 };
 

@@ -1,6 +1,6 @@
 # XAUDIT
 
-XAUDIT is a client-side static code checker for a defined set of JavaScript, TypeScript, React/JSX, and HTML patterns. Analysis runs entirely in your browser, in a Web Worker, via a real AST parser ([`@babel/parser`](https://babeljs.io/docs/babel-parser)) and a small set of hand-written, unit-tested pattern rules — not an AI model, not regex guesswork over raw text.
+XAUDIT is a client-side static code checker for a defined set of JavaScript, TypeScript, React/JSX, HTML, and `package.json` patterns. Analysis runs entirely in your browser, in a Web Worker, via a real AST parser ([`@babel/parser`](https://babeljs.io/docs/babel-parser)) for code and a JSON-based rule module for `package.json` — a small set of hand-written, unit-tested pattern rules — not an AI model, not regex guesswork over raw text.
 
 **XAUDIT reports potential issues that require human review. A clean result does not mean your code is secure.**
 
@@ -8,7 +8,7 @@ This is a rewrite of an earlier version of this project that made claims — "AI
 
 ## Current supported checks
 
-Only JavaScript, TypeScript, React/JSX, and basic HTML are analyzed. Rules live in [`src/lib/analysis/rules/`](src/lib/analysis/rules/), each with its own limitations documented in the module and exercised by [`tests/`](tests/).
+Only JavaScript, TypeScript, React/JSX, basic HTML, and `package.json` are analyzed. Rules live in [`src/lib/analysis/rules/`](src/lib/analysis/rules/), each with its own limitations documented in the module and exercised by [`tests/`](tests/).
 
 | Rule group | What it flags | What it deliberately does NOT flag |
 |---|---|---|
@@ -19,6 +19,7 @@ Only JavaScript, TypeScript, React/JSX, and basic HTML are analyzed. Rules live 
 | Node.js command patterns ([`node-command.ts`](src/lib/analysis/rules/node-command.ts)) — labeled "Node.js patterns," not full command-injection analysis | `exec`/`execSync` with a non-literal argument; `spawn(..., { shell: true })` with a non-literal command/args | `execFile` with static arguments; `spawn` without `shell: true` |
 | Weak authentication patterns ([`auth.ts`](src/lib/analysis/rules/auth.ts)) — two narrow checks, **not** general authentication/session-management analysis | A credential-shaped name (`password`/`token`/`secret`/`apiKey`/`username`) compared directly against a string literal with `===`/`==`/`!==`/`!=`; `jwt.decode()` used with no `jwt.verify()` anywhere in the same file | A comparison against a non-literal (the normal, correct case — e.g. comparing to a hash); a UI field or OAuth parameter merely *named* something that happens to contain a credential-shaped word (checks the compared-to literal's shape, never the field-name's own value — see the module's own doc comment); `jwt.verify()` happening in a different file than the `jwt.decode()` call; any comparison via a test-assertion library method (`expect(x).toBe(y)`, not a `===`) |
 | HTML hygiene (`html.ts`) — attribute/text checks, **not AST, not security-grade** | Missing viewport meta, missing `alt` text, literal inline `onclick="..."` attributes, missing CSP meta tag, a `<script>` block with real content when the input is analyzed in HTML mode (info-only disclosure that its content wasn't examined) | Anything about JS/JSX inside the page; this module never looks at JSX at all |
+| Dependency hygiene ([`dependency-hygiene.ts`](src/lib/analysis/rules/dependency-hygiene.ts)) — supply-chain **hygiene**, explicitly **not CVE/vulnerability scanning** | On a pasted `package.json`: an unpinned version range (`*`/`latest`); a git/URL/file dependency source instead of a registry version; a suspicious pattern inside a `scripts` entry (piping a remote download into a shell, a base64-decode step, dynamic `eval`); presence of an install-time lifecycle script (`postinstall`/`prepare`/etc., info-only); a well-known dev-tool package name declared in `dependencies` instead of `devDependencies` | Whether any specific package version has a known CVE (no offline advisory database is integrated — this is never claimed); a missing lockfile (this tool only sees pasted text, so "you didn't paste one" and "you don't have one" are indistinguishable — deliberately not reported as a finding rather than guessed); whether a dependency is actually used anywhere in your code (the dev-tool-misplacement check is a name pattern only, not a usage scan across a repository) |
 
 Every finding carries: what matched, why it matters, a safer example, and its own stated limitations. There is no letter grade, no "ship it" verdict, and no numeric score — see [`docs/scoring-removed.md`](docs/scoring-removed.md) for why that was removed rather than kept.
 

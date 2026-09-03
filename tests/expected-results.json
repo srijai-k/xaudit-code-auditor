@@ -994,6 +994,108 @@
     "forbidSeverity": "medium",
     "note": "real bcrypt.compare() usage — a CallExpression, not a === comparison — must NOT flag"
   },
+  "dep-hygiene-unpinned-wildcard": {
+    "path": "fixtures/vulnerable/dep-hygiene-unpinned-wildcard.ts",
+    "group": "dependency-hygiene",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "dep-unpinned-version"
+    ],
+    "expectSeverity": "high",
+    "forbidSeverity": null,
+    "note": "a wildcard version accepts literally any published release",
+    "mode": "package-json"
+  },
+  "dep-hygiene-unpinned-latest": {
+    "path": "fixtures/vulnerable/dep-hygiene-unpinned-latest.ts",
+    "group": "dependency-hygiene",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "dep-unpinned-version"
+    ],
+    "expectSeverity": "high",
+    "forbidSeverity": null,
+    "note": "'latest' is the same unpinned-version problem under a different spelling",
+    "mode": "package-json"
+  },
+  "dep-hygiene-git-dependency": {
+    "path": "fixtures/vulnerable/dep-hygiene-git-dependency.ts",
+    "group": "dependency-hygiene",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "dep-non-registry-source"
+    ],
+    "expectSeverity": "medium",
+    "forbidSeverity": null,
+    "note": "a git-URL dependency bypasses registry-level integrity checks and can change without a version bump",
+    "mode": "package-json"
+  },
+  "dep-hygiene-suspicious-postinstall": {
+    "path": "fixtures/vulnerable/dep-hygiene-suspicious-postinstall.ts",
+    "group": "dependency-hygiene",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "dep-suspicious-script-content"
+    ],
+    "expectSeverity": "critical",
+    "forbidSeverity": null,
+    "note": "a postinstall script piping a remote download into a shell — the real, well-known npm supply-chain-attack pattern",
+    "mode": "package-json"
+  },
+  "dep-hygiene-devtool-in-dependencies": {
+    "path": "fixtures/vulnerable/dep-hygiene-devtool-in-dependencies.ts",
+    "group": "dependency-hygiene",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "dep-devtool-in-dependencies"
+    ],
+    "expectSeverity": "low",
+    "forbidSeverity": null,
+    "note": "eslint (a dev-only tool) declared in \"dependencies\" instead of \"devDependencies\"",
+    "mode": "package-json"
+  },
+  "dep-hygiene-properly-pinned-safe": {
+    "path": "fixtures/safe/dep-hygiene-properly-pinned-safe.ts",
+    "group": "dependency-hygiene",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a normal, properly pinned registry dependency must NOT flag any check",
+    "mode": "package-json"
+  },
+  "dep-hygiene-devtool-correctly-placed-safe": {
+    "path": "fixtures/safe/dep-hygiene-devtool-correctly-placed-safe.ts",
+    "group": "dependency-hygiene",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a dev tool correctly placed in devDependencies must NOT be flagged as misplaced — the check only looks at the \"dependencies\" block",
+    "mode": "package-json"
+  },
+  "dep-hygiene-ordinary-postinstall-not-suspicious": {
+    "path": "fixtures/edge-cases/dep-hygiene-ordinary-postinstall-not-suspicious.ts",
+    "group": "dependency-hygiene",
+    "bucket": "edge-cases",
+    "expectRuleIds": [
+      "dep-lifecycle-script-present"
+    ],
+    "expectSeverity": "info",
+    "forbidSeverity": "critical",
+    "note": "an ordinary postinstall script (running a local, versioned tool) is informational only, not a suspicious-pattern match — demonstrates the two lifecycle-script checks are properly distinct, not the same finding at two severities",
+    "mode": "package-json"
+  },
+  "dep-hygiene-no-dependencies-at-all-safe": {
+    "path": "fixtures/safe/dep-hygiene-no-dependencies-at-all-safe.ts",
+    "group": "dependency-hygiene",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "info",
+    "note": "a package.json with no dependencies/devDependencies/scripts at all must produce zero findings of any severity",
+    "mode": "package-json"
+  },
   "safe-plain-component": {
     "path": "fixtures/safe/safe-plain-component.ts",
     "group": "general-safe",
