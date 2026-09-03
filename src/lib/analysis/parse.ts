@@ -18,6 +18,28 @@ import type { File } from "@babel/types";
  * only — rules can see "this is a call to db.query with a template literal
  * argument" but cannot see inferred types. That is a real limitation and is
  * disclosed in every rule module.
+ *
+ * `decorators-legacy` (not the newer `decorators` plugin) is enabled
+ * specifically because it matches what real decorator-using TypeScript
+ * actually looks like today: NestJS, Angular, TypeORM entities, and
+ * class-validator DTOs all target `experimentalDecorators` (the legacy
+ * proposal), including parameter decorators (`findOne(@Param('id') id)`).
+ * The newer TC39 stage-3 `decorators` plugin was checked and rejected for
+ * this reason — it dropped parameter decorators entirely, so it would fail
+ * to parse the single most common real-world decorator shape. Before this
+ * was added, ANY file using a class/method/parameter decorator failed to
+ * parse at all and got zero analysis coverage, silently — a bigger
+ * reliability gap than any one rule's blind spot, since it wasn't a missed
+ * finding, it was a missed *file*. See docs/model-improvements.md.
+ *
+ * One syntax is a known, permanent limitation rather than something to fix:
+ * old-style TypeScript angle-bracket casts (`<Foo>value`) are ambiguous
+ * with JSX once the `jsx` plugin is on (which it always is here, since
+ * this parser doesn't know a file's real extension) — this is the same
+ * reason the TypeScript compiler itself rejects that syntax in `.tsx`
+ * files and recommends `value as Foo` instead. Not fixable without knowing
+ * whether the input is meant to be JSX, which this tool deliberately
+ * doesn't ask.
  */
 export interface ParseSuccess {
     ok: true;
@@ -45,6 +67,7 @@ export function parseSource(code: string): ParseOutcome {
                 "optionalChaining",
                 "nullishCoalescingOperator",
                 "topLevelAwait",
+                "decorators-legacy",
             ],
         });
         return { ok: true, ast };

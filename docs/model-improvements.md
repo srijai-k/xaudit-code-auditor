@@ -134,3 +134,27 @@ The rule requires **all** of: length ≥ 24, no whitespace, not URL/path-shaped,
 **What this is honestly still not:** a third-party or externally-sourced benchmark. The same process that writes the rules wrote this corpus. What's genuinely different is that these files weren't written to test a specific rule's logic — they're realistic application code with mixed safe/unsafe patterns in the same file, larger noise-floor checks on "nothing wrong here" code, and predictions made while deliberately not looking at what the engine would do. See the report's own opening disclaimer for the full framing — it's written to stand next to the fixtures-based report's disclaimer, not to overclaim past it.
 
 **What happened the first time it ran:** while writing the realistic admin-panel file (predicting ground truth, not yet having run anything), I found the dangerouslySetInnerHTML-as-a-variable gap described above and fixed it before the first scoring run — a real bug the exercise of writing *realistic* code surfaced, the same way the earlier `import()`/`require()` mistake was caught by real usage rather than by the tidy fixtures. After that fix, the first (and so far only) scoring run matched every prediction: 14 files, 13 true positives, 0 false positives, 0 false negatives. See `docs/independent-benchmark-report.md` for the full breakdown, including the one known/accepted false positive (`admin-panel.jsx`'s two-hop case) that was predicted to be flagged and was.
+
+## Fixed: decorator-based TypeScript failed to parse at all (2026-09-03)
+
+**Found how:** not a user report, not a rule test — a direct probe of the parser against realistic modern TypeScript syntax (decorators, enums, private class fields, `satisfies`, abstract classes, namespaces, JSX fragments), done specifically to check for parser-level reliability gaps rather than detection-quality gaps.
+
+**What was broken:** any file with a class, method, or parameter decorator —
+
+```ts
+@Injectable()
+export class UserController {
+  @Get(':id')
+  async findOne(@Param('id') id: string) { ... }
+}
+```
+
+— failed to parse **at all**. Not a missed finding: a hard parse error, `result.status !== "ok"`, zero rule coverage for the entire file, no matter what was inside it. This is the style essentially every NestJS, Angular, TypeORM-entity, and class-validator-DTO file is written in — a large, common share of real backend TypeScript that this checker could not analyze at all before this fix, silently (it would just report a parse error, easy to mistake for "my code has a syntax problem" rather than "this tool can't read decorators yet").
+
+**The fix:** added the `decorators-legacy` Babel parser plugin. This needed one real decision, not just "turn on decorator support": Babel offers two, incompatible decorator syntaxes — `decorators-legacy` (matches TypeScript's `experimentalDecorators`, the original proposal) and `decorators` (the newer TC39 stage-3 proposal, the TypeScript 5.0+ default *without* `experimentalDecorators`). Checked empirically before picking: the TC39 `decorators` plugin **cannot parse parameter decorators at all** (`@Param('id') id` — a NestJS controller's single most common decorator shape) because that proposal removed them. `decorators-legacy` handles it correctly, and matches what NestJS/Angular/TypeORM/class-validator all actually target today. Picking the newer-sounding option would have fixed the class-decorator case shown in bug reports and immediately failed on the parameter-decorator case that's in almost every real controller.
+
+**What was checked and left alone:** old-style TypeScript angle-bracket casts (`<Foo>value`) still don't parse — this is a real, permanent limitation, not an oversight. That syntax is inherently ambiguous with JSX once JSX parsing is on (which it always is here, since this tool doesn't know a file's real extension), which is exactly why TypeScript itself rejects that syntax in `.tsx` files and recommends `value as Foo`. Enums, private class fields (`#foo`), `satisfies`, abstract classes, namespaces, and JSX fragments were all already parsing correctly — checked directly, not assumed, before writing this entry.
+
+**How this was verified:** 3 new regression tests (`tests/regression/decorator-syntax-parses.test.ts`) confirming both that decorated code parses AND that a real vulnerability inside a decorated method is still caught (parsing successfully isn't enough on its own — the rules need to actually run against the resulting AST, which they do). A new realistic file in the independent benchmark (`reports-controller.ts`, a full NestJS controller+service pair) matched its predicted ground truth on the first run alongside the rest of that corpus.
+
+**Full suite after this change:** 119/119 unit tests passing (was 116); independent benchmark: 15 files, 14 TP, 0 FP, 0 FN.

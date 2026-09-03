@@ -94,6 +94,13 @@
         { "ruleId": "sqli-dynamic-query", "severity": "high" }
       ],
       "reasoning": "exportUsersByStatus concatenates raw SQL into sequelize.query() — 'sequelize' is a newly-added qualified receiver name. exportUsersByStatusSafe uses Sequelize's own named-replacement parameterization and must not be flagged."
+    },
+    {
+      "file": "reports-controller.ts",
+      "expectedFindings": [
+        { "ruleId": "sqli-dynamic-query", "severity": "high" }
+      ],
+      "reasoning": "A realistic NestJS controller/service with class, method, and parameter decorators throughout. Before decorators-legacy was added to the parser, this entire file would have failed to parse (a hard parse error) regardless of content. findByStatus concatenates raw SQL into this.dataSource.query() — 'dataSource' is a qualified receiver name, matched via the member-expression property check. findById uses a $1 placeholder and must not be flagged."
     }
   ]
 }
