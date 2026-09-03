@@ -23,6 +23,7 @@ const CATEGORY_LABELS = {
     sqli: 'SQL Injection',
     secrets: 'Hardcoded Secrets',
     'node-command': 'Node Command Patterns',
+    auth: 'Weak Authentication',
     html: 'HTML Hygiene',
 };
 

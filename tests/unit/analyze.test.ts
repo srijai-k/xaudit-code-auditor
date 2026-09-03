@@ -41,7 +41,7 @@ describe("unit: analyze() orchestrator", () => {
         const code = `const x = 1;\nconsole.log(x);\n`;
         const result = analyze(code, "script");
         expect(result.rulesRun.map((r) => r.ruleId).sort()).toEqual(
-            ["dynamic-exec", "node-command", "secrets", "sqli", "xss"].sort(),
+            ["auth", "dynamic-exec", "node-command", "secrets", "sqli", "xss"].sort(),
         );
         expect(result.rulesRun.every((r) => !r.error)).toBe(true);
     });

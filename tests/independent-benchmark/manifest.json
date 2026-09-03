@@ -109,6 +109,25 @@
         { "ruleId": "xss-jquery-html", "severity": "low" }
       ],
       "reasoning": "renderBio calls this.$container.find('.bio').html(bio) with an unsanitized parameter -> high (this file's construction directly surfaced a real gap: the initial jQuery-detection implementation didn't recognize this.$-prefixed-property chains, only bare $-prefixed identifiers — fixed before this was scored, see docs/model-improvements.md). renderSafeSummary wraps the same shape in DOMPurify.sanitize() -> low. The unrelated `report.html(data)` object method must NOT be flagged — 'report' is not jQuery/$-shaped by any of the recognized signals."
+    },
+    {
+      "file": "auth-middleware.js",
+      "expectedFindings": [
+        { "ruleId": "auth-hardcoded-credential-comparison", "severity": "medium" }
+      ],
+      "reasoning": "A leftover dev-only backdoor: password === 'letmein-dev-only' -> flagged. The real login path uses bcrypt.compare(password, user.passwordHash), a CallExpression not a === comparison -> not flagged (the normal, correct case). requireAdmin's req.user.role === 'admin' must NOT be flagged — 'role' is not a credential-shaped name."
+    },
+    {
+      "file": "jwt-session.js",
+      "expectedFindings": [],
+      "reasoning": "jwt.verify() IS called in this file (in authenticate()), so jwt.decode() in the separate getDisplayName() helper must NOT be flagged, per this rule's own disclosed whole-file (not per-call-site) logic — even though decode() here is used for a different, non-authoritative purpose than where verify() happens. This is the rule doing exactly what it says it does, not a bug."
+    },
+    {
+      "file": "legacy-token-reader.js",
+      "expectedFindings": [
+        { "ruleId": "auth-jwt-decode-without-verify", "severity": "medium" }
+      ],
+      "reasoning": "jwt.decode() is called and jwt.verify() is never called anywhere in this file -> flagged. Whether an upstream gateway actually validates the token first is invisible to this rule by design (a disclosed, whole-file-only limitation, not a cross-service/cross-file claim)."
     }
   ]
 }

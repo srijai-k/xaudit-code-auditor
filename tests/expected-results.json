@@ -818,6 +818,120 @@
     "forbidSeverity": "high",
     "note": "dangerouslySetInnerHTML wrapped in DOMPurify.sanitize must be low severity, not high/critical"
   },
+  "auth-hardcoded-password-comparison": {
+    "path": "fixtures/vulnerable/auth-hardcoded-password-comparison.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-hardcoded-credential-comparison"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a request password compared directly against a hardcoded literal — a real backdoor/debug-credential shape"
+  },
+  "auth-hardcoded-apikey-comparison": {
+    "path": "fixtures/vulnerable/auth-hardcoded-apikey-comparison.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-hardcoded-credential-comparison"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "an API key checked against a literal instead of a configured value (also matches the OpenAI vendor secret pattern -- both rules are expected to fire independently on the same literal)"
+  },
+  "auth-jwt-decode-no-verify": {
+    "path": "fixtures/vulnerable/auth-jwt-decode-no-verify.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-jwt-decode-without-verify"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "jwt.decode() used with no jwt.verify() anywhere in the file — the signature is never checked"
+  },
+  "auth-password-compared-to-hash-variable": {
+    "path": "fixtures/safe/auth-password-compared-to-hash-variable.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "comparing to a variable (presumably a hash), not a literal — the normal, correct shape — must NOT flag"
+  },
+  "auth-role-compared-to-literal-not-credential": {
+    "path": "fixtures/safe/auth-role-compared-to-literal-not-credential.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "'role' is not a credential-shaped name — a normal role check against a literal must NOT flag"
+  },
+  "auth-oauth-grant-type-password": {
+    "path": "fixtures/safe/auth-oauth-grant-type-password.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "OAuth2's 'password' grant type — the compared identifier is 'grantType', not a credential-shaped name; this rule checks the NAME being compared, never the literal's content"
+  },
+  "auth-empty-password-check": {
+    "path": "fixtures/safe/auth-empty-password-check.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "checking for an empty password is a normal validation pattern, not a backdoor — empty string literal is explicitly excluded"
+  },
+  "auth-tokentype-bearer-scheme": {
+    "path": "fixtures/safe/auth-tokentype-bearer-scheme.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "'tokenType' matches the credential-name pattern (contains 'token'), but 'Bearer' is an auth-scheme name, not a secret value — explicitly excluded"
+  },
+  "auth-jwt-verify-used": {
+    "path": "fixtures/safe/auth-jwt-verify-used.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "jwt.verify() is called elsewhere in the file — jwt.decode() must NOT be flagged when verification happens somewhere in the same file"
+  },
+  "auth-unrelated-decode-not-jwt": {
+    "path": "fixtures/safe/auth-unrelated-decode-not-jwt.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a .decode() call with no 'jsonwebtoken' reference anywhere in the file must NOT be flagged — this isn't a JWT-decoding rule for any decode() call"
+  },
+  "auth-test-assertion-not-flagged": {
+    "path": "fixtures/safe/auth-test-assertion-not-flagged.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a test-assertion-library call (expect().toBe()) is a CallExpression, not a BinaryExpression === comparison — must NOT flag, by AST shape alone"
+  },
+  "auth-bcrypt-compare-used": {
+    "path": "fixtures/safe/auth-bcrypt-compare-used.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "real bcrypt.compare() usage — a CallExpression, not a === comparison — must NOT flag"
+  },
   "safe-plain-component": {
     "path": "fixtures/safe/safe-plain-component.ts",
     "group": "general-safe",

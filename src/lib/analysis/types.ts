@@ -11,6 +11,7 @@ export type RuleCategory =
     | "sqli"
     | "secrets"
     | "node-command"
+    | "auth"
     | "html";
 
 export type Language = "javascript" | "typescript" | "jsx" | "html" | "unknown";

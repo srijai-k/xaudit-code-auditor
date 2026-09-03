@@ -4,10 +4,14 @@
 > addressed, including a real Playwright e2e test that closes F-06's
 > remaining gap and, in the process, found a second real blind spot (a
 > CSP-blocked request is invisible to Playwright's network events, only a
-> console listener catches it). This file is being kept as the historical
-> record of what was found and when, not rewritten to look like everything
-> was already fine — `git log` and `docs/model-improvements.md` carry the
-> actual before/after detail.
+> console listener catches it). A new rule group (`auth.ts`, weak
+> authentication patterns — hardcoded credential comparison, `jwt.decode()`
+> without `jwt.verify()`) was also added after this audit, closing part of
+> the "Unsupported vulnerability classes" gap this report's §5 and §6
+> describe below as unimplemented. This file is being kept as the
+> historical record of what was found and when, not rewritten to look like
+> everything was already fine — `git log` and `docs/model-improvements.md`
+> carry the actual before/after detail.
 
 Conducted against this repository's actual current state (not the archived
 upstream `srijai-k/xaudit-code-auditor`, and not the claims list in the

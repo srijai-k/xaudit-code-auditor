@@ -6,6 +6,7 @@ import { dynamicExecRule } from "./rules/dynamic-exec";
 import { sqliRule } from "./rules/sqli";
 import { secretsRule } from "./rules/secrets";
 import { nodeCommandRule } from "./rules/node-command";
+import { authRule } from "./rules/auth";
 import { countBySeverity, MAX_SOURCE_BYTES, type AnalysisResult, type Language, type RuleRunSummary } from "./types";
 import type { Rule } from "./rule";
 
@@ -14,7 +15,7 @@ export type AnalysisMode = "html" | "script";
 /** Real, not simulated: called at the actual point each stage begins. */
 export type Stagelistener = (stage: "parsing" | "analyzing" | "rendering", detail?: string) => void;
 
-const SCRIPT_RULES: Rule[] = [xssRule, dynamicExecRule, sqliRule, secretsRule, nodeCommandRule];
+const SCRIPT_RULES: Rule[] = [xssRule, dynamicExecRule, sqliRule, secretsRule, nodeCommandRule, authRule];
 
 function byteLength(str: string): number {
     return new TextEncoder().encode(str).length;

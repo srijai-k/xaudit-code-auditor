@@ -55,7 +55,7 @@ export default function AboutUsSection() {
 
                             <div>
                                 <div className="text-xl font-bold text-white mb-2">Babel-based parser</div>
-                                <div className="text-gray-400">5 rule groups, unit-tested</div>
+                                <div className="text-gray-400">6 rule groups, unit-tested</div>
                                 <div className="text-gray-500 text-sm mt-1">See docs/benchmark-report.md for real numbers</div>
                             </div>
                         </div>
