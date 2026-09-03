@@ -12,20 +12,30 @@ import type { AnalysisResult, Finding, Severity } from "../analysis/types";
  *   1. `artifactLocation.uri` is always the fixed string "pasted-input".
  *      This tool has no real filename — you paste text, it doesn't read a
  *      filesystem — so anything else here would be a fabricated path.
- *   2. There is no per-result "remediation link" (a `helpUri` pointing
- *      somewhere). This project doesn't host stable, deep-linkable
- *      documentation for each individual rule ID, and a fabricated or
- *      generic link would be worse than none — either it goes nowhere
- *      specific or it overstates how tailored the guidance is. Instead,
- *      the actual safer-example text (the same one shown in the app) is
- *      included directly in `properties.saferExample` on every result, so
- *      the remediation guidance travels with the finding either way.
+ *   2. `helpUri` points at `docs/rules/<category>.md#<ruleId>` in this
+ *      repository — a real, stable, per-ruleId anchor, not a generic or
+ *      fabricated link. This was NOT populated when SARIF export first
+ *      shipped, specifically because those per-rule doc pages didn't
+ *      exist yet and a link to nowhere specific would have been worse
+ *      than none. `docs/rules/` was built afterward for exactly this
+ *      reason (one page per rule module, one stable anchor per ruleId,
+ *      every example pulled from the actual test corpus) — see
+ *      `docs/rules/README.md`. The actual safer-example text still also
+ *      travels directly in `properties.saferExample` on every result,
+ *      since a link can go stale or be unavailable offline and the
+ *      finding itself shouldn't depend on it.
  *
  * `properties["security-severity"]` is GitHub's own documented SARIF
  * extension (a 0.0–10.0 float used to color-code results in its UI) — the
  * mapping below is this project's own approximation, not derived from any
  * CVSS scoring, and is labeled as such.
  */
+
+const DOCS_BASE_URL = "https://github.com/srijai-k/xaudit-code-auditor/blob/main/docs/rules";
+
+function helpUriFor(finding: Finding): string {
+    return `${DOCS_BASE_URL}/${finding.category}.md#${finding.ruleId}`;
+}
 
 const SEVERITY_TO_SARIF_LEVEL: Record<Severity, "error" | "warning" | "note"> = {
     critical: "error",
@@ -50,6 +60,7 @@ interface SarifRuleDescriptor {
     name: string;
     shortDescription: { text: string };
     fullDescription: { text: string };
+    helpUri: string;
     defaultConfiguration: { level: "error" | "warning" | "note" };
     properties: Record<string, unknown>;
 }
@@ -60,6 +71,7 @@ function buildRuleDescriptor(finding: Finding): SarifRuleDescriptor {
         name: finding.title,
         shortDescription: { text: finding.title },
         fullDescription: { text: finding.whyItMatters },
+        helpUri: helpUriFor(finding),
         defaultConfiguration: { level: SEVERITY_TO_SARIF_LEVEL[finding.severity] },
         properties: {
             category: finding.category,

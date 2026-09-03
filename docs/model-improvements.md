@@ -262,3 +262,17 @@ GitHub's own documented SARIF extension field, `properties["security-severity"]`
 **How this was verified:** 9 unit tests checking the actual structural shape against the SARIF 2.1.0 spec's required fields (not a full schema validation — no offline copy of the official JSON schema is bundled, consistent with the no-network-dependency policy everywhere else in this project) — envelope shape, deduplicated rule descriptors, severity-to-level mapping, and a specific check that a masked secret's raw value never leaks back out through the export path. Then verified live against the actual CSP-enforced production build via the Playwright e2e suite (not the dev server, which is CSP-exempt) — clicking "Export SARIF" and "Export JSON" both trigger a real client-side download with zero network activity, the same assertion already covering the rest of the app.
 
 **Full suite after this:** 199/199 unit tests passing (was 190); e2e still green against the real CSP.
+
+## Per-rule documentation (2026-09-03)
+
+**The problem this closes:** SARIF's `helpUri` field was deliberately left empty when SARIF export shipped, because there was nowhere stable to point it — this project had no per-rule documentation pages. That was flagged explicitly as a gap in the SARIF work, not silently accepted.
+
+**What was built:** `docs/rules/` — one page per rule module (matching the 8 rule categories), each with a `## <exact-ruleId>` section per individual `ruleId` (41 across the 8 modules). Every section: what it flags, severity and why, a risky example, a safe example (with the reasoning for why it's *not* flagged — usually the more informative half), known limitations, and which tests exercise it. Every example is pulled directly from the actual test corpus (`tests/fixtures/`, `tests/independent-benchmark/`) — nothing invented for the docs that isn't already verified by a passing test.
+
+**Then closed the loop:** `sarif-generator.ts`'s `helpUri` now points at `docs/rules/<category>.md#<ruleId>` — a real, stable, individually-addressable anchor, not a generic link.
+
+**How this was verified — twice, differently:**
+1. A new drift-protection test (`tests/unit/rule-docs-coverage.test.ts`) extracts every ruleId-shaped string literal directly from each rule's actual source file at test-run time (not from a hardcoded list) and asserts a matching `## <ruleId>` heading exists in that module's doc page. This means a future rule change that adds, renames, or removes a `ruleId` without updating `docs/rules/` fails a test instead of silently producing a dead SARIF link. Passed on every one of the 8 modules the first time it was run, which is real evidence the docs were actually complete and accurate when written, not just plausible-looking.
+2. Ran a real `analyze()` result through `generateSarif()` and printed the actual `helpUri` values for three different findings (an XSS `javascript:`-URI catch, a vendor secret match, and an auth finding) — confirmed each resolves to the exact anchor just written, not just asserted structurally in a unit test.
+
+**Full suite after this:** 209/209 unit tests passing (was 199).

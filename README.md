@@ -8,7 +8,7 @@ This is a rewrite of an earlier version of this project that made claims — "AI
 
 ## Current supported checks
 
-Only JavaScript, TypeScript, React/JSX, basic HTML, and `package.json` are analyzed. Rules live in [`src/lib/analysis/rules/`](src/lib/analysis/rules/), each with its own limitations documented in the module and exercised by [`tests/`](tests/).
+Only JavaScript, TypeScript, React/JSX, basic HTML, and `package.json` are analyzed. Rules live in [`src/lib/analysis/rules/`](src/lib/analysis/rules/), each with its own limitations documented in the module and exercised by [`tests/`](tests/). For a page per exact `ruleId` — what it flags, risky/safe examples, severity rationale, limitations, and which tests exercise it — see [`docs/rules/`](docs/rules/).
 
 | Rule group | What it flags | What it deliberately does NOT flag |
 |---|---|---|
@@ -54,7 +54,7 @@ This data is **plaintext** in `localStorage` (not encrypted) — see [`docs/base
 Three formats, all generated client-side from the exact findings already on screen (no re-analysis, no second interpretation of the results):
 
 - **PDF** — a formatted report for sharing/archiving.
-- **SARIF 2.1.0** — the standard format [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning), VS Code's SARIF viewer extension, and most CI security tooling already read. Each result carries the same safer-example and limitations text shown in the app directly in its `properties` — there is no per-finding "remediation link" (`helpUri`), a deliberate choice: this project doesn't host stable, deep-linkable documentation for every individual rule ID, and a fabricated or generic link would be worse than none.
+- **SARIF 2.1.0** — the standard format [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning), VS Code's SARIF viewer extension, and most CI security tooling already read. Each rule descriptor's `helpUri` links to that exact `ruleId`'s section in [`docs/rules/`](docs/rules/) — a real, stable anchor, not a generic link — and the same safer-example and limitations text is also included directly in each result's `properties`, so the guidance doesn't depend on the link resolving.
 - **JSON** — the full analysis result (every finding's rule ID, severity, message, why it matters, safer example, limitations, location, and masked snippet, plus which rules ran and the detected language), wrapped with a tool identifier and the same on-screen disclaimer.
 
 ## Benchmark methodology and latest metrics

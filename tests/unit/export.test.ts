@@ -32,6 +32,14 @@ describe("unit: SARIF export", () => {
         expect(ruleIds).toContain("secret-openai");
     });
 
+    it("every rule descriptor's helpUri points at a real, stable per-ruleId anchor in docs/rules/", () => {
+        const sarif = generateSarif(result) as any;
+        for (const rule of sarif.runs[0].tool.driver.rules) {
+            expect(rule.helpUri).toMatch(/^https:\/\/github\.com\/srijai-k\/xaudit-code-auditor\/blob\/main\/docs\/rules\/[a-z-]+\.md#/);
+            expect(rule.helpUri.endsWith(`#${rule.id}`)).toBe(true);
+        }
+    });
+
     it("every result has a ruleId, a SARIF-valid level, a message, and a location", () => {
         const sarif = generateSarif(result) as any;
         const results = sarif.runs[0].results;
