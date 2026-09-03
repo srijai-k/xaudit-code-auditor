@@ -277,7 +277,25 @@ DEPLOY.md and README have also since gained the disclosure that security headers
 | 4–7 | Close the remaining redaction gap (short name-context secrets, noted in F-01's "residual gap") | Same bug class as F-01, smaller blast radius | Extend `redactSecrets()` with a third, narrowly-scoped pass: `/(API[_-]?KEY|SECRET|TOKEN|PASSWORD)[\s"'\`]*[:=][\s"'\`]*([^"'\`]{8,})/gi` matched against raw text, redacting the captured group only | New regression test with a short name-context secret near the excerpt boundary |
 | 8–10 | Disclose F-03 (Vercel-specific headers) | Real portability gap, currently silent | Add one paragraph to `DEPLOY.md` and a line to README | Docs mention the gap explicitly with a suggested non-Vercel config path |
 | 8–10 | Add an automated zero-network-request regression test (F-06) | Currently only manually spot-checked (including by this very audit) | A Playwright/Puppeteer test: load the built app, run a scan, assert `page.on('request')` never fires for a non-localhost origin | New CI job; fails loudly if a future change introduces any network call |
-| 8–10 | Verify actual offline behavior post-disconnect, on at least Chrome + Firefox | README currently says "NOT VERIFIED" — either verify it or keep saying so honestly | Manual test: load once online, go offline (DevTools network throttling → offline), reload, confirm the app still functions | Update README's PWA line to "VERIFIED on Chrome/Firefox as of <date>" or leave as "NOT VERIFIED" if it fails |
+| 8–10 | Verify actual offline behavior post-disconnect, on at least Chrome + Firefox | README currently says "NOT VERIFIED" — either verify it or keep saying so honestly | **Attempted, same day, did not complete — see below.** Manual test: load once online, go offline (DevTools network throttling → offline), reload, confirm the app still functions | Update README's PWA line to "VERIFIED on Chrome/Firefox as of <date>" or leave as "NOT VERIFIED" if it fails |
+
+### Offline verification attempt, same day — inconclusive, not a pass or a fail
+
+Built the production bundle, served it (`npm run preview`), navigated to it fresh, and attempted to confirm the service worker actually registers and precaches — the real test methodology being "kill the origin server outright and see if the already-cached page still loads," which is stronger evidence than reading `vite.config.js`'s `globPatterns` and assuming it works.
+
+Never got past step one: `navigator.serviceWorker.register('/sw.js', ...)` failed with `TypeError: ... An unknown error occurred when fetching the script.` — in the automated browser environment this audit runs in. Before concluding anything about XAUDIT itself, ran a control test: registered a completely different, definitely-valid, definitely-fetchable same-origin script (`/registerSW.js`, confirmed reachable via `curl`, `Content-Type: text/javascript`, no CSP/header issue) as a service worker instead. **It failed identically.** That rules out `sw.js`'s content, the CSP, and the response headers as the cause — this is the browser automation environment itself blocking service-worker registration outright (a common, deliberate sandboxing choice for automated/CDP-driven browsers), not a bug in this app's PWA configuration.
+
+**Honest conclusion: still NOT VERIFIED, for a different reason than before.** It was previously unverified because no one had checked. It is now unverified because the tool available to check it here cannot. This needs a real desktop browser (Chrome or Firefox, not an automated one) to finish:
+
+```bash
+npm run build
+npm run preview          # serves the production build at http://localhost:4173
+```
+
+1. Open `http://localhost:4173` in a real Chrome or Firefox window.
+2. Open DevTools → Application (Chrome) / about:debugging (Firefox) → confirm a service worker is registered and activated for that origin.
+3. Stop the `npm run preview` process entirely (or use DevTools → Network → "Offline").
+4. Reload the page. If the app shell still loads and the checker still runs a scan with the server dead, offline capability is real; update README's PWA line to "VERIFIED on <browser> as of <date>." If it fails to load, that's a real bug to fix, not a claim to soften further.
 | 11–14 | Re-run both benchmarks, regenerate reports | Keep the two accuracy signals current after the above fixes | `npm run bench && npm run bench:independent` | Both reports committed with a fresh timestamp |
 | 11–14 | Publish this document (or a trimmed public version) alongside `docs/baseline-audit.md` | Continues the project's own established transparency pattern rather than treating this as a one-off exercise | Commit as `docs/self-audit-2026-09-03.md` (already done); link from README | README references it the same way it already references `baseline-audit.md` |
 | 11–14 | Re-run `npm audit --omit=dev` and full `npm audit` one more time before any release | Dependency posture can shift silently between audits | Run both, diff against this report's numbers | Zero production-dependency vulnerabilities, or a documented exception with a tracked upgrade path |
