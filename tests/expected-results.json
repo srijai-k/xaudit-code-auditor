@@ -225,6 +225,24 @@
     "forbidSeverity": "high",
     "note": "regression: a .html() method on an object that is neither jQuery-rooted nor $-prefixed must NOT be flagged — 'report' is not a jQuery-shaped receiver"
   },
+  "xss-location-href-javascript-uri-not-covered": {
+    "path": "fixtures/edge-cases/xss-location-href-javascript-uri-not-covered.ts",
+    "group": "xss",
+    "bucket": "edge-cases",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "KNOWN GAP, documented on purpose (docs/self-audit-2026-09-03.md §6b): no rule inspects location.href/window.location assignment at all, so a javascript: URI XSS built from user input is currently invisible. Not implemented yet specifically because location.href assignment is an extremely common, almost always legitimate redirect pattern — a naive 'any dynamic value reaching location.href' check would repeat the exact false-positive mistake the reverted import()/require() check made; this needs its own careful, javascript:-prefix-specific scoping before shipping, not a broad check."
+  },
+  "xss-setattribute-href-javascript-uri-not-covered": {
+    "path": "fixtures/edge-cases/xss-setattribute-href-javascript-uri-not-covered.ts",
+    "group": "xss",
+    "bucket": "edge-cases",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "KNOWN GAP, documented on purpose (docs/self-audit-2026-09-03.md §6b): setAttribute('href', ...) is never inspected by any rule, so a javascript: URI built via setAttribute is also currently invisible. Same reasoning as the location.href gap above — setAttribute('href', ...) is used constantly for entirely safe purposes."
+  },
   "sqli-concat-db-query": {
     "path": "fixtures/vulnerable/sqli-concat-db-query.ts",
     "group": "sqli",
@@ -419,6 +437,17 @@
     "expectSeverity": null,
     "forbidSeverity": "high",
     "note": "KNOWN FALSE NEGATIVE, documented on purpose: bare 'manager' is deliberately NOT in the qualified-receiver list (too generic — cache/state/task managers commonly expose unrelated .query-shaped methods), so TypeORM's manager.query() with real concatenated SQL is missed here"
+  },
+  "sqli-no-sanitizer-downgrade-path": {
+    "path": "fixtures/edge-cases/sqli-no-sanitizer-downgrade-path.ts",
+    "group": "sqli",
+    "bucket": "edge-cases",
+    "expectRuleIds": [
+      "sqli-dynamic-query"
+    ],
+    "expectSeverity": "high",
+    "forbidSeverity": null,
+    "note": "KNOWN GAP, documented on purpose (docs/self-audit-2026-09-03.md §6b): unlike xss.ts, this rule has NO sanitizer-recognition path at all. Concatenation reaching .query() is always 'high', even when an operand is itself a call to something that looks like a real escaping function — there is no equivalent of xss.ts's isSanitizerWrapped()/severity-downgrade-to-low here. This is arguably the conservative/safe default (an unverified 'escaping' call name proves nothing), but it means this specific case can never be distinguished from a genuinely raw, unescaped concatenation."
   },
   "secret-openai-key": {
     "path": "fixtures/vulnerable/secret-openai-key.ts",

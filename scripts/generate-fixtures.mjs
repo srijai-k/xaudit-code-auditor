@@ -61,6 +61,10 @@ const CORPUS = [
       code: `import DOMPurify from 'dompurify';\nfunction render(userBio) {\n  $('#profile-bio').html(DOMPurify.sanitize(userBio));\n}\n` },
     { id: "xss-html-method-on-unrelated-object", group: "xss", bucket: "safe", forbidSeverity: "high", note: "regression: a .html() method on an object that is neither jQuery-rooted nor $-prefixed must NOT be flagged — 'report' is not a jQuery-shaped receiver",
       code: `function render(userBio) {\n  return report.html(userBio);\n}\n` },
+    { id: "xss-location-href-javascript-uri-not-covered", group: "xss", bucket: "edge-cases", forbidSeverity: "high", note: "KNOWN GAP, documented on purpose (docs/self-audit-2026-09-03.md §6b): no rule inspects location.href/window.location assignment at all, so a javascript: URI XSS built from user input is currently invisible. Not implemented yet specifically because location.href assignment is an extremely common, almost always legitimate redirect pattern — a naive 'any dynamic value reaching location.href' check would repeat the exact false-positive mistake the reverted import()/require() check made; this needs its own careful, javascript:-prefix-specific scoping before shipping, not a broad check.",
+      code: `function go(userInput) {\n  location.href = "javascript:" + userInput;\n}\n` },
+    { id: "xss-setattribute-href-javascript-uri-not-covered", group: "xss", bucket: "edge-cases", forbidSeverity: "high", note: "KNOWN GAP, documented on purpose (docs/self-audit-2026-09-03.md §6b): setAttribute('href', ...) is never inspected by any rule, so a javascript: URI built via setAttribute is also currently invisible. Same reasoning as the location.href gap above — setAttribute('href', ...) is used constantly for entirely safe purposes.",
+      code: `function go(el, userInput) {\n  el.setAttribute('href', 'javascript:' + userInput);\n}\n` },
 
     // ===================== SQLi (10) =====================
     { id: "sqli-concat-db-query", group: "sqli", bucket: "vulnerable", expectRuleIds: ["sqli-dynamic-query"], note: "string concatenation directly in the db.query() call",
@@ -101,6 +105,8 @@ const CORPUS = [
       code: `function getUser(id) {\n  return prisma.$queryRaw\`SELECT * FROM users WHERE id = \${id}\`;\n}\n` },
     { id: "sqli-typeorm-manager-not-qualified", group: "sqli", bucket: "edge-cases", forbidSeverity: "high", note: "KNOWN FALSE NEGATIVE, documented on purpose: bare 'manager' is deliberately NOT in the qualified-receiver list (too generic — cache/state/task managers commonly expose unrelated .query-shaped methods), so TypeORM's manager.query() with real concatenated SQL is missed here",
       code: `function getUser(id) {\n  return manager.query("SELECT * FROM users WHERE id = " + id);\n}\n` },
+    { id: "sqli-no-sanitizer-downgrade-path", group: "sqli", bucket: "edge-cases", expectRuleIds: ["sqli-dynamic-query"], expectSeverity: "high", note: "KNOWN GAP, documented on purpose (docs/self-audit-2026-09-03.md §6b): unlike xss.ts, this rule has NO sanitizer-recognition path at all. Concatenation reaching .query() is always 'high', even when an operand is itself a call to something that looks like a real escaping function — there is no equivalent of xss.ts's isSanitizerWrapped()/severity-downgrade-to-low here. This is arguably the conservative/safe default (an unverified 'escaping' call name proves nothing), but it means this specific case can never be distinguished from a genuinely raw, unescaped concatenation.",
+      code: `function search(name) {\n  return db.query("SELECT * FROM users WHERE name = '" + escapeSql(name) + "'");\n}\n` },
 
     // ===================== Secrets (10) =====================
     { id: "secret-openai-key", group: "secrets", bucket: "vulnerable", expectRuleIds: ["secret-openai"], note: "OpenAI-shaped key literal",

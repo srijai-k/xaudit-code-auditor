@@ -156,11 +156,15 @@ happened.
 **Verification test**: 4 new cases in `tests/unit/html-rules.test.ts`. Re-verified against the exact original reproduction from this audit (a Vue SFC under manually-selected HTML mode) via `analyze()` directly and live in the running app — the report now shows the disclosure instead of a silent 0-finding result.
 **Affects**: Trust.
 
-### F-06 — INFORMATIONAL — PARTIALLY fixed same day
+### F-06 — INFORMATIONAL — Mostly fixed same day (engine covered; UI still open)
 **Title**: The "0 KB uploaded" / zero-network claim has no automated regression test
 **Affected**: Process gap, not a code file.
 **Evidence**: `worker.ts`'s own comment states it "never touches fetch/XHR/WebSocket" but this is asserted in a comment and spot-checked manually (including by this audit), not enforced by an automated test that would fail CI if a future dependency or contributor introduced one.
-**Remediation (partially implemented)**: The existing CI static-analysis guard (`.github/workflows/ci.yml`) was widened from `src/lib/analysis/` only to the entire `src/` tree — verified the exact new command passes locally before making it a hard gate. **Still open**: this is a static grep guard, not a true end-to-end test. It cannot catch a network call constructed dynamically (e.g. `window['fe' + 'tch']`) or made through a dependency's own internals rather than a literal `fetch(`/`new XMLHttpRequest(`/`new WebSocket(` call site in this repo's own source. A real Playwright/Puppeteer test that runs an actual scan in a real browser and asserts zero network requests fired would close that gap; this project has no browser-automation test framework set up yet, so this is a real infrastructure addition, not a one-line fix.
+**Remediation, two layers**:
+1. The existing CI static-analysis guard (`.github/workflows/ci.yml`) was widened from `src/lib/analysis/` only to the entire `src/` tree — verified the exact new command passes locally before making it a hard gate.
+2. `tests/regression/no-network-at-runtime.test.ts` (new): actually **runs** `analyze()` — the same function the Web Worker calls — with `fetch`/`XMLHttpRequest`/`WebSocket` replaced by traps that throw the instant they're touched, across representative input for every rule group (all three secrets-detection paths included). This is strictly stronger than a grep: it would catch a dynamically-constructed call (`globalThis['fe'+'tch']`) that no static pattern could match. **Verified this test has real teeth, not just cosmetic coverage**: temporarily injected an actual `fetch()` call into `analyze()`, confirmed all 11 cases failed and pinpointed exactly where, then reverted and confirmed green again.
+
+**Still open**: neither layer exercises the React UI itself (PDF export, clipboard-copy prompt, the landing page) — only the core engine. A true end-to-end browser test (Playwright/Puppeteer, loading the real app and asserting zero network requests fired while clicking through it) would close that remaining piece; this project has no browser-automation test framework set up yet, so that specific addition remains a real infrastructure decision, not a one-line fix.
 **Affects**: Trust (regression-prevention, not a current live issue).
 
 ---
