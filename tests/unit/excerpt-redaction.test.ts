@@ -79,3 +79,36 @@ describe("regression: redactSecrets() also catches non-vendor high-entropy secre
         expect(redacted).toContain("const apiKey ="); // surrounding code untouched
     });
 });
+
+/**
+ * SECOND REGRESSION-CLASS FIX for the same bug family as above, disclosed
+ * as an open gap in docs/self-audit-2026-09-03.md and closed here: a
+ * short, low-entropy value assigned to a credential-shaped name (too
+ * short for the entropy fallback, no vendor prefix) could still leak
+ * unmasked into a locally-persisted excerpt even though the findings
+ * report itself correctly flags and masks it via secret-generic-assignment.
+ */
+describe("regression: redactSecrets() also catches short name-context secrets (closing the gap the self-audit disclosed as still-open)", () => {
+    it("redacts a short, low-entropy value assigned to an API_KEY-shaped name", () => {
+        const code = 'const API_KEY = "hunter2!";';
+        const redacted = redactSecrets(code);
+        expect(redacted).not.toContain("hunter2!");
+        expect(redacted).toContain("const API_KEY =");
+    });
+
+    it("redacts a PASSWORD-named value with single quotes", () => {
+        const code = "const DB_PASSWORD = 'Tr0ub4dor&3';";
+        const redacted = redactSecrets(code);
+        expect(redacted).not.toContain("Tr0ub4dor&3");
+    });
+
+    it("does not redact a placeholder-shaped value even under a credential-shaped name", () => {
+        const code = 'const OPENAI_API_KEY = "your_key_here_example";';
+        expect(redactSecrets(code)).toBe(code);
+    });
+
+    it("does not redact a short, unrelated name/value pair", () => {
+        const code = 'const greeting = "hello";';
+        expect(redactSecrets(code)).toBe(code);
+    });
+});

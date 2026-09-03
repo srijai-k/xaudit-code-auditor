@@ -65,20 +65,16 @@ export function maskSecret(raw: string): string {
 /**
  * Redacts secrets out of arbitrary raw text (not an AST — this runs on a
  * plain string, e.g. a code excerpt about to be written to localStorage).
- * Two passes: fixed-prefix vendor patterns, then the entropy-shape check
- * (see redactHighEntropyStrings above — added as a regression fix, not
- * part of the original design).
+ * Three passes, in order: fixed-prefix vendor patterns, the entropy-shape
+ * check (redactHighEntropyStrings), then the name-context assignment
+ * check (redactNameContextAssignments). The last two were both added as
+ * regression fixes after this function was found to be out of sync with
+ * what the AST-based rule could actually detect — see
+ * docs/self-audit-2026-09-03.md and docs/model-improvements.md.
  *
- * Still NOT covered: the name-context generic fallback (`secret-generic-
- * assignment` — a string assigned to an `API_KEY`/`SECRET`/`TOKEN`-shaped
- * name with no vendor format) for values shorter than the entropy
- * fallback's 24-character floor. That check needs to see a variable/
- * property NAME, which isn't available from raw text without re-parsing —
- * and a short, low-entropy value (e.g. `const API_KEY = "hunter2!";`)
- * won't be caught by the entropy pass either. This is a real, disclosed,
- * still-open gap, not silently pretended away — see docs/model-
- * improvements.md's self-audit entry. Safe to call on text with no
- * secrets in it at all — it's a no-op in that case.
+ * Together these three passes now mirror all three AST detection paths in
+ * this file. Safe to call on text with no secrets in it at all — it's a
+ * no-op in that case.
  */
 export function redactSecrets(text: string): string {
     let out = text;
@@ -87,6 +83,7 @@ export function redactSecrets(text: string): string {
         out = out.replace(vp.regex, (match) => maskSecret(match));
     }
     out = redactHighEntropyStrings(out);
+    out = redactNameContextAssignments(out);
     return out;
 }
 
@@ -199,6 +196,34 @@ const ENTROPY_CANDIDATE_PATTERN = /[A-Za-z0-9_+/=-]{20,}/g;
 
 function redactHighEntropyStrings(text: string): string {
     return text.replace(ENTROPY_CANDIDATE_PATTERN, (match) => (isHighEntropySecretCandidate(match) ? maskSecret(match) : match));
+}
+
+/**
+ * SECOND REGRESSION-CLASS FIX, disclosed as an open gap in
+ * docs/self-audit-2026-09-03.md and closed here rather than left open:
+ * the name-context fallback rule (`secret-generic-assignment`) can flag a
+ * value assigned to a credential-shaped name even when that value is
+ * short and low-entropy — e.g. `const API_KEY = "hunter2!";` — which
+ * neither the vendor-pattern pass nor the entropy pass above would ever
+ * catch (too short for the entropy floor, no vendor prefix). Without
+ * this, that exact class of secret could sit in a locally-persisted
+ * excerpt in plaintext even though the findings report itself correctly
+ * flags and masks it.
+ *
+ * Matches an identifier containing a credential-shaped substring
+ * (reusing GENERIC_NAME_PATTERN's exact vocabulary) immediately followed
+ * by an assignment to a quoted string, and redacts the captured value —
+ * skipping placeholder-shaped values via the same isPlaceholderValue()
+ * gate the AST rule uses, so `"your_key_here"`/`"example"`/etc. are left
+ * alone here too, for consistency.
+ */
+const NAME_CONTEXT_ASSIGNMENT_PATTERN = /\b\w*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|PWD|PRIVATE[_-]?KEY)\w*\s*[:=]\s*(["'`])((?:(?!\1).)+)\1/gi;
+
+function redactNameContextAssignments(text: string): string {
+    return text.replace(NAME_CONTEXT_ASSIGNMENT_PATTERN, (fullMatch, _quote: string, value: string) => {
+        if (isPlaceholderValue(value)) return fullMatch;
+        return fullMatch.replace(value, maskSecret(value));
+    });
 }
 
 function propertyKeyName(node: t.ObjectProperty): string | undefined {

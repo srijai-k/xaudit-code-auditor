@@ -12,7 +12,14 @@ import type { Finding } from "../types";
  * runs in "HTML" mode on markup files, never on JS/TS/JSX source).
  *
  * Severity here tops out at "medium" — presence/absence of an attribute is
- * not proof of a vulnerability, only a hygiene gap.
+ * not proof of a vulnerability, only a hygiene gap. One check
+ * (html-script-content-not-analyzed) is "info"-only by design: it exists
+ * purely to disclose a real gap (see docs/self-audit-2026-09-03.md, F-05)
+ * rather than to flag anything about the script itself — a user who
+ * manually selects HTML mode on input containing a non-trivial <script>
+ * block used to get a silent, clean report with no indication that the
+ * script content was never examined by any of the five real detection
+ * rules at all.
  */
 
 function lineOf(code: string, index: number): number {
@@ -73,6 +80,31 @@ export function runHtmlChecks(code: string): Finding[] {
             saferExample: "el.addEventListener('click', handler) in a separate script, or a framework's event-binding syntax.",
             limitations: "Presence check only; does not know whether this markup is ever built from untrusted input.",
             location: { line: lineOf(code, inlineHandlerMatches[0].index ?? 0), column: 0 },
+        });
+    }
+
+    // Disclose script-content blindness (F-05, docs/self-audit-2026-09-03.md):
+    // HTML mode never analyzes the JavaScript inside <script> blocks — the
+    // five real detection rules (XSS, SQLi, secrets, dynamic-exec,
+    // node-command) only ever run in "JS/TS/React" mode. Before this, a
+    // user who manually selected HTML mode for something with real script
+    // content got a silent, clean report with no indication that the
+    // script was never actually examined. External scripts (`src="..."`,
+    // nothing to miss) are excluded.
+    const scriptBlocks = [...code.matchAll(/<script(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi)].filter(
+        (m) => m[1].trim().length > 0,
+    );
+    if (scriptBlocks.length > 0) {
+        findings.push({
+            ruleId: "html-script-content-not-analyzed",
+            title: "JavaScript inside <script> is not analyzed in HTML mode",
+            severity: "info",
+            category: "html",
+            message: `Found ${scriptBlocks.length} inline <script> block(s) with content. HTML mode's checks are attribute/text hygiene only — the JavaScript inside these blocks was not examined by any of the five real detection rules (XSS, SQL injection, secrets, dynamic execution, Node.js command patterns).`,
+            whyItMatters: "A real issue inside this script content — a hardcoded secret, an eval() call, an unsanitized innerHTML assignment — will not be flagged while this input is analyzed in HTML mode, even though those exact rules exist and would catch it under JS/TS/React mode.",
+            saferExample: 'Copy just the code between the <script> tags into the checker separately, using "JS / TS / React" mode, to have it analyzed by the real detection rules.',
+            limitations: "Presence check only (does a <script> tag have non-empty inline content) — this does not itself analyze the script content in any way, and does not run if the input is analyzed as JS/TS/React instead of HTML.",
+            location: { line: lineOf(code, scriptBlocks[0].index ?? 0), column: 0 },
         });
     }
 

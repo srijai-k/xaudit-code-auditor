@@ -39,4 +39,34 @@ describe("unit: HTML hygiene checks (attribute-based, not AST, not security-grad
         const findings = runHtmlChecks(html);
         expect(findings.every((f) => f.severity === "medium" || f.severity === "low" || f.severity === "info")).toBe(true);
     });
+
+    // F-05, docs/self-audit-2026-09-03.md: HTML mode used to return a
+    // silent, clean report for input with real, unanalyzed script content.
+    describe("regression: HTML mode discloses when it isn't analyzing real script content (F-05)", () => {
+        it("flags a non-trivial inline <script> block as not analyzed", () => {
+            const html = `<template><div>{{ msg }}</div></template>\n<script>\nexport default { data() { return { msg: eval(location.hash) } } }\n</script>`;
+            const findings = runHtmlChecks(html);
+            expect(findings.some((f) => f.ruleId === "html-script-content-not-analyzed")).toBe(true);
+            const finding = findings.find((f) => f.ruleId === "html-script-content-not-analyzed");
+            expect(finding?.severity).toBe("info");
+        });
+
+        it("does not flag an external <script src=\"...\"> — there is no inline content to miss", () => {
+            const html = `<!DOCTYPE html><html><head></head><body><script src="/app.js"></script></body></html>`;
+            const findings = runHtmlChecks(html);
+            expect(findings.some((f) => f.ruleId === "html-script-content-not-analyzed")).toBe(false);
+        });
+
+        it("does not flag an empty/whitespace-only inline <script> block", () => {
+            const html = `<!DOCTYPE html><html><body><script>   </script></body></html>`;
+            const findings = runHtmlChecks(html);
+            expect(findings.some((f) => f.ruleId === "html-script-content-not-analyzed")).toBe(false);
+        });
+
+        it("does not flag plain HTML with no <script> tag at all", () => {
+            const html = `<!DOCTYPE html><html><body><h1>Hello</h1></body></html>`;
+            const findings = runHtmlChecks(html);
+            expect(findings.some((f) => f.ruleId === "html-script-content-not-analyzed")).toBe(false);
+        });
+    });
 });
