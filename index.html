@@ -3,248 +3,205 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>No-Code Agency & Webflow Enterprise Partner | Cut the Code</title>
+    <title>XAUDIT | Client-side static code checker</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <div class="top-ticker" aria-label="Now creating">
-      <strong><span></span>Now creating</strong>
+    <div class="top-ticker" aria-label="Now checking">
+      <strong><span></span>Now checking</strong>
       <div class="ticker-track">
         <div class="ticker-inner">
-          <span>Developing a no-code job platform to boost diversity hiring for <b>Colourful Jobs</b></span>
-          <span>Accelerating time-to-market with AI-powered platform evolution for <b>Backbase</b></span>
-          <span>Building a conversion-focused website for <b>Aizy</b></span>
-          <span>Creating a powerful digital presence for <b>Woord van Kracht</b></span>
-          <span>Launching a new property platform for <b>huis.com</b></span>
+          <span>Paste JavaScript, TypeScript, React/JSX, HTML, or <b>package.json</b></span>
+          <span>Runs in a Web Worker with <b>no network calls</b></span>
+          <span>Input is rejected above <b>500KB</b></span>
+          <span>No score, no grade, no <b>zero false positive</b> promises</span>
+          <span>Every documented claim has <b>a test</b></span>
         </div>
       </div>
-      <a href="#">NL</a>
+      <a href="#docs">Docs</a>
     </div>
 
     <main class="page-shell">
       <header class="site-header">
-        <a class="brand" href="#" aria-label="Cut the Code">
+        <a class="brand" href="#" aria-label="XAUDIT">
           <span class="brand-mark"><i></i></span>
         </a>
         <nav>
-          <a href="#services">Services <span>+</span></a>
-          <a href="#no-code">No-Code</a>
-          <a href="#projects">Projects</a>
-          <a href="#about">About us</a>
-          <a href="#ownership">Website Ownership System<sup>TM</sup></a>
-          <a href="#contact">Contact</a>
+          <a href="#engine">Engine <span>+</span></a>
+          <a href="#rules">Rules</a>
+          <a href="#privacy">Privacy</a>
+          <a href="#exports">Export</a>
+          <a href="#tests">Tests</a>
+          <a href="#docs">Docs</a>
         </nav>
         <button class="menu-pill" aria-expanded="false" aria-controls="menuPanel"><span></span><em>Menu</em></button>
       </header>
 
       <aside class="menu-panel" id="menuPanel" aria-hidden="true">
-        <a href="#services">Services</a>
-        <a href="#no-code">No-Code</a>
-        <a href="#projects">Projects</a>
-        <a href="#about">About us</a>
-        <a href="#contact">Contact</a>
+        <a href="#engine">Engine</a>
+        <a href="#rules">Rules</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#exports">Export</a>
+        <a href="#tests">Tests</a>
       </aside>
 
       <section class="hero reveal">
-        <p class="eyebrow purple"><span></span>Webflow Enterprise Agency &amp; Leading AI / No-Code Agency</p>
-        <h1>We transform websites into AI growth engines powered by your marketing team.</h1>
-        <p class="hero-copy">Leading AI / no-code agency &amp; Webflow Partner. We push our clients forward into tomorrow - and fast - by creating the next generation of (no-code) web experiences.</p>
+        <p class="eyebrow purple"><span></span>Client-side static code checker</p>
+        <h1>XAUDIT flags risky code patterns without pretending to be more than it is.</h1>
+        <p class="hero-copy">Paste JavaScript, TypeScript, React/JSX, HTML, or a package.json. XAUDIT runs locally in your browser, points out patterns worth a human look, and documents the limits of every rule.</p>
         <div class="hero-actions">
-          <a class="partner" href="#"><b>W</b> Premium Webflow Partner <img src="assets/40e4d94e38bb7769.svg" alt=""></a>
-          <a class="cta" href="#services"><span>+</span> How we work</a>
+          <a class="partner" href="#tests"><b>✓</b> Tested claims <img src="assets/40e4d94e38bb7769.svg" alt=""></a>
+          <a class="cta" href="#engine"><span>+</span> How it works</a>
         </div>
       </section>
 
-      <section class="showpiece reveal" aria-label="Featured work">
+      <section class="showpiece reveal" aria-label="XAUDIT interface preview">
         <div class="shape-notch top"></div>
-        <img src="assets/26418547794eb0a0.avif" alt="No-code website interface on a laptop">
+        <div class="audit-ui">
+          <div class="audit-window">
+            <div class="window-bar"><span></span><span></span><span></span><b>worker.ts</b></div>
+            <pre><code>const result = await audit({
+  language: "tsx",
+  maxBytes: 500_000,
+  network: false
+});</code></pre>
+          </div>
+          <div class="finding-card">
+            <p>XSS</p>
+            <h3>innerHTML receives traced user input</h3>
+            <span>Why it matters</span>
+            <small>HTML injection can become script execution. Prefer textContent or a sanitizer with a defined policy.</small>
+          </div>
+        </div>
         <div class="shape-notch bottom"></div>
       </section>
 
-      <section class="logos" aria-label="Client logos">
-        <div class="logo-track">
-          <img src="assets/c16d0c9b60127ebb.svg" alt="Samsung">
-          <img src="assets/4edf0dc469875763.png" alt="Tunify">
-          <img src="assets/5a92854536a2808e.png" alt="BlockTech">
-          <img src="assets/80950868e82c7a22.svg" alt="Backbase">
-          <img src="assets/9950fca675d04fd4.png" alt="Vacature Via">
-          <img src="assets/0c23f2ba4eee2266.png" alt="Sambrosa">
-          <img src="assets/c16d0c9b60127ebb.svg" alt="Samsung">
-          <img src="assets/4edf0dc469875763.png" alt="Tunify">
-          <img src="assets/5a92854536a2808e.png" alt="BlockTech">
-          <img src="assets/80950868e82c7a22.svg" alt="Backbase">
-          <img src="assets/9950fca675d04fd4.png" alt="Vacature Via">
-          <img src="assets/0c23f2ba4eee2266.png" alt="Sambrosa">
+      <section class="logos" aria-label="Core formats">
+        <div class="logo-track text-track">
+          <span>JavaScript</span><span>TypeScript</span><span>React/JSX</span><span>HTML</span><span>package.json</span><span>SARIF 2.1.0</span>
+          <span>JavaScript</span><span>TypeScript</span><span>React/JSX</span><span>HTML</span><span>package.json</span><span>SARIF 2.1.0</span>
         </div>
       </section>
 
-      <section id="services" class="services reveal">
-        <p class="eyebrow purple"><span></span>Services</p>
-        <h2>We create without the need for coding to give ambitious brands the upper hand</h2>
+      <section id="engine" class="services reveal">
+        <p class="eyebrow purple"><span></span>Analysis engine</p>
+        <h2>Real parsing, narrow rules, and zero network calls in the audit path.</h2>
         <div class="service-grid">
           <article>
             <img src="assets/f8f6d32770910ca8.svg" alt="">
-            <h3>Design</h3>
-            <p>Creating brand-driven experiences that put brand essence at the core of the creation process.</p>
-            <a href="#" aria-label="Design">→</a>
+            <h3>Worker-bound</h3>
+            <p>Analysis runs entirely in a Web Worker, off the UI thread, with no network calls anywhere in the pipeline.</p>
+            <a href="#privacy" aria-label="Privacy">→</a>
           </article>
           <article>
             <img src="assets/b518bbb61ae3baca.svg" alt="">
-            <h3>Build</h3>
-            <p>Crafting custom digital products like websites and platforms that brand teams can manage themselves.</p>
-            <a href="#" aria-label="Build">→</a>
+            <h3>Parsed</h3>
+            <p>JSX and TypeScript syntax are parsed into an AST. There is no type checker, and HTML uses a lighter attribute/text scan.</p>
+            <a href="#rules" aria-label="Rules">→</a>
           </article>
           <article>
             <img src="assets/6f1651de2920797e.svg" alt="">
-            <h3>Automate</h3>
-            <p>Leveraging tools and platforms to build efficiently, shorten time frames and drive progress.</p>
-            <a href="#" aria-label="Automate">→</a>
+            <h3>Bounded</h3>
+            <p>Input above 500KB is rejected before analysis. Findings are deduplicated by rule and location.</p>
+            <a href="#tests" aria-label="Tests">→</a>
           </article>
         </div>
-        <a class="cta" href="#"><span>+</span> How we work</a>
+        <a class="cta" href="#rules"><span>+</span> See the rules</a>
       </section>
 
-      <section id="no-code" class="vision reveal">
+      <section id="privacy" class="vision reveal">
         <div>
-          <p class="eyebrow red"><span></span>Our vision</p>
-          <h2>The no-code &amp; AI revolution</h2>
-          <p>The digital world is changing. Brands need to be fast, creative, and flexible. That’s where no-code and AI comes in: a cutting-edge movement which allows you to design and create digital products without needing programming know-how. Meaning brands can move faster, build smarter, and scale more, by coding less.</p>
-          <a class="cta" href="#"><span>+</span> More about no-code</a>
+          <p class="eyebrow red"><span></span>Privacy by default</p>
+          <h2>Your code does not leave the browser.</h2>
+          <p>XAUDIT stores nothing by default. The opt-in local history saves only counts, finding titles, and a masked ~120-character excerpt to plaintext localStorage. It never saves raw code or full secrets.</p>
+          <a class="cta" href="#exports"><span>+</span> Export options</a>
         </div>
         <div class="tool-cloud">
-          <span>webflow</span><span>make</span><span>figma</span><span>zapier</span><span>wized</span>
+          <span>worker</span><span>AST</span><span>500KB cap</span><span>dedupe</span><span>no score</span>
         </div>
       </section>
 
-      <section id="projects" class="projects">
-        <div class="section-line"><span>Projects</span><span>Projects</span></div>
-        <div class="project-grid">
-          <article class="project-card reveal">
-            <img src="assets/ebc71f302886ead8.avif" alt="Backbase case study">
-            <div class="project-info">
-              <p>Case</p>
-              <h3>Enterprise migration to Webflow completed in under 3 months for 5x faster marketing</h3>
-              <strong>Backbase</strong>
-              <small>Figma · Webflow Enterprise · Marketo · Greenhouse</small>
-              <span>Build to launch · 3 months</span>
-            </div>
-          </article>
-          <article class="project-card reveal">
-            <img src="assets/0530d00576ff7618.webp" alt="Tunify case study">
-            <div class="project-info">
-              <p>Case</p>
-              <h3>A design system that enables international growth &amp; ownership</h3>
-              <strong>Tunify</strong>
-              <small>Figma · Webflow · Intercom · Cal.com</small>
-              <span>Build to launch · 8 weeks</span>
-            </div>
-          </article>
-          <article class="project-card reveal">
-            <img src="assets/6180102397f220b0.avif" alt="BlockTech case study">
-            <div class="project-info">
-              <p>Case</p>
-              <h3>Elevating BlockTech’s employer brand to attract top tech talent</h3>
-              <strong>BlockTech</strong>
-              <small>Webflow · Figma · Make · Airtable · Softr</small>
-              <span>Build to launch · 3 months</span>
-            </div>
-          </article>
-          <article class="project-card reveal">
-            <img src="assets/f45dc4a76a094ec9.webp" alt="Vacature Via case study">
-            <div class="project-info">
-              <p>Case</p>
-              <h3>Building the world’s most advanced no-code job platform</h3>
-              <strong>Vacature Via</strong>
-              <small>Instant · Microsoft Clarity · Shopify · Figma</small>
-              <span>Build to launch · 4 weeks</span>
-            </div>
-          </article>
-          <article class="project-card reveal">
-            <img src="assets/69048e3b7f1a7e00.webp" alt="Sambrosa case study">
-            <div class="project-info">
-              <p>Case</p>
-              <h3>Boosted Sambrosa's conversion from 2% to 6% with Instant &amp; Shopify</h3>
-              <strong>Sambrosa</strong>
-              <small>Figma · Webflow · Airtable · Weglot · Wized</small>
-              <span>Build to launch · 6 weeks</span>
-            </div>
-          </article>
-          <article class="project-card reveal">
-            <img src="assets/eb4e144750a28b5f.webp" alt="Skybox x Samsung case study">
-            <div class="project-info">
-              <p>Case</p>
-              <h3>Let's inspire the future with a free online academy</h3>
-              <strong>Skybox x Samsung</strong>
-              <small>Make · Webflow</small>
-              <span>Build to launch · 8 weeks</span>
-            </div>
-          </article>
+      <section id="rules" class="projects">
+        <div class="section-line"><span>Seven rule modules</span><span>Documented exclusions</span></div>
+        <div class="project-grid rule-grid">
+          <article class="rule-card reveal"><p>01</p><h3>XSS</h3><span>innerHTML, document.write, dangerouslySetInnerHTML, and javascript: URIs. Traces one variable hop and avoids JSX event props.</span></article>
+          <article class="rule-card reveal"><p>02</p><h3>Dynamic execution</h3><span>eval, new Function, and string-form setTimeout or setInterval.</span></article>
+          <article class="rule-card reveal"><p>03</p><h3>SQL injection</h3><span>A narrow heuristic for concatenation or interpolation into .query, .execute, or .raw on a DB-shaped receiver.</span></article>
+          <article class="rule-card reveal"><p>04</p><h3>Hardcoded secrets</h3><span>Vendor-prefixed tokens, name-context fallback, and calibrated entropy checks while excluding UUIDs, hashes, and base64 images.</span></article>
+          <article class="rule-card reveal"><p>05</p><h3>Node command patterns</h3><span>exec, execSync, and spawn({ shell: true }) with non-literal input.</span></article>
+          <article class="rule-card reveal"><p>06</p><h3>Weak auth patterns</h3><span>Credential-shaped literal comparisons and jwt.decode() without jwt.verify().</span></article>
+          <article class="rule-card reveal"><p>07</p><h3>Dependency hygiene</h3><span>Unpinned versions, non-registry sources, suspicious scripts, and misplaced dev tools in package.json.</span></article>
+          <article class="rule-card reveal"><p>HTML</p><h3>HTML hygiene</h3><span>Viewport, alt text, and inline handlers. Explicitly not AST-based and not security-grade.</span></article>
         </div>
       </section>
 
-      <section id="about" class="why reveal">
-        <h2><span>• Why</span> Cut the Code?</h2>
+      <section id="exports" class="why reveal">
+        <h2><span>• Export</span> Built for handoff, not theatrics.</h2>
         <div class="why-grid">
-          <article><h3>Speed</h3><p>Get your ideas to market 10x faster than you could with a conventional agency.</p></article>
-          <article><h3>Ownership</h3><p>Adjust and maintain your products in-house without the need for external support.</p></article>
-          <article><h3>Scale</h3><p>Adapt to changes in the landscape and move the needle forward - in whatever direction you’re headed.</p></article>
-          <article><h3>Brand-centric</h3><p>Brand values, identity and strategy are leading factors in all development and creation. Always.</p></article>
-          <article><h3>Value</h3><p>Cut unnecessary costs and not corners by leveraging no-code solutions.</p></article>
+          <article><h3>PDF</h3><p>A readable client-side report for reviews and lightweight audits.</p></article>
+          <article><h3>SARIF 2.1.0</h3><p>Includes per-rule helpUri links into docs/rules/ for downstream tooling.</p></article>
+          <article><h3>JSON</h3><p>The full result object plus the disclaimer, produced entirely client-side.</p></article>
+          <article><h3>No grades</h3><p>No letter score and no risk theater. Scoring was removed on purpose.</p></article>
+          <article><h3>Limitations</h3><p>Every finding includes what matched, why it matters, a safer example, and its own limits.</p></article>
         </div>
       </section>
 
-      <section id="contact" class="contact reveal">
-        <img src="assets/9691651fe63d0a63.webp" alt="Erwin Luijendijk">
+      <section id="tests" class="contact reveal">
+        <div class="test-stack" aria-hidden="true">
+          <span>Vitest</span>
+          <span>Playwright</span>
+          <span>Fixtures</span>
+          <span>Benchmarks</span>
+        </div>
         <div>
-          <p>Erwin Luijendijk<br><span>Founder &amp; CTO</span></p>
-          <p class="eyebrow purple"><span></span>Contact</p>
-          <h2>Want to know more about our way of working?</h2>
-          <a class="cta" href="mailto:hello@cutthecode.com"><span>+</span> Contact Erwin</a>
+          <p>Nothing aspirational<br><span>Everything has a test</span></p>
+          <p class="eyebrow purple"><span></span>Testing</p>
+          <h2>Claims are backed by unit, regression, benchmark, docs, and e2e tests.</h2>
+          <a class="cta" href="#docs"><span>+</span> Read the docs</a>
         </div>
       </section>
 
       <section class="awards reveal">
         <div class="award-track">
-          <div><img src="assets/fb8bcf8db67ca5ac.svg" alt="">Winner Disruptor DIA Awards 2023 with Vacature Via</div>
-          <div><img src="assets/86b456063f29cb4b.svg" alt="">Best Agencies FONK150 2024: 9.03/10!</div>
-          <div><img src="assets/1f52f6adcc3878ae.svg" alt="">Best Agencies FONK150 2025: 8.87/10!</div>
-          <div><img src="assets/a289870ca5e12049.svg" alt="">Finalist SAN New Kids on the Block 2022</div>
-          <div><img src="assets/257506dc81188fcb.svg" alt="">6x Awwwards winner</div>
-          <div><img src="assets/fef05301e5eb0ac4.svg" alt="">Best Agencies FONK100 2021</div>
+          <div><img src="assets/11b4a8fd0365aa05.svg" alt="">No network requests through a real Playwright click-through</div>
+          <div><img src="assets/11b4a8fd0365aa05.svg" alt="">Docs coverage fails if a ruleId loses its page</div>
+          <div><img src="assets/11b4a8fd0365aa05.svg" alt="">Regression fixtures for parameterized queries and decorator syntax</div>
+          <div><img src="assets/11b4a8fd0365aa05.svg" alt="">Independent benchmarks with explicit disclaimers</div>
+          <div><img src="assets/11b4a8fd0365aa05.svg" alt="">Hostile self-audit found and fixed a real privacy bug</div>
         </div>
       </section>
 
-      <section class="testimonials reveal">
-        <p class="eyebrow purple"><span></span>Testimonials</p>
-        <h2>Don't just take our word for it</h2>
+      <section id="docs" class="testimonials reveal">
+        <p class="eyebrow purple"><span></span>Docs</p>
+        <h2>The documentation says what XAUDIT does, what it misses, and what changed.</h2>
         <div class="testimonial-row">
           <article>
-            <img src="assets/6b888ebb450d17e4.jpeg" alt="Tim Rutten">
-            <blockquote>"Cut the Code took us from a CMS that was holding us back to a platform that's actually accelerating growth. Webflow changed how we show up as a brand and our team is 5x faster."</blockquote>
-            <p>Tim Rutten <span>CMO @ Backbase</span></p>
+            <div class="doc-badge">README</div>
+            <blockquote>README.md, SECURITY.md, architecture, baseline audit, model improvements, self-audit, and one page per rule.</blockquote>
+            <p>Project docs <span>No hidden roadmap claims</span></p>
           </article>
           <article>
-            <img src="assets/7fed47337ff3b0a9.jpg" alt="Arnaud">
-            <blockquote>"The speed, quality and energy in the process made the project feel lighter while still raising the bar."</blockquote>
-            <p>Arnaud <span>Marketing lead</span></p>
+            <div class="doc-badge">RULES</div>
+            <blockquote>Each rule documents its match shape, safer example, and exclusions.</blockquote>
+            <p>docs/rules/*.md <span>Covered by tests</span></p>
           </article>
           <article>
-            <img src="assets/f0966a42c5ad720e.jpg" alt="Ron">
-            <blockquote>"A partner that understands design, Webflow and the operational reality of a modern marketing team."</blockquote>
-            <p>Ron <span>Founder</span></p>
+            <div class="doc-badge">STACK</div>
+            <blockquote>React 19, Vite 7, Tailwind 4, TypeScript, Framer Motion, Vitest, Playwright, and Vercel security headers.</blockquote>
+            <p>Implementation <span>Client-side checker</span></p>
           </article>
         </div>
       </section>
 
       <footer>
         <div class="footer-cta">
-          <h2>Let’s build without code.</h2>
-          <a class="cta dark" href="mailto:hello@cutthecode.com"><span>+</span> Start a project</a>
+          <h2>Audit the claim before you trust the result.</h2>
+          <a class="cta dark" href="#engine"><span>+</span> Start checking</a>
         </div>
         <div class="footer-bottom">
-          <span>Cut the Code</span>
-          <span>Amsterdam · Webflow Enterprise Partner</span>
-          <span>EN / NL</span>
+          <span>XAUDIT</span>
+          <span>Client-side static checker · no network audit path</span>
+          <span>PDF / SARIF / JSON</span>
         </div>
       </footer>
     </main>
