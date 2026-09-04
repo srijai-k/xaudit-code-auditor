@@ -1,0 +1,7 @@
+{
+  "name": "example-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "eslint": "^9.0.0"
+  }
+}

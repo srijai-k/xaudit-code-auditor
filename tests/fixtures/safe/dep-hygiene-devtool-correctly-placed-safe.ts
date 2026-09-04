@@ -1,0 +1,7 @@
+{
+  "name": "example-app",
+  "version": "1.0.0",
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

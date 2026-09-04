@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "rewrite/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test suite (must pass — this is the regression gate)
+        run: npm test
+
+      - name: Regenerate benchmark report
+        run: npm run bench
+
+      - name: Regenerate independent benchmark report
+        run: npm run bench:independent
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Install Playwright's Chromium browser
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E — real-browser proof the UI makes zero network requests (closes F-06)
+        run: npm run test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Audit production dependencies (must pass — no continue-on-error)
+        run: npm audit --omit=dev
+
+      - name: Guard against network APIs entering the app at all
+        run: |
+          # Scoped to the ENTIRE src/ tree, not just the analysis engine —
+          # widened after a self-audit (docs/self-audit-2026-09-03.md, F-06)
+          # found the "0 KB uploaded" / zero-network-request claim had no
+          # automated regression coverage outside src/lib/analysis/, so a
+          # network call accidentally introduced anywhere in the UI (a
+          # landing-page analytics snippet, a "check for updates" fetch)
+          # would not have been caught here. Matches actual call/
+          # construction syntax only, so this doesn't false-positive on doc
+          # comments that mention these names while explaining they are NOT
+          # used (see worker.ts's own header).
+          if grep -rnE "\bfetch\(|new XMLHttpRequest\(|new WebSocket\(" src/; then
+            echo "::error::A network API was found somewhere in src/ — this app must never make network calls, in the analysis engine or anywhere else in the UI. If this is intentional, this check needs explicit review and updating, not silent removal."
+            exit 1
+          fi
+          echo "OK: no fetch/XMLHttpRequest/WebSocket call sites anywhere in src/"

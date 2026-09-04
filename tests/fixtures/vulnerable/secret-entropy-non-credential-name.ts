@@ -1,0 +1,2 @@
+const CONFIG_VALUE = "kJ8xz92mVpQ7Bn3zRtY6WcL0hF4sD1aG5eK9jH2p";
+setup(CONFIG_VALUE);
