@@ -12,6 +12,14 @@ function CheckIcon() {
   );
 }
 
+function ArrowIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M3 9h12M10.5 4.5L15 9l-4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
 
@@ -119,7 +127,7 @@ export default function LandingPage() {
                 aria-label="Expand Worker-bound card"
                 title={expandedCard === 0 ? "Collapse card" : "Expand card"}
               >
-                →
+                <ArrowIcon />
               </button>
             </article>
             <article className={expandedCard === 1 ? 'is-expanded' : expandedCard !== null ? 'is-shrunk' : ''}>
@@ -131,7 +139,7 @@ export default function LandingPage() {
                 aria-label="Expand Parsed card"
                 title={expandedCard === 1 ? "Collapse card" : "Expand card"}
               >
-                →
+                <ArrowIcon />
               </button>
             </article>
             <article className={expandedCard === 2 ? 'is-expanded' : expandedCard !== null ? 'is-shrunk' : ''}>
@@ -143,7 +151,7 @@ export default function LandingPage() {
                 aria-label="Expand Bounded card"
                 title={expandedCard === 2 ? "Collapse card" : "Expand card"}
               >
-                →
+                <ArrowIcon />
               </button>
             </article>
           </div>
