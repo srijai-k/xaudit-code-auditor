@@ -7,9 +7,12 @@ import PrivacyPage from './pages/PrivacyPage';
 import RulesPage from './pages/RulesPage';
 import PageTransition from './components/PageTransition';
 import { FloatingScrollNav } from './components/Navbar';
+import useSmoothScroll from './hooks/useSmoothScroll';
 import './App.css';
 
 function App() {
+  useSmoothScroll();
+
   return (
     <Router>
       <FloatingScrollNav />
