@@ -9,6 +9,43 @@ document.querySelectorAll(".reveal").forEach((el) => {
   revealObserver.observe(el);
 });
 
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const canSmoothScroll = !prefersReducedMotion && window.innerWidth > 760;
+if (canSmoothScroll) {
+  let targetScroll = window.scrollY;
+  let currentScroll = window.scrollY;
+  let smoothFrame = null;
+
+  const maxScroll = () => document.documentElement.scrollHeight - window.innerHeight;
+  const clampScroll = (value) => Math.max(0, Math.min(value, maxScroll()));
+  const smoothStep = () => {
+    currentScroll += (targetScroll - currentScroll) * 0.12;
+    if (Math.abs(targetScroll - currentScroll) < 0.5) {
+      currentScroll = targetScroll;
+      smoothFrame = null;
+      window.scrollTo(0, currentScroll);
+      return;
+    }
+    window.scrollTo(0, currentScroll);
+    smoothFrame = requestAnimationFrame(smoothStep);
+  };
+  const startSmoothScroll = () => {
+    if (!smoothFrame) smoothFrame = requestAnimationFrame(smoothStep);
+  };
+
+  window.addEventListener("wheel", (event) => {
+    if (event.ctrlKey) return;
+    event.preventDefault();
+    targetScroll = clampScroll(targetScroll + event.deltaY);
+    startSmoothScroll();
+  }, { passive: false });
+
+  window.addEventListener("resize", () => {
+    targetScroll = window.scrollY;
+    currentScroll = window.scrollY;
+  });
+}
+
 document.querySelectorAll(".cta, .service-grid a").forEach((el) => {
   el.addEventListener("pointermove", (event) => {
     const rect = el.getBoundingClientRect();
