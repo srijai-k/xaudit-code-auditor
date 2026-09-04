@@ -12,14 +12,24 @@ import type { Finding } from "../types";
  * runs in "HTML" mode on markup files, never on JS/TS/JSX source).
  *
  * Severity here tops out at "medium" — presence/absence of an attribute is
- * not proof of a vulnerability, only a hygiene gap. One check
- * (html-script-content-not-analyzed) is "info"-only by design: it exists
- * purely to disclose a real gap (see docs/self-audit-2026-09-03.md, F-05)
- * rather than to flag anything about the script itself — a user who
- * manually selects HTML mode on input containing a non-trivial <script>
- * block used to get a silent, clean report with no indication that the
- * script content was never examined by any of the five real detection
- * rules at all.
+ * not proof of a vulnerability, only a hygiene gap.
+ *
+ * Inline <script> content used to be a total blind spot in HTML mode: the
+ * five real detection rules (XSS, SQLi, secrets, dynamic-exec,
+ * node-command) only ever ran in "JS/TS/React" mode, and a user who
+ * manually selected HTML mode on markup with real script content got a
+ * silent, clean report with no indication the script was never examined
+ * at all — see docs/self-audit-2026-09-03.md, F-05. That gap is now
+ * partly closed: analyze.ts extracts each inline <script> block (via
+ * extractInlineScripts below, still pure text scanning — the AST work
+ * happens in analyze.ts, not here, keeping this module's own "not part of
+ * the AST engine" boundary intact) and runs it through the same rules
+ * JS/TS/React mode uses. buildScriptNotAnalyzedFinding is the honest
+ * fallback for a block that doesn't parse (info severity, not a claim
+ * about the script's content) — analyze.ts calls it per-block rather than
+ * once for the whole file, so a script that DID get analyzed is never
+ * followed by a contradictory "this wasn't examined" disclosure sitting
+ * next to real findings from examining it.
  */
 
 function lineOf(code: string, index: number): number {
@@ -83,31 +93,6 @@ export function runHtmlChecks(code: string): Finding[] {
         });
     }
 
-    // Disclose script-content blindness (F-05, docs/self-audit-2026-09-03.md):
-    // HTML mode never analyzes the JavaScript inside <script> blocks — the
-    // five real detection rules (XSS, SQLi, secrets, dynamic-exec,
-    // node-command) only ever run in "JS/TS/React" mode. Before this, a
-    // user who manually selected HTML mode for something with real script
-    // content got a silent, clean report with no indication that the
-    // script was never actually examined. External scripts (`src="..."`,
-    // nothing to miss) are excluded.
-    const scriptBlocks = [...code.matchAll(/<script(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi)].filter(
-        (m) => m[1].trim().length > 0,
-    );
-    if (scriptBlocks.length > 0) {
-        findings.push({
-            ruleId: "html-script-content-not-analyzed",
-            title: "JavaScript inside <script> is not analyzed in HTML mode",
-            severity: "info",
-            category: "html",
-            message: `Found ${scriptBlocks.length} inline <script> block(s) with content. HTML mode's checks are attribute/text hygiene only — the JavaScript inside these blocks was not examined by any of the five real detection rules (XSS, SQL injection, secrets, dynamic execution, Node.js command patterns).`,
-            whyItMatters: "A real issue inside this script content — a hardcoded secret, an eval() call, an unsanitized innerHTML assignment — will not be flagged while this input is analyzed in HTML mode, even though those exact rules exist and would catch it under JS/TS/React mode.",
-            saferExample: 'Copy just the code between the <script> tags into the checker separately, using "JS / TS / React" mode, to have it analyzed by the real detection rules.',
-            limitations: "Presence check only (does a <script> tag have non-empty inline content) — this does not itself analyze the script content in any way, and does not run if the input is analyzed as JS/TS/React instead of HTML.",
-            location: { line: lineOf(code, scriptBlocks[0].index ?? 0), column: 0 },
-        });
-    }
-
     // Missing CSP meta tag, only for full documents, informational.
     if (/<html[\s>]/i.test(code) && !/<meta[^>]+http-equiv=["']Content-Security-Policy["']/i.test(code)) {
         findings.push({
@@ -123,4 +108,67 @@ export function runHtmlChecks(code: string): Finding[] {
     }
 
     return findings;
+}
+
+export interface ExtractedScriptBlock {
+    content: string;
+    /** 1-based line number, in the ORIGINAL document, of this block's first content character. */
+    startLine: number;
+}
+
+// Script types that actually execute as JS in a browser. Everything else
+// (application/json, application/ld+json, text/template, a framework's
+// own custom type, etc.) is inert markup as far as the five real
+// detection rules are concerned — attempting to parse it as JavaScript
+// would either throw or, worse, silently misparse it.
+const EXECUTABLE_SCRIPT_TYPES = new Set(["text/javascript", "application/javascript", "module", "text/babel", "text/jsx"]);
+
+/**
+ * Pure text extraction — still no HTML parser, matching this module's own
+ * architecture. Finds inline <script> blocks with real content, skipping
+ * external scripts (`src="..."`, nothing to extract) and non-executable
+ * script types. Each block's starting line is computed against the
+ * ORIGINAL document so a caller that re-analyzes the extracted content in
+ * isolation can shift findings' line numbers back to where they actually
+ * are in the file the user pasted.
+ */
+export function extractInlineScripts(code: string): ExtractedScriptBlock[] {
+    const blocks: ExtractedScriptBlock[] = [];
+    const pattern = /<script([^>]*)>([\s\S]*?)<\/script>/gi;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(code))) {
+        const attrs = match[1];
+        const content = match[2];
+        if (/\bsrc\s*=/i.test(attrs)) continue;
+        const typeMatch = attrs.match(/\btype\s*=\s*["']([^"']+)["']/i);
+        if (typeMatch && !EXECUTABLE_SCRIPT_TYPES.has(typeMatch[1].toLowerCase().trim())) continue;
+        if (content.trim().length === 0) continue;
+        const openTagLength = "<script".length + attrs.length + ">".length;
+        const contentStart = match.index + openTagLength;
+        blocks.push({ content, startLine: lineOf(code, contentStart) });
+    }
+    return blocks;
+}
+
+/**
+ * The honest fallback for one script block that could not be parsed as
+ * JavaScript/TypeScript/JSX (e.g. it relies on surrounding template
+ * syntax to be valid on its own). Info severity, not a claim about the
+ * block's content — it exists purely to disclose that this specific
+ * block was not examined by any of the five real detection rules, rather
+ * than silently producing a clean result for code that was never
+ * actually looked at. See docs/self-audit-2026-09-03.md, F-05.
+ */
+export function buildScriptNotAnalyzedFinding(startLine: number): Finding {
+    return {
+        ruleId: "html-script-content-not-analyzed",
+        title: "JavaScript inside <script> is not analyzed in HTML mode",
+        severity: "info",
+        category: "html",
+        message: "This inline <script> block's content could not be parsed as standalone JavaScript/TypeScript/JSX (it may depend on surrounding template syntax to be valid), so it was not examined by any of the five real detection rules (XSS, SQL injection, secrets, dynamic execution, Node.js command patterns).",
+        whyItMatters: "A real issue inside this script content — a hardcoded secret, an eval() call, an unsanitized innerHTML assignment — will not be flagged here, even though those exact rules exist and would catch it if this exact content were pasted on its own under JS/TS/React mode.",
+        saferExample: 'Copy just the code between these <script> tags into the checker separately, using "JS / TS / React" mode, to have it analyzed by the real detection rules.',
+        limitations: "This is a per-block fallback, not a claim about the script's content — other <script> blocks in the same document that parse successfully ARE analyzed by the real rules; this disclosure only applies to the one block that didn't.",
+        location: { line: startLine, column: 0 },
+    };
 }

@@ -67,7 +67,7 @@ export function HeaderNav({ onOpenHistory }) {
         const isActive = activePath === path;
         if (isActive) {
             return {
-                color: isLight ? '#7c3aed' : 'var(--lav)',
+                color: isLight ? 'var(--lav)' : 'var(--lav)',
                 fontWeight: 800,
                 textDecoration: 'none',
                 display: 'inline-flex',
@@ -96,12 +96,12 @@ export function HeaderNav({ onOpenHistory }) {
                     </a>
                     
                     <Link to="/rules" style={linkStyle('/rules')}>
-                        {activePath === '/rules' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }}></span>}
+                        {activePath === '/rules' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
                         Rules
                     </Link>
 
                     <Link to="/privacy" style={linkStyle('/privacy')}>
-                        {activePath === '/privacy' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }}></span>}
+                        {activePath === '/privacy' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
                         Privacy
                     </Link>
 
@@ -114,7 +114,7 @@ export function HeaderNav({ onOpenHistory }) {
                     </a>
 
                     <Link to="/docs" style={linkStyle('/docs')}>
-                        {activePath === '/docs' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }}></span>}
+                        {activePath === '/docs' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
                         Docs
                     </Link>
 
@@ -194,24 +194,18 @@ export function HeaderNav({ onOpenHistory }) {
 }
 
 // Standalone Global Floating Scroll Navbar Component (Rendered at root outside CSS transformed containers)
+// Fixed position for the floating nav — was previously adjustable at
+// runtime via a Shift+Arrow dev control persisted to localStorage; that
+// was a design-time tuning aid, not something that belonged in shipped
+// code, so the values it converged on are now just hardcoded here.
+const FLOATING_NAV_TOP = 64;
+const FLOATING_NAV_RIGHT = 24;
+
 export function FloatingScrollNav() {
     const location = useLocation();
     const navigate = useNavigate();
     const [showFloatingNav, setShowFloatingNav] = useState(false);
     const [isFloatingOpen, setIsFloatingOpen] = useState(false);
-
-    // Dev Control for Top Position (persisted in localStorage)
-    const [floatingTopOffset, setFloatingTopOffset] = useState(() => {
-        const saved = localStorage.getItem('xaudit_floating_nav_top');
-        return saved ? parseInt(saved, 10) : 64;
-    });
-
-    // Dev Control for Right Position (persisted in localStorage)
-    const [floatingRightOffset, setFloatingRightOffset] = useState(() => {
-        const saved = localStorage.getItem('xaudit_floating_nav_right');
-        return saved ? parseInt(saved, 10) : 24;
-    });
-
     const floatingRef = useRef(null);
 
     // Scroll listener: Only show floating nav when top header navbar is scrolled out of view (>120px)
@@ -242,46 +236,6 @@ export function FloatingScrollNav() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isFloatingOpen]);
 
-    // Keyboard Dev Controls: Shift + Arrow keys (Up, Down, Left, Right)
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.shiftKey) {
-                if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    setFloatingTopOffset(prev => {
-                        const next = Math.max(0, prev - 2);
-                        localStorage.setItem('xaudit_floating_nav_top', next.toString());
-                        return next;
-                    });
-                } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    setFloatingTopOffset(prev => {
-                        const next = Math.min(600, prev + 2);
-                        localStorage.setItem('xaudit_floating_nav_top', next.toString());
-                        return next;
-                    });
-                } else if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    setFloatingRightOffset(prev => {
-                        const next = Math.min(1200, prev + 2);
-                        localStorage.setItem('xaudit_floating_nav_right', next.toString());
-                        return next;
-                    });
-                } else if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    setFloatingRightOffset(prev => {
-                        const next = Math.max(0, prev - 2);
-                        localStorage.setItem('xaudit_floating_nav_right', next.toString());
-                        return next;
-                    });
-                }
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
-
     const activePath = location.pathname;
     const isHome = activePath === '/';
     const isLight = activePath === '/privacy' || activePath === '/rules';
@@ -301,22 +255,6 @@ export function FloatingScrollNav() {
         }
     };
 
-    const adjustTopOffset = (delta) => {
-        setFloatingTopOffset(prev => {
-            const next = Math.max(0, Math.min(600, prev + delta));
-            localStorage.setItem('xaudit_floating_nav_top', next.toString());
-            return next;
-        });
-    };
-
-    const adjustRightOffset = (delta) => {
-        setFloatingRightOffset(prev => {
-            const next = Math.max(0, Math.min(1200, prev + delta));
-            localStorage.setItem('xaudit_floating_nav_right', next.toString());
-            return next;
-        });
-    };
-
     return (
         <>
             {/* Floating Right Mini Dropdown Navbar - FIXED TO VIEWPORT, SHOWN WHEN SCROLLED PAST NAVBAR */}
@@ -325,8 +263,8 @@ export function FloatingScrollNav() {
                 className="floating-scroll-nav"
                 style={{
                     position: 'fixed',
-                    top: `${floatingTopOffset}px`,
-                    right: `${floatingRightOffset}px`,
+                    top: `${FLOATING_NAV_TOP}px`,
+                    right: `${FLOATING_NAV_RIGHT}px`,
                     zIndex: 9999,
                     pointerEvents: showFloatingNav ? 'auto' : 'none',
                     opacity: showFloatingNav ? 1 : 0,
@@ -419,7 +357,7 @@ export function FloatingScrollNav() {
                                 to="/rules"
                                 onClick={() => setIsFloatingOpen(false)}
                                 className={`floating-nav-item ${isLight ? 'light-item' : ''}`}
-                                style={activePath === '/rules' ? { color: '#7c3aed', fontWeight: 700 } : {}}
+                                style={activePath === '/rules' ? { color: 'var(--lav)', fontWeight: 700 } : {}}
                             >
                                 Rules
                             </Link>
@@ -427,7 +365,7 @@ export function FloatingScrollNav() {
                                 to="/privacy"
                                 onClick={() => setIsFloatingOpen(false)}
                                 className={`floating-nav-item ${isLight ? 'light-item' : ''}`}
-                                style={activePath === '/privacy' ? { color: '#7c3aed', fontWeight: 700 } : {}}
+                                style={activePath === '/privacy' ? { color: 'var(--lav)', fontWeight: 700 } : {}}
                             >
                                 Privacy
                             </Link>
@@ -449,7 +387,7 @@ export function FloatingScrollNav() {
                                 to="/docs"
                                 onClick={() => setIsFloatingOpen(false)}
                                 className={`floating-nav-item ${isLight ? 'light-item' : ''}`}
-                                style={activePath === '/docs' ? { color: '#7c3aed', fontWeight: 700 } : {}}
+                                style={activePath === '/docs' ? { color: 'var(--lav)', fontWeight: 700 } : {}}
                             >
                                 Docs
                             </Link>

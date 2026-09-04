@@ -1,6 +1,6 @@
 import { parseSource } from "./parse";
 import { dedupeFindings } from "./dedupe";
-import { runHtmlChecks } from "./rules/html";
+import { runHtmlChecks, extractInlineScripts, buildScriptNotAnalyzedFinding } from "./rules/html";
 import { xssRule } from "./rules/xss";
 import { dynamicExecRule } from "./rules/dynamic-exec";
 import { sqliRule } from "./rules/sqli";
@@ -8,7 +8,7 @@ import { secretsRule } from "./rules/secrets";
 import { nodeCommandRule } from "./rules/node-command";
 import { authRule } from "./rules/auth";
 import { parsePackageJson, runDependencyHygieneChecks } from "./rules/dependency-hygiene";
-import { countBySeverity, MAX_SOURCE_BYTES, type AnalysisResult, type Language, type RuleRunSummary } from "./types";
+import { countBySeverity, MAX_SOURCE_BYTES, type AnalysisResult, type Finding, type Language, type RuleRunSummary } from "./types";
 import type { Rule } from "./rule";
 
 export type AnalysisMode = "html" | "script" | "package-json";
@@ -83,9 +83,49 @@ export function analyze(code: string, requestedMode: AnalysisMode | "auto" = "au
 
     if (mode === "html") {
         onStage?.("parsing", "scanning markup");
-        onStage?.("analyzing", "1 rule set (HTML hygiene)");
-        const findings = dedupeFindings(runHtmlChecks(source));
+        onStage?.("analyzing", "HTML hygiene + real rules on parseable inline <script> content");
+        let allFindings: Finding[] = runHtmlChecks(source);
         rulesRun.push({ ruleId: "html" });
+
+        // Inline <script> content used to be a total blind spot in HTML
+        // mode — see html.ts's own doc comment and F-05 in
+        // docs/self-audit-2026-09-03.md. Each block is now extracted and
+        // fed through the same rules JS/TS/React mode uses; a block that
+        // parses on its own gets real findings (with line numbers shifted
+        // back to their position in the original document), and a block
+        // that doesn't parse gets the honest per-block disclosure instead
+        // — never both for the same block, so a real finding is never
+        // followed by a contradictory "this wasn't examined" note.
+        const scriptBlocks = extractInlineScripts(source);
+        const scriptRuleIdsRun = new Set<string>();
+        for (const block of scriptBlocks) {
+            const parsed = parseSource(block.content);
+            if (!parsed.ok) {
+                allFindings.push(buildScriptNotAnalyzedFinding(block.startLine));
+                continue;
+            }
+            const lineOffset = block.startLine - 1;
+            for (const rule of SCRIPT_RULES) {
+                try {
+                    const findings = rule.run({ ast: parsed.ast, code: block.content });
+                    for (const finding of findings) {
+                        allFindings.push(
+                            finding.location
+                                ? { ...finding, location: { ...finding.location, line: finding.location.line + lineOffset } }
+                                : finding,
+                        );
+                    }
+                    scriptRuleIdsRun.add(rule.id);
+                } catch {
+                    // A single embedded block failing one rule shouldn't
+                    // taint the rest of the report — same tolerance the
+                    // top-level script-mode loop below already has.
+                }
+            }
+        }
+        for (const ruleId of scriptRuleIdsRun) rulesRun.push({ ruleId });
+
+        const findings = dedupeFindings(allFindings);
         onStage?.("rendering");
         return {
             status: "ok",

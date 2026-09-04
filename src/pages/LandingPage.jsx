@@ -4,6 +4,14 @@ import { TopTicker, HeaderNav } from '../components/Navbar';
 import logoXa from '../assets/logo-xa.png';
 import '../landing.css';
 
+function CheckIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M4 10.5l3.5 3.5L16 6" stroke="var(--lav)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
 
@@ -197,17 +205,17 @@ export default function LandingPage() {
 
         <section className="awards reveal">
           <div className="award-track">
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />No network requests through a real Playwright click-through</div>
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />Docs coverage fails if a ruleId loses its page</div>
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />Regression fixtures for parameterized queries and decorator syntax</div>
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />Independent benchmarks with explicit disclaimers</div>
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />Hostile self-audit found and fixed a real privacy bug</div>
+            <div><CheckIcon />No network requests through a real Playwright click-through</div>
+            <div><CheckIcon />Docs coverage fails if a ruleId loses its page</div>
+            <div><CheckIcon />Regression fixtures for parameterized queries and decorator syntax</div>
+            <div><CheckIcon />Independent benchmarks with explicit disclaimers</div>
+            <div><CheckIcon />Hostile self-audit found and fixed a real privacy bug</div>
 
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />No network requests through a real Playwright click-through</div>
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />Docs coverage fails if a ruleId loses its page</div>
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />Regression fixtures for parameterized queries and decorator syntax</div>
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />Independent benchmarks with explicit disclaimers</div>
-            <div><img src="/assets/11b4a8fd0365aa05.svg" alt="" />Hostile self-audit found and fixed a real privacy bug</div>
+            <div><CheckIcon />No network requests through a real Playwright click-through</div>
+            <div><CheckIcon />Docs coverage fails if a ruleId loses its page</div>
+            <div><CheckIcon />Regression fixtures for parameterized queries and decorator syntax</div>
+            <div><CheckIcon />Independent benchmarks with explicit disclaimers</div>
+            <div><CheckIcon />Hostile self-audit found and fixed a real privacy bug</div>
           </div>
         </section>
 

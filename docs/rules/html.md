@@ -2,7 +2,9 @@
 
 Source: [`src/lib/analysis/rules/html.ts`](../../src/lib/analysis/rules/html.ts) · Tests: [`tests/unit/html-rules.test.ts`](../../tests/unit/html-rules.test.ts) · Category: `html`
 
-**Not AST, not security-grade.** Attribute/text presence checks over the raw markup string — there is no HTML parser in this engine. Runs only when the input is analyzed in "HTML" mode. Severity here tops out at Medium (one check is deliberately Info-only) — presence/absence of an attribute is not proof of a vulnerability, only a hygiene gap. Unlike the other rule modules, this one isn't exercised through the shared fixture corpus (`tests/fixtures/`) — it has its own dedicated unit tests.
+**Not AST, not security-grade.** Attribute/text presence checks over the raw markup string — there is no HTML parser in this module. Runs only when the input is analyzed in "HTML" mode. Severity here tops out at Medium (one check is deliberately Info-only) — presence/absence of an attribute is not proof of a vulnerability, only a hygiene gap. Unlike the other rule modules, this one isn't exercised through the shared fixture corpus (`tests/fixtures/`) — it has its own dedicated unit tests.
+
+**Inline `<script>` content is also analyzed now, when it can be.** `analyze.ts` extracts every inline `<script>` block (external `src="..."` scripts and non-executable types like `application/json` are skipped) and attempts to parse each one on its own. A block that parses gets run through the same five real rules JS/TS/React mode uses — XSS, SQL injection, secrets, dynamic execution, Node.js command patterns — with each finding's line number shifted back to its real position in the document you pasted. A block that *can't* parse standalone (for example, one that depends on surrounding template syntax to be valid) falls back to `html-script-content-not-analyzed`, scoped to that specific block — never both for the same block, and other blocks in the same document are unaffected either way. This extraction/re-parse step is orchestrated in `analyze.ts`, not in this file — `html.ts` itself stays pure text scanning, per its own architecture.
 
 ---
 
@@ -58,25 +60,27 @@ Source: [`src/lib/analysis/rules/html.ts`](../../src/lib/analysis/rules/html.ts)
 
 ## html-script-content-not-analyzed
 
-**What it flags:** A non-trivial inline `<script>` block (real content, not just `<script src="...">`) when the input is being analyzed in HTML mode. This exists to close a real, found gap: before it existed, a user who manually selected HTML mode for content with real embedded JavaScript (e.g. a Vue single-file component) got a silent, clean "0 findings" report having never actually examined the script content with any of the other six real detection rules.
+**What it flags:** One inline `<script>` block, specifically the ones that could **not** be parsed as standalone JavaScript/TypeScript/JSX — for example, a block that relies on surrounding template syntax to be valid on its own. This exists to close a real, found gap: before any inline-script analysis existed, a user who manually selected HTML mode for content with real embedded JavaScript got a silent, clean "0 findings" report having never actually examined the script content with any of the five real detection rules. It's now scoped per-block rather than firing for the whole document: a block that *does* parse gets real findings from the actual rules instead of this disclosure (see the module intro above) — this finding only appears for the block(s) that genuinely couldn't be examined.
 
 **Severity:** Info — purely a disclosure, not a claim that anything in the script is wrong.
 
-**Risky (informational) example:**
+**Risky (informational) example** — content that can't stand on its own outside its template:
 ```html
-<template><div>{{ msg }}</div></template>
 <script>
-export default { data() { return { msg: eval(location.hash) } } }
+<% if (user) { %>
+const greeting = "hi";
+<% } %>
 </script>
 ```
-This produces exactly one finding: `html-script-content-not-analyzed`. The `eval()` inside is real and dangerous, but it was never examined — switching to "JS/TS/React" mode would catch it.
+This produces `html-script-content-not-analyzed` for this block, since `<% ... %>` isn't valid JS syntax on its own. A block with genuinely parseable content — even one with a real bug, e.g. `<script>function leak() { return eval(location.hash); }</script>` — does **not** produce this finding; it produces a real `exec-eval` finding instead, with its line number matching the actual document.
 
 **Safe examples:**
 ```html
 <script src="/app.js"></script>          <!-- external script, nothing inline to miss — NOT flagged -->
 <script>   </script>                       <!-- empty/whitespace-only — NOT flagged -->
+<script type="application/json">{"a":1}</script>  <!-- not an executable script type — NOT parsed as JS -->
 ```
 
-**Limitations:** Presence check only (does a `<script>` tag have non-empty inline content) — does not itself analyze the script content in any way, and never runs at all if the input is analyzed as JS/TS/React instead of HTML.
+**Limitations:** A per-block fallback, not a claim about the script's content — if a document has several `<script>` blocks, only the ones that fail to parse get this finding; the rest are analyzed for real. Doesn't run at all if the input is analyzed as JS/TS/React instead of HTML.
 
-**Tests:** `tests/unit/html-rules.test.ts` — "regression: HTML mode discloses when it isn't analyzing real script content (F-05)" describe block. Full background in [`docs/self-audit-2026-09-03.md`](../self-audit-2026-09-03.md) finding F-05.
+**Tests:** `tests/unit/html-rules.test.ts` — "regression + feature: HTML mode now analyzes parseable inline `<script>` content (F-05)" describe block, exercised via `analyze()` (the extraction/re-parse/line-remap orchestration lives in `analyze.ts`, so these tests go through the real entry point rather than `runHtmlChecks()` alone). Full background in [`docs/self-audit-2026-09-03.md`](../self-audit-2026-09-03.md) finding F-05.
