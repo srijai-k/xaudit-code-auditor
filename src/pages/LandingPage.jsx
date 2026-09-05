@@ -76,13 +76,18 @@ export default function LandingPage() {
         <HeaderNav />
 
         <section className="hero reveal">
-          <p className="eyebrow purple"><span></span>Client-side static code checker</p>
-          <h1>XAUDIT flags risky code patterns without pretending to be more than it is.</h1>
-          <p className="hero-copy">Paste JavaScript, TypeScript, React/JSX, HTML, or a package.json. XAUDIT runs locally in your browser, points out patterns worth a human look, and documents the limits of every rule.</p>
-          <div className="hero-actions">
-            <button className="cta primary-audit-cta" onClick={handleStartAudit}>
-              <span>+</span> Start Audit
-            </button>
+          {/* -50px was picked live via a temporary dev control (removed) that
+              nudged this block up/down; hardcoded here the same way
+              FLOATING_NAV_TOP/RIGHT were. */}
+          <div style={{ marginTop: '-50px' }}>
+            <p className="eyebrow purple"><span></span>Client-side static code checker</p>
+            <h1>XAUDIT flags risky code patterns without pretending to be more than it is.</h1>
+            <p className="hero-copy">Paste JavaScript, TypeScript, React/JSX, HTML, or a package.json. XAUDIT runs locally in your browser, points out patterns worth a human look, and documents the limits of every rule.</p>
+            <div className="hero-actions">
+              <button className="cta primary-audit-cta" onClick={handleStartAudit}>
+                <span>+</span> Start Audit
+              </button>
+            </div>
           </div>
         </section>
 
@@ -121,9 +126,14 @@ export default function LandingPage() {
             <article className={expandedCard === 0 ? 'is-expanded' : expandedCard !== null ? 'is-shrunk' : ''}>
               <h3>Worker-bound</h3>
               <p>Analysis runs entirely in a Web Worker, off the UI thread, with no network calls anywhere in the pipeline.</p>
-              <button 
-                className="expand-card-btn" 
-                onClick={(e) => toggleExpandCard(0, e)} 
+              <div className={`analysis-expand-wrapper ${expandedCard === 0 ? 'is-open' : ''}`}>
+                <div className="analysis-expand-inner">
+                  <p>A single worker is spawned and communicated with over <code>postMessage</code>. Every request carries an incrementing request ID, so the client discards any response whose ID doesn't match the most recent — a stale scan from an earlier paste can never overwrite a newer result. Babel's parsing is synchronous and doesn't yield the event loop mid-parse, but the 500KB input cap keeps worst-case analysis time low enough that this tradeoff was accepted.</p>
+                </div>
+              </div>
+              <button
+                className="expand-card-btn"
+                onClick={(e) => toggleExpandCard(0, e)}
                 aria-label="Expand Worker-bound card"
                 title={expandedCard === 0 ? "Collapse card" : "Expand card"}
               >
@@ -133,9 +143,14 @@ export default function LandingPage() {
             <article className={expandedCard === 1 ? 'is-expanded' : expandedCard !== null ? 'is-shrunk' : ''}>
               <h3>Parsed</h3>
               <p>JSX and TypeScript syntax are parsed into an AST. There is no type checker, and HTML uses a lighter attribute/text scan.</p>
-              <button 
-                className="expand-card-btn" 
-                onClick={(e) => toggleExpandCard(1, e)} 
+              <div className={`analysis-expand-wrapper ${expandedCard === 1 ? 'is-open' : ''}`}>
+                <div className="analysis-expand-inner">
+                  <p><code>@babel/parser</code> + <code>@babel/traverse</code> were chosen over <code>typescript-estree</code> (pulls in the full TypeScript compiler — large, Node/CLI-oriented) and <code>acorn</code> (fast for JS/JSX, but TypeScript support is a bolted-on plugin). One parser accepts the union of JS/TS/JSX/TSX syntax through a single, mature visitor API — deliberately without a type checker, so nothing here ever reasons about a variable's actual type.</p>
+                </div>
+              </div>
+              <button
+                className="expand-card-btn"
+                onClick={(e) => toggleExpandCard(1, e)}
                 aria-label="Expand Parsed card"
                 title={expandedCard === 1 ? "Collapse card" : "Expand card"}
               >
@@ -145,9 +160,14 @@ export default function LandingPage() {
             <article className={expandedCard === 2 ? 'is-expanded' : expandedCard !== null ? 'is-shrunk' : ''}>
               <h3>Bounded</h3>
               <p>Input above 500KB is rejected before analysis. Findings are deduplicated by rule and location.</p>
-              <button 
-                className="expand-card-btn" 
-                onClick={(e) => toggleExpandCard(2, e)} 
+              <div className={`analysis-expand-wrapper ${expandedCard === 2 ? 'is-open' : ''}`}>
+                <div className="analysis-expand-inner">
+                  <p>Oversized input is rejected outright, with a message — never silently truncated and re-analyzed as a partial file. Findings are deduplicated by rule ID and exact source location before they reach the UI, so a single tainted variable referenced ten times in a loop produces one finding, not ten copies of it.</p>
+                </div>
+              </div>
+              <button
+                className="expand-card-btn"
+                onClick={(e) => toggleExpandCard(2, e)}
                 aria-label="Expand Bounded card"
                 title={expandedCard === 2 ? "Collapse card" : "Expand card"}
               >
@@ -155,7 +175,7 @@ export default function LandingPage() {
               </button>
             </article>
           </div>
-          <button className="cta" onClick={() => navigate('/rules')}><span>+</span> See the rules</button>
+          <button className="cta" onClick={() => navigate('/engine')}><span>+</span> Explore the engine</button>
         </section>
 
         <section id="privacy" className="vision reveal">
@@ -195,6 +215,7 @@ export default function LandingPage() {
             <article><h3>No grades</h3><p>No letter score and no risk theater. Scoring was removed on purpose.</p></article>
             <article><h3>Limitations</h3><p>Every finding includes what matched, why it matters, a safer example, and its own limits.</p></article>
           </div>
+          <button className="cta" onClick={() => navigate('/export')}><span>+</span> See export details</button>
         </section>
 
         <section id="tests" className="contact reveal">
@@ -208,6 +229,9 @@ export default function LandingPage() {
             <p>Nothing aspirational<br /><span>Everything has a test</span></p>
             <p className="eyebrow purple"><span></span>Testing</p>
             <h2>Claims are backed by unit, regression, benchmark, docs, and e2e tests.</h2>
+            <button className="cta" style={{ marginTop: '28px' }} onClick={() => navigate('/tests')}>
+              <span>+</span> See the test suite
+            </button>
           </div>
         </section>
 
