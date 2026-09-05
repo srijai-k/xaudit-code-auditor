@@ -4,7 +4,7 @@ import logoXa from '../assets/logo-xa.png';
 
 export function TopTicker() {
     const location = useLocation();
-    const isLight = location.pathname === '/privacy' || location.pathname === '/rules';
+    const isLight = location.pathname === '/privacy' || location.pathname === '/rules' || location.pathname === '/docs' || location.pathname === '/engine' || location.pathname === '/export' || location.pathname === '/tests';
 
     return (
         <div 
@@ -39,29 +39,9 @@ export function TopTicker() {
 export function HeaderNav({ onOpenHistory }) {
     const location = useLocation();
     const navigate = useNavigate();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-    const closeMenu = () => setIsMenuOpen(false);
 
     const activePath = location.pathname;
-    const isHome = activePath === '/';
-    const isLight = activePath === '/privacy' || activePath === '/rules';
-
-    const getAnchor = (id) => (isHome ? `#${id}` : `/#${id}`);
-
-    const handleSectionClick = (e, sectionId) => {
-        e.preventDefault();
-        closeMenu();
-        if (isHome) {
-            const el = document.getElementById(sectionId);
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth' });
-            }
-        } else {
-            navigate(`/#${sectionId}`);
-        }
-    };
+    const isLight = activePath === '/privacy' || activePath === '/rules' || activePath === '/docs' || activePath === '/engine' || activePath === '/export' || activePath === '/tests';
 
     const linkStyle = (path) => {
         const isActive = activePath === path;
@@ -91,10 +71,11 @@ export function HeaderNav({ onOpenHistory }) {
                 </Link>
 
                 <nav className="header-nav">
-                    <a href={getAnchor('engine')} onClick={(e) => handleSectionClick(e, 'engine')} style={isLight ? { color: '#222', fontWeight: 600 } : {}}>
+                    <Link to="/engine" style={linkStyle('/engine')}>
+                        {activePath === '/engine' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
                         Engine
-                    </a>
-                    
+                    </Link>
+
                     <Link to="/rules" style={linkStyle('/rules')}>
                         {activePath === '/rules' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
                         Rules
@@ -105,13 +86,15 @@ export function HeaderNav({ onOpenHistory }) {
                         Privacy
                     </Link>
 
-                    <a href={getAnchor('exports')} onClick={(e) => handleSectionClick(e, 'exports')} style={isLight ? { color: '#222', fontWeight: 600 } : {}}>
+                    <Link to="/export" style={linkStyle('/export')}>
+                        {activePath === '/export' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
                         Export
-                    </a>
-                    
-                    <a href={getAnchor('tests')} onClick={(e) => handleSectionClick(e, 'tests')} style={isLight ? { color: '#222', fontWeight: 600 } : {}}>
+                    </Link>
+
+                    <Link to="/tests" style={linkStyle('/tests')}>
+                        {activePath === '/tests' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
                         Tests
-                    </a>
+                    </Link>
 
                     <Link to="/docs" style={linkStyle('/docs')}>
                         {activePath === '/docs' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
@@ -146,49 +129,7 @@ export function HeaderNav({ onOpenHistory }) {
                         <span>+</span> Start Audit
                     </button>
                 </nav>
-
-                <button 
-                    className={`menu-pill ${isMenuOpen ? 'is-open' : ''}`} 
-                    aria-expanded={isMenuOpen} 
-                    onClick={toggleMenu}
-                    style={isLight ? { background: '#161616', color: '#fff' } : {}}
-                >
-                    <span></span><em>{isMenuOpen ? 'Close' : 'Menu'}</em>
-                </button>
             </header>
-
-            <aside className={`menu-panel ${isMenuOpen ? 'is-open' : ''}`} id="menuPanel" aria-hidden={!isMenuOpen}>
-                <a href={getAnchor('engine')} onClick={(e) => handleSectionClick(e, 'engine')}>Engine</a>
-                <Link to="/rules" onClick={closeMenu}>● Rules</Link>
-                <Link to="/privacy" onClick={closeMenu}>● Privacy</Link>
-                <a href={getAnchor('exports')} onClick={(e) => handleSectionClick(e, 'exports')}>Export</a>
-                <a href={getAnchor('tests')} onClick={(e) => handleSectionClick(e, 'tests')}>Tests</a>
-                <Link to="/docs" onClick={closeMenu}>Docs</Link>
-                {activePath === '/check' && onOpenHistory && (
-                    <button
-                        onClick={() => { closeMenu(); onOpenHistory(); }}
-                        style={{
-                            background: 'transparent',
-                            border: '1px solid var(--line)',
-                            color: '#fff',
-                            padding: '10px 18px',
-                            borderRadius: '999px',
-                            margin: '10px 0',
-                            width: '100%',
-                            fontWeight: 700
-                        }}
-                    >
-                        Audit History
-                    </button>
-                )}
-                <button
-                    className="nav-start-audit-btn"
-                    style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }}
-                    onClick={() => { closeMenu(); navigate('/check'); }}
-                >
-                    <span>+</span> Start Audit
-                </button>
-            </aside>
         </>
     );
 }
@@ -208,10 +149,16 @@ export function FloatingScrollNav() {
     const [isFloatingOpen, setIsFloatingOpen] = useState(false);
     const floatingRef = useRef(null);
 
-    // Scroll listener: Only show floating nav when top header navbar is scrolled out of view (>120px)
+    // On mobile (where the header's own link row is hidden by CSS below
+    // 980px) this is the only nav, so it stays visible throughout the
+    // page rather than waiting for a scroll past the header — that
+    // scroll-gated reveal is kept for desktop only, where the header's
+    // full nav is already on screen at the top.
     useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 120) {
+        const mobileQuery = window.matchMedia('(max-width: 980px)');
+
+        const handleVisibility = () => {
+            if (mobileQuery.matches || window.scrollY > 120) {
                 setShowFloatingNav(true);
             } else {
                 setShowFloatingNav(false);
@@ -219,9 +166,13 @@ export function FloatingScrollNav() {
             }
         };
 
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        handleScroll();
-        return () => window.removeEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleVisibility, { passive: true });
+        mobileQuery.addEventListener('change', handleVisibility);
+        handleVisibility();
+        return () => {
+            window.removeEventListener('scroll', handleVisibility);
+            mobileQuery.removeEventListener('change', handleVisibility);
+        };
     }, []);
 
     useEffect(() => {
@@ -237,23 +188,7 @@ export function FloatingScrollNav() {
     }, [isFloatingOpen]);
 
     const activePath = location.pathname;
-    const isHome = activePath === '/';
-    const isLight = activePath === '/privacy' || activePath === '/rules';
-
-    const getAnchor = (id) => (isHome ? `#${id}` : `/#${id}`);
-
-    const handleSectionClick = (e, sectionId) => {
-        e.preventDefault();
-        setIsFloatingOpen(false);
-        if (isHome) {
-            const el = document.getElementById(sectionId);
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth' });
-            }
-        } else {
-            navigate(`/#${sectionId}`);
-        }
-    };
+    const isLight = activePath === '/privacy' || activePath === '/rules' || activePath === '/docs' || activePath === '/engine' || activePath === '/export' || activePath === '/tests';
 
     return (
         <>
@@ -346,13 +281,14 @@ export function FloatingScrollNav() {
                                 animation: 'textFadeInUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards'
                             }}
                         >
-                            <a
-                                href={getAnchor('engine')}
-                                onClick={(e) => handleSectionClick(e, 'engine')}
+                            <Link
+                                to="/engine"
+                                onClick={() => setIsFloatingOpen(false)}
                                 className={`floating-nav-item ${isLight ? 'light-item' : ''}`}
+                                style={activePath === '/engine' ? { color: 'var(--lav)', fontWeight: 700 } : {}}
                             >
                                 Engine
-                            </a>
+                            </Link>
                             <Link
                                 to="/rules"
                                 onClick={() => setIsFloatingOpen(false)}
@@ -369,20 +305,22 @@ export function FloatingScrollNav() {
                             >
                                 Privacy
                             </Link>
-                            <a
-                                href={getAnchor('exports')}
-                                onClick={(e) => handleSectionClick(e, 'exports')}
+                            <Link
+                                to="/export"
+                                onClick={() => setIsFloatingOpen(false)}
                                 className={`floating-nav-item ${isLight ? 'light-item' : ''}`}
+                                style={activePath === '/export' ? { color: 'var(--lav)', fontWeight: 700 } : {}}
                             >
                                 Export
-                            </a>
-                            <a
-                                href={getAnchor('tests')}
-                                onClick={(e) => handleSectionClick(e, 'tests')}
+                            </Link>
+                            <Link
+                                to="/tests"
+                                onClick={() => setIsFloatingOpen(false)}
                                 className={`floating-nav-item ${isLight ? 'light-item' : ''}`}
+                                style={activePath === '/tests' ? { color: 'var(--lav)', fontWeight: 700 } : {}}
                             >
                                 Tests
-                            </a>
+                            </Link>
                             <Link
                                 to="/docs"
                                 onClick={() => setIsFloatingOpen(false)}
