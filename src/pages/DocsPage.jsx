@@ -24,18 +24,21 @@ export default function DocsPage() {
     const [activeSection, setActiveSection] = useState('overview');
 
     return (
-        <div className="landing-wrapper">
+        <div className="landing-wrapper" style={{ background: '#222222' }}>
             <TopTicker />
-            <main className="page-shell">
+            <main className="page-shell" style={{ background: '#f4f3ef', color: '#111', minHeight: '100vh', borderRadius: '32px' }}>
                 <HeaderNav />
 
                 {/* Recentered Header Section */}
                 <div style={{ padding: '48px 24px 32px', textAlign: 'center', maxWidth: '840px', margin: '0 auto' }}>
-                    <p className="eyebrow purple" style={{ justifyContent: 'center' }}><span></span>Official Specification & Documentation</p>
-                    <h1 style={{ fontSize: '42px', fontWeight: 500, color: '#fff', margin: '10px 0 16px', lineHeight: 1.15 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7c3aed', marginBottom: '20px', justifyContent: 'center' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }}></span>
+                        Official Specification & Documentation
+                    </div>
+                    <h1 style={{ fontSize: '42px', fontWeight: 500, color: '#111', margin: '10px 0 16px', lineHeight: 1.15 }}>
                         XAUDIT Technical Reference
                     </h1>
-                    <p style={{ color: '#888', fontSize: '16px', lineHeight: 1.6 }}>
+                    <p style={{ color: '#555', fontSize: '16px', lineHeight: 1.6 }}>
                         Complete reference manual, rule specifications, self-audit report, model improvement changelog, and local execution details.
                     </p>
                 </div>
@@ -155,7 +158,7 @@ export default function DocsPage() {
                         {activeSection === 'local-exec' && (
                             <section id="local-exec" className="docs-card">
                                 <h2>How Analysis Runs Locally</h2>
-                                <ul style={{ color: '#ccc', lineHeight: 1.8, paddingLeft: '20px', marginBottom: '24px' }}>
+                                <ul style={{ color: '#333', lineHeight: 1.8, paddingLeft: '20px', marginBottom: '24px' }}>
                                     <li>Pasted/typed code is checked against a <strong>500KB size limit</strong> before anything else runs — oversized input is rejected with a message, not silently truncated.</li>
                                     <li>The code is sent (via <code>postMessage</code>, in-memory, same-origin) to a dedicated Web Worker. Parsing and rule execution happen there, off the UI thread.</li>
                                     <li>For HTML input, a lightweight attribute/text scan runs. For everything else, <code>@babel/parser</code> builds a real AST and each rule module traverses it independently.</li>
@@ -177,7 +180,7 @@ export default function DocsPage() {
                                 <p>
                                     Three formats, all generated client-side from the exact findings already on screen:
                                 </p>
-                                <ul style={{ color: '#ccc', lineHeight: 1.8, paddingLeft: '20px' }}>
+                                <ul style={{ color: '#333', lineHeight: 1.8, paddingLeft: '20px' }}>
                                     <li><strong>PDF</strong>: A formatted report for sharing and archiving.</li>
                                     <li><strong>SARIF 2.1.0</strong>: The standard format GitHub Code Scanning, VS Code's SARIF viewer, and CI security tooling read — each rule's <code>helpUri</code> links to a real, stable anchor.</li>
                                     <li><strong>JSON</strong>: The full analysis result payload.</li>
@@ -192,7 +195,7 @@ export default function DocsPage() {
                                 <p>
                                     An earlier version of XAUDIT computed a weighted overall score, mapped it to a letter grade, and produced a ship/no-ship style verdict. This was removed entirely rather than kept in a "fixed" form, for three reasons:
                                 </p>
-                                <ol style={{ color: '#ccc', lineHeight: 1.8, paddingLeft: '20px' }}>
+                                <ol style={{ color: '#333', lineHeight: 1.8, paddingLeft: '20px' }}>
                                     <li><strong>No rubric could be made honest at this rule count:</strong> A grade implies a calibrated relationship between finding count/severity and actual security risk. With a handful of narrow rule groups and no data-flow analysis, that relationship doesn't exist.</li>
                                     <li><strong>It was empirically wrong on its own terms:</strong> The old scoring logic disagreed with its own author's hand-written test expectations on two of nine cases. A rubric that can't pass its own test cases has no business being presented as authoritative.</li>
                                     <li><strong>It invited exactly the wrong behavior:</strong> A grade or verdict is an invitation to treat a passing result as a decision rather than a prompt to keep looking. The replacement — a plain count of findings by severity, each with its own stated limitations — is deliberately less satisfying and more honest.</li>
@@ -205,7 +208,7 @@ export default function DocsPage() {
                             <section id="limitations" className="docs-card">
                                 <h2>Known Limitations & Security Disclaimer</h2>
                                 <h3>Known Limitations</h3>
-                                <ul style={{ color: '#ccc', lineHeight: 1.7, paddingLeft: '20px', marginBottom: '24px' }}>
+                                <ul style={{ color: '#333', lineHeight: 1.7, paddingLeft: '20px', marginBottom: '24px' }}>
                                     <li>No data-flow or taint analysis anywhere. Every rule looks at a direct AST relationship at a single call/assignment site.</li>
                                     <li>No type checker. TypeScript syntax parses, but type information is never used.</li>
                                     <li>The SQL-injection rule is deliberately narrow and will miss anything not shaped like one of its recognized method names on a recognized DB-shaped receiver.</li>
@@ -260,7 +263,7 @@ export default function DocsPage() {
                                 <p>
                                     Recorded before any rewrite work, as ground truth measured against source code, local runs, production builds, and a 30-case adversarial script run:
                                 </p>
-                                <ul style={{ color: '#ccc', lineHeight: 1.7, paddingLeft: '20px' }}>
+                                <ul style={{ color: '#333', lineHeight: 1.7, paddingLeft: '20px' }}>
                                     <li>Pure regex/string matching engine. No parser, no AST, no data-flow tracking, no AI model.</li>
                                     <li>SQLi detector was unreachable dead code after an unconditional early return.</li>
                                     <li>Standard React JSX (<code>onClick=&#123;handleClick&#125;</code>) reported as critical inline click handler vulnerability.</li>
@@ -280,7 +283,7 @@ export default function DocsPage() {
                             <section id="improvements" className="docs-card">
                                 <h2>Model Improvements Log</h2>
                                 <p>Plain-language record of changes to the detection engine:</p>
-                                <ul style={{ color: '#ccc', lineHeight: 1.7, paddingLeft: '20px' }}>
+                                <ul style={{ color: '#333', lineHeight: 1.7, paddingLeft: '20px' }}>
                                     <li><strong>Same-scope variable tracing:</strong> Traces Plain variables back one hop to initial declaration. Cuts false positives on safe HTML literals & catches indirect SQLi.</li>
                                     <li><strong>Reverted dynamic import()/require() check:</strong> Reverted same day after testing showed high false positives on locale/route code-splitting.</li>
                                     <li><strong>Expanded ORM coverage:</strong> Added <code>sequelize</code>, <code>dataSource</code>, <code>queryRunner</code>, and Prisma unsafe raw-query methods.</li>
