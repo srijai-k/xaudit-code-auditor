@@ -1,0 +1,405 @@
+{
+  "generatedAt": "2026-09-06T04:53:19.167Z",
+  "implementation": "baseline (src/lib/analysis/rules/xss.ts, unmodified)",
+  "results": [
+    {
+      "caseId": 1,
+      "file": "unsafe/hash-innerhtml.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 2,
+      "file": "unsafe/template-literal-innerhtml.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 3,
+      "file": "unsafe/outerhtml-user-controlled.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-outer-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 4,
+      "file": "unsafe/insert-adjacent-html-dynamic.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-insert-adjacent-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 5,
+      "file": "unsafe/document-write-dynamic.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-document-write",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 6,
+      "file": "react/dangerously-set-inner-html-raw.jsx",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-dangerously-set-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 7,
+      "file": "unsafe/iframe-srcdoc-dynamic.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-iframe-srcdoc",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 8,
+      "file": "jquery/jquery-html-dynamic.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-jquery-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 9,
+      "file": "unsafe/one-hop-variable-dynamic.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 10,
+      "file": "unsafe/template-expression-dynamic.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 11,
+      "file": "sanitized-direct/innerhtml-dompurify-direct.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 12,
+      "file": "sanitized-direct/outerhtml-dompurify-direct.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-outer-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 13,
+      "file": "sanitized-direct/insert-adjacent-html-dompurify.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-insert-adjacent-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 14,
+      "file": "react/dangerously-set-inner-html-dompurify.jsx",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-dangerously-set-inner-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 15,
+      "file": "sanitized-direct/one-hop-dompurify-variable.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 16,
+      "file": "aliases/default-import-alias.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 17,
+      "file": "aliases/namespace-import.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 18,
+      "file": "sanitized-misused/sanitize-then-concat-unsanitized.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 19,
+      "file": "sanitized-misused/sanitize-one-inject-second.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 20,
+      "file": "sanitized-misused/sanitize-html-but-js-uri.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "low"
+        },
+        {
+          "ruleId": "xss-location-javascript-uri",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 21,
+      "file": "sanitized-misused/fake-local-sanitize-function.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 22,
+      "file": "sanitized-misused/unrelated-object-sanitize-method.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 23,
+      "file": "sanitized-misused/overwrite-after-sanitize.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 24,
+      "file": "sanitized-misused/dompurify-called-unrelated-raw-injected.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 25,
+      "file": "sanitized-misused/sanitized-through-unknown-mutator.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 26,
+      "file": "safe-literal/literal-innerhtml.js",
+      "parseError": null,
+      "findings": []
+    },
+    {
+      "caseId": 27,
+      "file": "safe-literal/constant-template-literal.js",
+      "parseError": null,
+      "findings": []
+    },
+    {
+      "caseId": 28,
+      "file": "react/normal-jsx-children.jsx",
+      "parseError": null,
+      "findings": []
+    },
+    {
+      "caseId": 29,
+      "file": "react/standard-onclick-handler.jsx",
+      "parseError": null,
+      "findings": []
+    },
+    {
+      "caseId": 30,
+      "file": "safe-literal/textcontent-assignment.js",
+      "parseError": null,
+      "findings": []
+    },
+    {
+      "caseId": 31,
+      "file": "safe-literal/createelement-appendchild.js",
+      "parseError": null,
+      "findings": []
+    },
+    {
+      "caseId": 32,
+      "file": "safe-literal/parameterized-dom-update-no-html-sink.js",
+      "parseError": null,
+      "findings": []
+    },
+    {
+      "caseId": 33,
+      "file": "safe-literal/sanitizer-call-no-html-sink.js",
+      "parseError": null,
+      "findings": []
+    },
+    {
+      "caseId": 34,
+      "file": "aliases/renamed-local-alias.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 35,
+      "file": "aliases/destructured-function-reference.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 36,
+      "file": "aliases/destructured-sanitize.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "caseId": 37,
+      "file": "ambiguous/cross-file-imported-wrapper.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 38,
+      "file": "ambiguous/conditional-sanitizer-use.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 39,
+      "file": "ambiguous/sanitizer-inside-unknown-return-function.js",
+      "parseError": null,
+      "findings": [
+        {
+          "ruleId": "xss-inner-html",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "caseId": 40,
+      "file": "ambiguous/parser-error-malformed.jsx",
+      "parseError": "Unexpected token (6:58)",
+      "findings": []
+    }
+  ]
+}
