@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-09-06T04:58:20.164Z",
-  "implementation": "baseline",
+  "generatedAt": "2026-09-06T04:58:20.169Z",
+  "implementation": "experimental",
   "metrics": {
     "totalCases": 40,
     "parserErrorCases": 1,
     "parserErrorMismatches": 0,
     "scoredCases": 39,
-    "tp": 28,
-    "fp": 4,
-    "fn": 4,
+    "tp": 32,
+    "fp": 0,
+    "fn": 0,
     "tn": 8,
-    "precision": 0.875,
-    "recall": 0.875,
-    "f1": 0.875,
-    "highOrCriticalFindings": 20,
-    "recognizedSanitizerFindings": 12,
+    "precision": 1,
+    "recall": 1,
+    "f1": 1,
+    "highOrCriticalFindings": 24,
+    "recognizedSanitizerFindings": 8,
     "ambiguousCasesTotal": 6,
-    "ambiguousCasesCorrect": 4
+    "ambiguousCasesCorrect": 6
   },
   "perCase": [
     {
@@ -606,23 +606,18 @@
       "actual": [
         {
           "ruleId": "xss-inner-html",
-          "severity": "low"
+          "severity": "high"
         }
       ],
-      "tp": [],
-      "fp": [
-        {
-          "ruleId": "xss-inner-html",
-          "severity": "low"
-        }
-      ],
-      "fn": [
+      "tp": [
         {
           "ruleId": "xss-inner-html",
           "severity": "high"
         }
       ],
-      "fullyCorrect": false
+      "fp": [],
+      "fn": [],
+      "fullyCorrect": true
     },
     {
       "caseId": 22,
@@ -639,23 +634,18 @@
       "actual": [
         {
           "ruleId": "xss-inner-html",
-          "severity": "low"
+          "severity": "high"
         }
       ],
-      "tp": [],
-      "fp": [
-        {
-          "ruleId": "xss-inner-html",
-          "severity": "low"
-        }
-      ],
-      "fn": [
+      "tp": [
         {
           "ruleId": "xss-inner-html",
           "severity": "high"
         }
       ],
-      "fullyCorrect": false
+      "fp": [],
+      "fn": [],
+      "fullyCorrect": true
     },
     {
       "caseId": 23,
@@ -860,23 +850,18 @@
       "actual": [
         {
           "ruleId": "xss-inner-html",
-          "severity": "low"
+          "severity": "high"
         }
       ],
-      "tp": [],
-      "fp": [
-        {
-          "ruleId": "xss-inner-html",
-          "severity": "low"
-        }
-      ],
-      "fn": [
+      "tp": [
         {
           "ruleId": "xss-inner-html",
           "severity": "high"
         }
       ],
-      "fullyCorrect": false
+      "fp": [],
+      "fn": [],
+      "fullyCorrect": true
     },
     {
       "caseId": 35,
@@ -921,23 +906,18 @@
       "actual": [
         {
           "ruleId": "xss-inner-html",
-          "severity": "low"
+          "severity": "high"
         }
       ],
-      "tp": [],
-      "fp": [
-        {
-          "ruleId": "xss-inner-html",
-          "severity": "low"
-        }
-      ],
-      "fn": [
+      "tp": [
         {
           "ruleId": "xss-inner-html",
           "severity": "high"
         }
       ],
-      "fullyCorrect": false
+      "fp": [],
+      "fn": [],
+      "fullyCorrect": true
     },
     {
       "caseId": 37,
