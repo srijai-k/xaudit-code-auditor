@@ -1,12 +1,13 @@
 {
-  "generatedAt": "2026-09-06T04:58:20.169Z",
+  "generatedAt": "2026-09-07T09:18:34.049Z",
   "implementation": "experimental",
   "metrics": {
     "totalCases": 40,
     "parserErrorCases": 1,
     "parserErrorMismatches": 0,
     "scoredCases": 39,
-    "tp": 32,
+    "coreCases": 33,
+    "tp": 26,
     "fp": 0,
     "fn": 0,
     "tn": 8,
@@ -16,7 +17,10 @@
     "highOrCriticalFindings": 24,
     "recognizedSanitizerFindings": 8,
     "ambiguousCasesTotal": 6,
-    "ambiguousCasesCorrect": 6
+    "ambiguousCasesCorrect": 6,
+    "ambiguousTp": 6,
+    "ambiguousFp": 0,
+    "ambiguousFn": 0
   },
   "perCase": [
     {

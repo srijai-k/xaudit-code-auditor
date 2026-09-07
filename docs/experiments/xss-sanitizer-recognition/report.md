@@ -14,15 +14,22 @@ literal `DOMPurify` identifier, or an import binding traced to the literal
 module `"dompurify"`) reduces false positives without increasing false
 negatives. A frozen, 40-case, hand-authored corpus was scored against both
 the unmodified production rule and an isolated experimental variant that
-differs only in the recognition predicate. The narrow variant matched or
-improved on the production rule on every case: precision and recall both
-rose from 0.88 to 1.00, with zero remaining false positives or false
-negatives on this corpus. The improvement traces to four specific,
-name-based miscalibrations in the current rule — a same-file no-op function
-merely named `sanitize`, an unrelated object's `.sanitize()` method, a
-local variable aliased from `DOMPurify`, and a destructured `{ sanitize }`
-binding — each of which the current implementation trusts by name alone.
-This is a small, same-author, non-random corpus, and the result should be
+differs only in the recognition predicate, with 6 cases pre-marked as
+disclosed scope-limitation cases and scored separately from the headline
+metric rather than blended into it (see §4 and §5 for why). On the
+remaining 33 core cases, the narrow variant matched or improved on the
+production rule on every case: precision and recall both rose from 0.92 to
+1.00, with zero remaining false positives or false negatives. The
+improvement traces to two specific, name-based miscalibrations in the
+current rule — a same-file no-op function merely named `sanitize`, and an
+unrelated object's `.sanitize()` method — both trusted by the current
+implementation by name alone. On the 6 separately-tracked scope-limitation
+cases, the narrow variant also went 6/6 correct against baseline's 4/6: two
+of those (a local variable aliased from `DOMPurify`, and a destructured
+`{ sanitize }` binding) are cases where baseline's broader name match
+happened to reach the right answer for an unverifiable reason, and the
+narrow variant's fail-safe default is reported as a disclosed recognition
+trade-off, not folded into the core precision/recall claim. This is a small, same-author, non-random corpus, and the result should be
 read as a targeted fix for a specific known miscalibration, not as general
 evidence that sanitizer recognition is reliable.
 
@@ -104,19 +111,35 @@ regardless of the receiver's name.
 
 ## 5. Results
 
+TP/FP/FN/TN/Precision/Recall/F1 are computed from the **33 core cases**
+only — every scored case except the 6 marked `ambiguousOrUnsupported` in
+`ground-truth.json` (cases 34-39). This split was already the stated intent
+in `protocol.md` ("tracked separately... so a recall-on-recognition
+limitation is never conflated with a recall-on-vulnerability-detection
+failure"); an earlier version of `score-results.ts` blended the two groups
+into one headline number anyway (0.88 → 1.00) despite that stated intent —
+a scoring bug, caught and fixed the same day, not a change to any case's
+expected outcome or to the frozen corpus. The corrected, separated numbers
+below are milder on baseline (0.92, not 0.88) because two of the four
+original "fixes" (cases 34, 36) are scope-limitation trade-offs, not clear
+correctness bugs — see the note on cases 34/36 immediately below the table.
+
 | Metric | Baseline | Experimental | Difference |
 |---|---:|---:|---:|
-| TP | 28 | 32 | +4 |
-| FP | 4 | 0 | -4 |
-| FN | 4 | 0 | -4 |
-| TN | 8 | 8 | +0 |
-| Precision | 0.88 | 1.00 | +0.13 |
-| Recall | 0.88 | 1.00 | +0.13 |
-| F1 | 0.88 | 1.00 | +0.13 |
-| High/Critical findings | 20 | 24 | +4 |
-| Recognized-sanitizer (low) findings | 12 | 8 | -4 |
+| TP (core, 33 cases) | 24 | 26 | +2 |
+| FP (core) | 2 | 0 | -2 |
+| FN (core) | 2 | 0 | -2 |
+| TN (core) | 8 | 8 | +0 |
+| Precision (core) | 0.92 | 1.00 | +0.08 |
+| Recall (core) | 0.92 | 1.00 | +0.08 |
+| F1 (core) | 0.92 | 1.00 | +0.08 |
+| High/Critical findings (all 39 scored cases) | 20 | 24 | +4 |
+| Recognized-sanitizer (low) findings (all 39 scored cases) | 12 | 8 | -4 |
 | Parser errors | 1 | 1 | +0 |
-| Ambiguous/unsupported cases correct (of 6) | 4 | 6 | +2 |
+| Ambiguous group (6 cases) — TP | 4 | 6 | +2 |
+| Ambiguous group — FP | 2 | 0 | -2 |
+| Ambiguous group — FN | 2 | 0 | -2 |
+| Ambiguous group — cases fully correct (of 6) | 4 | 6 | +2 |
 
 (Full case-by-case table: `results/comparison.md`.)
 
@@ -125,7 +148,10 @@ positives *removed* — no case moved in the unsafe direction (`high` → `low`
 incorrectly), and no previously-correct `high` case became a false `low`.
 Every unsafe, sanitized-direct, sanitized-misused, safe-literal, and
 already-conservative ambiguous case that baseline got right, experimental
-also got right:
+also got right. They split into two distinct kinds, deliberately scored
+and discussed separately rather than lumped into one "4 fixes" headline:
+
+**Core precision fixes (counted in the §5 headline metric):**
 
 - **Case 21** (`sanitized-misused/fake-local-sanitize-function.js`): a
   same-file no-op function named `sanitize`. Baseline: `low` (wrong).
@@ -133,6 +159,13 @@ also got right:
 - **Case 22** (`sanitized-misused/unrelated-object-sanitize-method.js`): an
   unrelated `object.sanitize()` method that doesn't remove HTML. Baseline:
   `low` (wrong). Experimental: `high` (correct).
+
+Both are unambiguous: the code is genuinely unsanitized, and baseline
+trusted it anyway purely on the property/identifier name `sanitize`.
+
+**Ambiguous-group trade-offs (counted separately, never folded into the
+core precision/recall figure):**
+
 - **Case 34** (`aliases/renamed-local-alias.js`): `const purifier =
   DOMPurify; purifier.sanitize(x)`. Baseline: `low` (accidentally correct in
   substance here, since it really is DOMPurify — but only by name-pattern
@@ -141,6 +174,16 @@ also got right:
   disclosed, deliberate scope limit, not a claim this code is unsafe).
 - **Case 36** (`aliases/destructured-sanitize.js`): `const { sanitize } =
   DOMPurify; sanitize(x)`. Same pattern as case 34 for destructuring.
+
+Unlike 21/22, these two are not clear-cut bugs in baseline — the code in
+both really is being sanitized, and baseline's broader name match happens
+to land on the right answer, just for an unverifiable reason. The narrow
+rule's `high` here is the correct, fail-safe answer for a checker that must
+never overclaim from an unverified signal, but it is honestly a recall
+trade-off on *recognition*, not a vulnerability-detection fix — which is
+exactly why `ground-truth.json` pre-marked both as `ambiguousOrUnsupported`
+and why they are reported in the ambiguous-group row, not the core
+precision/recall row, in §5.
 
 ## 6. Failure Analysis
 
@@ -221,10 +264,18 @@ also got right:
 
 **The hypothesis is supported on this corpus.** Narrow, structural
 DOMPurify recognition matched baseline on every case where baseline was
-already correct, and corrected all four cases where baseline's looser
-name-based matching produced a false `low`-severity downgrade — with zero
-new false negatives and zero new false positives introduced anywhere in
-the 40-case corpus. The improvement is small in absolute count (4 cases)
+already correct, and on the 33-case core corpus, corrected both cases where
+baseline's looser name-based matching produced a genuinely false
+`low`-severity downgrade (21, 22) — with zero new false negatives and zero
+new false positives introduced anywhere in the 40-case corpus, core or
+ambiguous. On the separately-tracked 6-case ambiguous group, the narrow
+rule also went 6/6 vs. baseline's 4/6, but 2 of those 4 corrections (34, 36)
+are reported as disclosed recognition trade-offs rather than core
+precision gains — the code in both cases really was being sanitized, and
+baseline's broader match happened to land on the right answer for an
+unverifiable reason; the narrow rule's fail-safe `high` there is the
+objectively correct default for an unverified signal, not evidence of a
+baseline bug. The core improvement is small in absolute count (2 cases)
 and concentrated in a specific, previously-undocumented failure mode
 (trusting a bare `sanitize`/`.sanitize()` call by name alone) rather than
 sanitizer recognition in general. It does not extend to, or make any claim

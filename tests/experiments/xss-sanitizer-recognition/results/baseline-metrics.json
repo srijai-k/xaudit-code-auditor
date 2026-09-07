@@ -1,22 +1,26 @@
 {
-  "generatedAt": "2026-09-06T04:58:20.164Z",
+  "generatedAt": "2026-09-07T09:18:34.047Z",
   "implementation": "baseline",
   "metrics": {
     "totalCases": 40,
     "parserErrorCases": 1,
     "parserErrorMismatches": 0,
     "scoredCases": 39,
-    "tp": 28,
-    "fp": 4,
-    "fn": 4,
+    "coreCases": 33,
+    "tp": 24,
+    "fp": 2,
+    "fn": 2,
     "tn": 8,
-    "precision": 0.875,
-    "recall": 0.875,
-    "f1": 0.875,
+    "precision": 0.9230769230769231,
+    "recall": 0.9230769230769231,
+    "f1": 0.9230769230769231,
     "highOrCriticalFindings": 20,
     "recognizedSanitizerFindings": 12,
     "ambiguousCasesTotal": 6,
-    "ambiguousCasesCorrect": 4
+    "ambiguousCasesCorrect": 4,
+    "ambiguousTp": 4,
+    "ambiguousFp": 2,
+    "ambiguousFn": 2
   },
   "perCase": [
     {
