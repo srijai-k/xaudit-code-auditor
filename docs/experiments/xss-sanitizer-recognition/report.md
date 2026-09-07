@@ -124,6 +124,27 @@ below are milder on baseline (0.92, not 0.88) because two of the four
 original "fixes" (cases 34, 36) are scope-limitation trade-offs, not clear
 correctness bugs — see the note on cases 34/36 immediately below the table.
 
+**What "correct" means, precisely, for every row below — core or
+ambiguous.** `score-results.ts` uses exactly one definition throughout,
+with no separate or softer rubric for the ambiguous group: a case is
+correct only if its actual findings exactly multiset-match
+`ground-truth.json`'s single, pre-registered `expected` array for that
+case (same `(ruleId, severity)` pairing scripts/run-independent-benchmark.ts
+already uses). For all 6 ambiguous cases, `expected` is `high` — the
+fail-safe answer, chosen because recognition can't be structurally
+verified there, not a placeholder for "flagged as needing review" or any
+other looser standard. The core/ambiguous split changes only which bucket
+a case's TP/FP/FN *roll up into* for the headline precision/recall figure;
+it does not change what counts as a correct answer for that case. Under
+this one definition, experimental is a clean, unqualified 6/6 on the
+ambiguous group against baseline's 4/6 — there is no case among the 6
+where baseline is "correct" and experimental is "wrong." The separate,
+non-scored observation right after the case list below (baseline
+recognizes 2 of 4 genuinely-real-but-unverifiable DOMPurify calls in this
+group, experimental recognizes 0 of 4) is a different, descriptive
+question — "how much unverified trust does each implementation extend" —
+not a second correctness metric, and it does not change the 6/6 result.
+
 | Metric | Baseline | Experimental | Difference |
 |---|---:|---:|---:|
 | TP (core, 33 cases) | 24 | 26 | +2 |
@@ -178,12 +199,32 @@ core precision/recall figure):**
 Unlike 21/22, these two are not clear-cut bugs in baseline — the code in
 both really is being sanitized, and baseline's broader name match happens
 to land on the right answer, just for an unverifiable reason. The narrow
-rule's `high` here is the correct, fail-safe answer for a checker that must
-never overclaim from an unverified signal, but it is honestly a recall
-trade-off on *recognition*, not a vulnerability-detection fix — which is
-exactly why `ground-truth.json` pre-marked both as `ambiguousOrUnsupported`
-and why they are reported in the ambiguous-group row, not the core
-precision/recall row, in §5.
+rule's `high` here is the correct, fail-safe answer per the one definition
+of "correct" this experiment uses (see §5) — baseline does not score
+better than experimental on either case, or on the ambiguous group overall
+(4/6 vs. 6/6). It is why `ground-truth.json` pre-marked both as
+`ambiguousOrUnsupported` and why they are reported in the ambiguous-group
+row, not the core precision/recall row, in §5.
+
+**A separate, non-scored observation.** Of the 6 ambiguous cases, 4 involve
+code that manual inspection confirms really is calling real DOMPurify
+sanitization — 34, 35 (`const clean = DOMPurify.sanitize; clean(x)`), 36,
+and 39 (`DOMPurify.sanitize()` called inside a helper function). Baseline's
+loose name matching happens to recognize 2 of those 4 (34, 36 — its
+member-property-name check and its bare-identifier check both happen to
+fire on these two specific shapes); it misses the other 2 entirely (35's
+`clean(x)` and 39's `maybeSanitize(x)` don't match any of baseline's name
+patterns). The narrow rule recognizes 0 of the 4, uniformly, by design.
+This is a real, useful fact about how much *unverified* trust each
+implementation is willing to extend — but it is not a correctness
+comparison, and it does not make baseline "right more often" on the scored
+question: baseline's 2 hits are indistinguishable, from inside the tool,
+from a wrong guess that happened to land — it recognizes `purifier.sanitize(x)`
+the same way it would recognize `attacker.sanitize(x)` (case 22), by
+property name alone. Reporting only the "2 of 4 real calls recognized"
+half of this fact without the scored 4/6-vs-6/6 result next to it would
+overstate what baseline's broader matching actually buys — which is the
+exact inconsistency this section exists to rule out.
 
 ## 6. Failure Analysis
 
@@ -201,12 +242,17 @@ precision/recall row, in §5.
 - **Aliases**: the narrow implementation intentionally does not resolve a
   local variable aliased from `DOMPurify` itself (case 34), a destructured
   `{ sanitize }` binding (case 36), or an extracted function reference
-  (`const clean = DOMPurify.sanitize`, case 35). All three fail safe
-  (stay `high`), which is the objectively correct default when recognition
-  is uncertain — but it is a real, disclosed regression in *recognition*
-  recall on two cases (34, 36) where baseline happened to get the right
-  answer for the wrong reason (matching the bare name `sanitize` or the
-  string `dompurify` regardless of actual origin).
+  (`const clean = DOMPurify.sanitize`, case 35). All three fail safe (stay
+  `high`), which is the objectively correct, scored answer — see §5's "What
+  'correct' means" note: this is not a regression on the scored question
+  (experimental is 6/6 on the ambiguous group, baseline 4/6). What it *is*
+  a real trade-off on is a separate, unscored question: baseline's looser
+  name matching happens to also recognize 2 of the 4 genuinely-real
+  DOMPurify calls in this group (34, 36) — by matching the bare name
+  `sanitize` or a `.sanitize` property regardless of actual origin, the
+  same mechanism that produces the real false positives in cases 21/22 —
+  while missing the other 2 (35, 39) outright. See §5 for the full
+  breakdown and why that fact doesn't change the scored result.
 - **Wrappers**: a cross-file imported wrapper (case 37) and a same-file
   helper function that calls `DOMPurify.sanitize()` internally but is
   itself the thing invoked at the sink (case 39) are not resolved by either
