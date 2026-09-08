@@ -29,6 +29,7 @@ export default function DocsPage() {
             <main className="page-shell" style={{ background: '#f4f3ef', color: '#111', minHeight: '100vh', borderRadius: '32px' }}>
                 <HeaderNav />
 
+                <div className="page-shell-body">
                 {/* Recentered Header Section */}
                 <div style={{ padding: '48px 24px 32px', textAlign: 'center', maxWidth: '840px', margin: '0 auto' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7c3aed', marginBottom: '20px', justifyContent: 'center' }}>
@@ -391,6 +392,7 @@ export default function DocsPage() {
                         <span>PDF / SARIF / JSON</span>
                     </div>
                 </footer>
+                </div>
             </main>
         </div>
     );

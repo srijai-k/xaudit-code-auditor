@@ -101,15 +101,41 @@ img { max-width: 100%; display: block; }
 .page-shell {
   width: calc(100% - 38px);
   margin: 14px auto 0;
-  overflow: hidden;
   background: var(--panel);
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  /* No overflow:hidden here on purpose — see .page-shell-body below. This
+     box's own background/border still respects border-radius regardless
+     (that's separate from overflow, which only clips descendants that
+     visually escape the box). */
+}
+
+/* Everything inside .page-shell EXCEPT the header goes in here. Wraps a
+   fresh div rather than clipping .page-shell itself so decorative content
+   (shape-notch, glows, etc.) still clips to the rounded corners exactly as
+   before, without also clipping .site-header — which needs to be a real
+   position:sticky element relative to the page, not scoped to a
+   non-scrolling ancestor's own box. Was previously overflow:hidden
+   directly on .page-shell, which sits between .site-header and the
+   viewport: an ancestor with overflow other than visible always scopes a
+   sticky descendant's "stick" range to that ancestor's own scroll
+   position instead of the page's, and .page-shell itself never scrolls
+   (the document does) — so the header just moved with the rest of the
+   page instead of pinning. Confirmed empirically: at any scroll depth,
+   toggling .page-shell to overflow:visible makes the header snap straight
+   to the top instantly. */
+.page-shell-body {
+  overflow: hidden;
+  border-radius: inherit;
 }
 
 .site-header {
   position: sticky;
-  top: 0;
+  /* Sits right below the 47px-tall .top-ticker (also position:sticky,
+     top:0) once it actually sticks — top:0 here would put both at the
+     same pinned position, with the header rendering underneath the
+     ticker's higher z-index. */
+  top: 47px;
   z-index: 18;
   display: flex;
   align-items: center;
