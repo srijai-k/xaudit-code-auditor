@@ -14,6 +14,7 @@ export default function EnginePage() {
             <main className="page-shell" style={{ background: '#f4f3ef', color: '#111', minHeight: '100vh', borderRadius: '32px' }}>
                 <HeaderNav />
 
+                <div className="page-shell-body">
                 {/* Hero Section matching the Rules/Privacy reference layout */}
                 <div className="privacy-hero-pad" style={{
                     display: 'flex',
@@ -227,6 +228,7 @@ export default function EnginePage() {
                         <span>PDF / SARIF / JSON</span>
                     </div>
                 </footer>
+                </div>
             </main>
         </div>
     );

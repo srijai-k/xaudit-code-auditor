@@ -75,6 +75,7 @@ export default function LandingPage() {
       <main className="page-shell">
         <HeaderNav />
 
+        <div className="page-shell-body">
         <section className="hero reveal">
           {/* -50px was picked live via a temporary dev control (removed) that
               nudged this block up/down; hardcoded here the same way
@@ -291,6 +292,7 @@ export default function LandingPage() {
             <span>PDF / SARIF / JSON</span>
           </div>
         </footer>
+        </div>
       </main>
     </div>
   );
