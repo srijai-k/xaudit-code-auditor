@@ -224,6 +224,9 @@ sup { font-size: 10px; }
   min-height: 600px;
   padding: 68px 7vw 74px;
 }
+.hero-inner {
+  margin-top: -50px;
+}
 .eyebrow {
   display: flex;
   align-items: center;
@@ -995,6 +998,15 @@ footer {
   nav { display: none; }
   .site-header { top: 47px; padding: 18px 24px; }
   .hero { padding: 30px 28px 56px; min-height: 500px; }
+  /* .hero's own top padding drops from 68px (desktop) to 30px here, which
+     -50px (tuned against the 68px figure) overpowers — the hero content
+     started up to 20px above .hero's own padding box, into the header's
+     space, and during the page-load blur-in transition (both are part of
+     the same .page-transition-container fade, so they blur together) that
+     read as the header's blur bleeding over the hero title. Zero here
+     keeps the mobile hero flush with its own (already-reduced) padding
+     instead of pulling further up into it. */
+  .hero-inner { margin-top: 0; }
   h1 { font-size: clamp(38px, 7.8vw, 54px); line-height: 1.1; }
   .showpiece { width: calc(100% - 48px); height: 300px; }
   .showpiece img { left: 6%; width: 88%; }
