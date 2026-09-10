@@ -92,9 +92,9 @@ export default function RulesPage() {
             <main className="page-shell" style={{ background: '#f4f3ef', color: '#111', minHeight: '100vh', borderRadius: '32px' }}>
                 <HeaderNav />
 
+                <div className="page-shell-body">
                 {/* Hero Section matching the reference layout */}
-                <div style={{
-                    padding: '60px 48px 50px',
+                <div className="privacy-hero-pad" style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '40px',
@@ -110,9 +110,8 @@ export default function RulesPage() {
                     </div>
 
                     {/* Hero Split: Accent Lavender Card + Dark Feature Pills */}
-                    <div style={{
+                    <div className="rules-grid-360" style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
                         gap: '28px',
                         alignItems: 'stretch'
                     }}>
@@ -173,7 +172,7 @@ export default function RulesPage() {
                         </div>
 
                         {/* Metric Cards Grid */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="privacy-pills-grid" style={{ display: 'grid', gap: '16px' }}>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                 <div style={{ fontSize: '32px', fontWeight: 800, color: '#cca7f3' }}>8</div>
                                 <div style={{ fontSize: '13px', color: '#aaa', fontWeight: 700, marginTop: '4px', textTransform: 'uppercase' }}>Rule Modules</div>
@@ -195,10 +194,10 @@ export default function RulesPage() {
                 </div>
 
                 {/* Main Content Area */}
-                <div id="rule-explorer" style={{ display: 'flex', flexDirection: 'column', gap: '48px', padding: '10px 48px 60px' }}>
-                    
+                <div id="rule-explorer" className="privacy-content-pad" style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
+
                     {/* Interactive Dual-Column Rule Inspector */}
-                    <section style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', padding: '40px 44px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
+                    <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '28px' }}>
                             <div>
                                 <h2 style={{ fontSize: '32px', fontWeight: 500, color: '#111', margin: 0, letterSpacing: '-0.02em' }}>
@@ -210,7 +209,7 @@ export default function RulesPage() {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
+                        <div className="rules-grid-320" style={{ display: 'grid', gap: '32px' }}>
                             {/* Left Side Module Selector List */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 {RULE_MODULES.map((rule) => {
@@ -262,7 +261,7 @@ export default function RulesPage() {
                                 gap: '24px'
                             }}>
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
                                         <span style={{
                                             background: '#cca7f3',
                                             color: '#161616',
@@ -274,7 +273,7 @@ export default function RulesPage() {
                                         }}>
                                             {selectedRule.severity}
                                         </span>
-                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                             {selectedRule.languages.map(lang => (
                                                 <span key={lang} style={{ fontSize: '12px', color: '#aaa', background: '#262626', padding: '2px 8px', borderRadius: '4px' }}>
                                                     {lang}
@@ -300,7 +299,7 @@ export default function RulesPage() {
                                         <div style={{ fontSize: '12px', fontWeight: 800, color: '#cca7f3', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                                             Evaluation Logic & Downgrade Path
                                         </div>
-                                        <p style={{ color: '#ccc', fontSize: '15px', lineHeight: 1.65, margin: 0 }}>
+                                        <p style={{ color: '#ccc', fontSize: '15px', lineHeight: 1.65, margin: 0, overflowWrap: 'anywhere' }}>
                                             {selectedRule.behavior}
                                         </p>
                                     </div>
@@ -329,7 +328,7 @@ export default function RulesPage() {
                     </section>
 
                     {/* Section 2: Architecture Pillars */}
-                    <section style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', padding: '48px 52px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
+                    <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed' }}></span>
                             Deterministic Contract
@@ -338,7 +337,7 @@ export default function RulesPage() {
                             The Architecture Guarantee
                         </h2>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
+                        <div className="rules-grid-260" style={{ display: 'grid', gap: '24px' }}>
                             <div style={{ background: '#f8f7f4', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '24px', padding: '28px' }}>
                                 <div style={{ fontSize: '13px', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', marginBottom: '10px' }}>01. AST Parsing</div>
                                 <p style={{ color: '#444', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
@@ -383,6 +382,7 @@ export default function RulesPage() {
                         <span>PDF / SARIF / JSON</span>
                     </div>
                 </footer>
+                </div>
             </main>
         </div>
     );

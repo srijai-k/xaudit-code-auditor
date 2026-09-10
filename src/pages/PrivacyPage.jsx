@@ -14,9 +14,9 @@ export default function PrivacyPage() {
             <main className="page-shell" style={{ background: '#f4f3ef', color: '#111', minHeight: '100vh', borderRadius: '32px' }}>
                 <HeaderNav />
 
+                <div className="page-shell-body">
                 {/* Hero Section matching the reference layout */}
-                <div style={{
-                    padding: '60px 48px 50px',
+                <div className="privacy-hero-pad" style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '40px',
@@ -32,9 +32,8 @@ export default function PrivacyPage() {
                     </div>
 
                     {/* Hero Split: Accent Lavender Card + Dark Feature Pills */}
-                    <div style={{
+                    <div className="privacy-grid-auto" style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
                         gap: '28px',
                         alignItems: 'stretch'
                     }}>
@@ -95,7 +94,7 @@ export default function PrivacyPage() {
                         </div>
 
                         {/* Feature Pills Grid */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="privacy-pills-grid" style={{ display: 'grid', gap: '16px' }}>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
                                 worker
                             </div>
@@ -108,7 +107,7 @@ export default function PrivacyPage() {
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
                                 dedupe
                             </div>
-                            <div style={{ gridColumn: 'span 2', background: '#161616', color: '#fff', padding: '24px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
+                            <div className="privacy-pill-wide" style={{ background: '#161616', color: '#fff', padding: '24px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
                                 no score
                             </div>
                         </div>
@@ -116,10 +115,10 @@ export default function PrivacyPage() {
                 </div>
 
                 {/* Main Content Sections with Ample Vertical Spacing */}
-                <div id="devtools-verification" style={{ display: 'flex', flexDirection: 'column', gap: '48px', padding: '10px 48px 60px' }}>
-                    
+                <div id="devtools-verification" className="privacy-content-pad" style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
+
                     {/* Section 1: How this is actually true */}
-                    <section style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', padding: '48px 52px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
+                    <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed' }}></span>
                             Zero Network Overhead
@@ -128,7 +127,7 @@ export default function PrivacyPage() {
                             How this is actually true (not just claimed)
                         </h2>
                         
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                        <div className="privacy-grid-auto" style={{ display: 'grid', gap: '24px' }}>
                             <div style={{ background: '#161616', color: '#fff', borderRadius: '24px', padding: '32px' }}>
                                 <div style={{ fontSize: '13px', fontWeight: 800, color: '#cca7f3', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
                                     01. Isolated Web Worker
@@ -159,7 +158,7 @@ export default function PrivacyPage() {
                     </section>
 
                     {/* Section 2: What is stored locally */}
-                    <section style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', padding: '48px 52px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
+                    <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed' }}></span>
                             Opt-in Persistence
@@ -171,7 +170,7 @@ export default function PrivacyPage() {
                             Nothing is written to storage unless you explicitly enable audit history in the UI settings.
                         </p>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '28px' }}>
+                        <div className="privacy-grid-auto" style={{ display: 'grid', gap: '28px' }}>
                             <div style={{ background: '#f8f7f4', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '24px', padding: '32px' }}>
                                 <div style={{ color: '#10b981', fontWeight: 800, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
                                     ✓ Saved in Local Storage (Opt-in)
@@ -199,7 +198,7 @@ export default function PrivacyPage() {
                     </section>
 
                     {/* Section 3: Disclosures & Boundaries */}
-                    <section style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', padding: '48px 52px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
+                    <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef4444', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }}></span>
                             Disclosures & Boundaries
@@ -208,7 +207,7 @@ export default function PrivacyPage() {
                             Honest Security Boundaries
                         </h2>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                        <div className="privacy-grid-auto" style={{ display: 'grid', gap: '24px' }}>
                             <div style={{ background: '#161616', color: '#fff', borderRadius: '24px', padding: '32px' }}>
                                 <div style={{ color: '#f87171', fontWeight: 800, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
                                     Unverified Offline / PWA Scope
@@ -243,6 +242,7 @@ export default function PrivacyPage() {
                         <span>PDF / SARIF / JSON</span>
                     </div>
                 </footer>
+                </div>
             </main>
         </div>
     );

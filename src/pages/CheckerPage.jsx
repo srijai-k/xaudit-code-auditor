@@ -56,43 +56,45 @@ export default function CheckerPage() {
             <main className="page-shell">
                 <HeaderNav onOpenHistory={() => setHistoryOpen(true)} />
 
-                <div className="checker-shell">
-                    <div className="checker-hero">
-                        <p className="eyebrow purple"><span></span>Client-Side Audit Engine</p>
-                        <h1>Client-side AST code analysis</h1>
-                        <p>
-                            Paste JavaScript, TypeScript, React/JSX, HTML, or package.json code below. Analysis executes locally in your browser's Web Worker off the UI thread — zero network requests are made.
-                        </p>
+                <div className="page-shell-body">
+                    <div className="checker-shell">
+                        <div className="checker-hero">
+                            <p className="eyebrow purple"><span></span>Client-Side Audit Engine</p>
+                            <h1>Client-side AST code analysis</h1>
+                            <p>
+                                Paste JavaScript, TypeScript, React/JSX, HTML, or package.json code below. Analysis executes locally in your browser's Web Worker off the UI thread — zero network requests are made.
+                            </p>
+                        </div>
+
+                        <CodeInput
+                            code={code}
+                            onCodeChange={setCode}
+                            mode={mode}
+                            onModeChange={setMode}
+                            onRun={handleRun}
+                            running={running}
+                            stageLine={stageLine}
+                        />
+
+                        <FindingsResults result={result} resultsRef={resultsRef} />
+
+                        <PrivacyControls />
                     </div>
 
-                    <CodeInput
-                        code={code}
-                        onCodeChange={setCode}
-                        mode={mode}
-                        onModeChange={setMode}
-                        onRun={handleRun}
-                        running={running}
-                        stageLine={stageLine}
-                    />
-
-                    <FindingsResults result={result} resultsRef={resultsRef} />
-
-                    <PrivacyControls />
+                    <footer style={{ marginTop: '80px' }}>
+                        <div className="footer-cta">
+                            <h2>Audit the claim before you trust the result.</h2>
+                            <button className="cta dark" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                                <span>↑</span> Top of Checker
+                            </button>
+                        </div>
+                        <div className="footer-bottom">
+                            <span>XAUDIT</span>
+                            <span>Client-side static checker · no network audit path</span>
+                            <span>PDF / SARIF / JSON</span>
+                        </div>
+                    </footer>
                 </div>
-
-                <footer style={{ marginTop: '80px' }}>
-                    <div className="footer-cta">
-                        <h2>Audit the claim before you trust the result.</h2>
-                        <button className="cta dark" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                            <span>↑</span> Top of Checker
-                        </button>
-                    </div>
-                    <div className="footer-bottom">
-                        <span>XAUDIT</span>
-                        <span>Client-side static checker · no network audit path</span>
-                        <span>PDF / SARIF / JSON</span>
-                    </div>
-                </footer>
             </main>
 
             <HistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
