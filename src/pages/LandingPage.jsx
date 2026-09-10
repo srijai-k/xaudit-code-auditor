@@ -79,8 +79,14 @@ export default function LandingPage() {
         <section className="hero reveal">
           {/* -50px was picked live via a temporary dev control (removed) that
               nudged this block up/down; hardcoded here the same way
-              FLOATING_NAV_TOP/RIGHT were. */}
-          <div style={{ marginTop: '-50px' }}>
+              FLOATING_NAV_TOP/RIGHT were. Moved from an inline style to the
+              .hero-inner class (landing.css) so it can be overridden on
+              mobile — see that rule's comment for why: the -50px was tuned
+              against desktop's 68px .hero top padding, but mobile's .hero
+              padding drops to 30px, so -50px pulled this block up far
+              enough to sit underneath the header during the page-load
+              blur-in transition. */}
+          <div className="hero-inner">
             <p className="eyebrow purple"><span></span>Client-side static code checker</p>
             <h1>XAUDIT flags risky code patterns without pretending to be more than it is.</h1>
             <p className="hero-copy">Paste JavaScript, TypeScript, React/JSX, HTML, or a package.json. XAUDIT runs locally in your browser, points out patterns worth a human look, and documents the limits of every rule.</p>
