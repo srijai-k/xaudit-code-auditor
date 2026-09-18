@@ -1,5 +1,5 @@
 {
-  "_readme": "Ground truth for tests/independent-benchmark/samples/*, determined by manual security review of each file BEFORE running the engine against it — not derived from, or tuned to match, the unit-test fixtures in tests/fixtures/. Each entry lists every finding the file should honestly produce, including known/accepted false positives and false negatives that are already disclosed limitations elsewhere in this project. See docs/independent-benchmark-report.md for what this is and is not, and scripts/run-independent-benchmark.ts for how it's scored.",
+  "_readme": "Ground truth for tests/independent-benchmark/samples/*, determined by manual security review of each file BEFORE running the engine against it — not derived from, or tuned to match, the unit-test fixtures in tests/fixtures/. Each entry lists every finding the file should honestly produce, including known/accepted false positives and false negatives that are already disclosed limitations elsewhere in this project. See docs/held-out-benchmark-report.md for what this is and is not, and scripts/run-independent-benchmark.ts for how it's scored.",
   "files": [
     {
       "file": "blog-comment-widget.jsx",
@@ -62,7 +62,7 @@
     {
       "file": "build-info.js",
       "expectedFindings": [],
-      "reasoning": "A 40-char git SHA (canonical hex hash length), a CDN URL, and an npm-style SRI integrity hash are all real, realistic non-secret shapes the entropy fallback was specifically calibrated to exclude. The short SHA and ISO timestamp are low-entropy/short and were also checked directly (see docs/independent-benchmark-report.md and the calibration notes in secrets.ts)."
+      "reasoning": "A 40-char git SHA (canonical hex hash length), a CDN URL, and an npm-style SRI integrity hash are all real, realistic non-secret shapes the entropy fallback was specifically calibrated to exclude. The short SHA and ISO timestamp are low-entropy/short and were also checked directly (see docs/held-out-benchmark-report.md and the calibration notes in secrets.ts)."
     },
     {
       "file": "admin-panel.jsx",

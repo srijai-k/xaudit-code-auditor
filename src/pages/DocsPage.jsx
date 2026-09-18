@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { TopTicker, HeaderNav } from '../components/Navbar';
-import logoXa from '../assets/logo-xa.png';
 import '../landing.css';
 
 const SECTIONS = [
@@ -20,7 +19,6 @@ const SECTIONS = [
 ];
 
 export default function DocsPage() {
-    const navigate = useNavigate();
     const [activeSection, setActiveSection] = useState('overview');
 
     return (

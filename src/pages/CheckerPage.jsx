@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { TopTicker, HeaderNav } from '../components/Navbar';
 import { runAnalysis } from '../lib/analysis/client';
 import { saveReportLocally } from '../lib/storage';
@@ -17,7 +17,6 @@ const STAGE_LABELS = {
 };
 
 export default function CheckerPage() {
-    const navigate = useNavigate();
     const [code, setCode] = useState('');
     const [mode, setMode] = useState('auto');
     const [running, setRunning] = useState(false);

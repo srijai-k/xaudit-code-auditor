@@ -90,7 +90,7 @@ Both are completely ordinary, extremely common patterns — code-splitting by lo
 
 **A safety note on Prisma specifically:** Prisma's *other* raw-query API, `$queryRaw`/`$executeRaw` used as a tagged template — `` prisma.$queryRaw`SELECT ... WHERE id = ${id}` `` — auto-parameterizes every `${}` and is safe by Prisma's own design. It was never at risk of being flagged (it's a different AST node type, a TaggedTemplateExpression, that this rule's CallExpression-only visitor never even looks at), but a dedicated safe fixture now locks that in explicitly rather than leaving it to accident.
 
-**Full suite after this change:** verified via `tests/independent-benchmark/samples/report-export.js` (a realistic Sequelize module, written independently of these unit-test fixtures) in addition to the new unit-test fixtures — see `docs/independent-benchmark-report.md`.
+**Full suite after this change:** verified via `tests/independent-benchmark/samples/report-export.js` (a realistic Sequelize module, written independently of these unit-test fixtures) in addition to the new unit-test fixtures — see `docs/held-out-benchmark-report.md`.
 
 ## Conservative entropy-based secrets fallback (2026-09-03)
 
@@ -133,7 +133,7 @@ The rule requires **all** of: length ≥ 24, no whitespace, not URL/path-shaped,
 
 **What this is honestly still not:** a third-party or externally-sourced benchmark. The same process that writes the rules wrote this corpus. What's genuinely different is that these files weren't written to test a specific rule's logic — they're realistic application code with mixed safe/unsafe patterns in the same file, larger noise-floor checks on "nothing wrong here" code, and predictions made while deliberately not looking at what the engine would do. See the report's own opening disclaimer for the full framing — it's written to stand next to the fixtures-based report's disclaimer, not to overclaim past it.
 
-**What happened the first time it ran:** while writing the realistic admin-panel file (predicting ground truth, not yet having run anything), I found the dangerouslySetInnerHTML-as-a-variable gap described above and fixed it before the first scoring run — a real bug the exercise of writing *realistic* code surfaced, the same way the earlier `import()`/`require()` mistake was caught by real usage rather than by the tidy fixtures. After that fix, the first (and so far only) scoring run matched every prediction: 14 files, 13 true positives, 0 false positives, 0 false negatives. See `docs/independent-benchmark-report.md` for the full breakdown, including the one known/accepted false positive (`admin-panel.jsx`'s two-hop case) that was predicted to be flagged and was.
+**What happened the first time it ran:** while writing the realistic admin-panel file (predicting ground truth, not yet having run anything), I found the dangerouslySetInnerHTML-as-a-variable gap described above and fixed it before the first scoring run — a real bug the exercise of writing *realistic* code surfaced, the same way the earlier `import()`/`require()` mistake was caught by real usage rather than by the tidy fixtures. After that fix, the first (and so far only) scoring run matched every prediction: 14 files, 13 true positives, 0 false positives, 0 false negatives. See `docs/held-out-benchmark-report.md` for the full breakdown, including the one known/accepted false positive (`admin-panel.jsx`'s two-hop case) that was predicted to be flagged and was.
 
 ## Fixed: decorator-based TypeScript failed to parse at all (2026-09-03)
 
