@@ -256,7 +256,7 @@ export const secretsRule: Rule = {
     run(ctx: RuleContext): Finding[] {
         const findings: Finding[] = [];
         const seenRanges = new Set<string>();
-        const { ast, code } = ctx;
+        const { ast } = ctx;
 
         function addFinding(f: Finding, rangeKey: string) {
             if (seenRanges.has(rangeKey)) return; // dedupe by source range

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TopTicker, HeaderNav } from '../components/Navbar';
-import logoXa from '../assets/logo-xa.png';
 import '../landing.css';
 
 function CheckIcon() {
