@@ -9,7 +9,6 @@ import EnginePage from './pages/EnginePage';
 import ExportPage from './pages/ExportPage';
 import TestsPage from './pages/TestsPage';
 import PageTransition from './components/PageTransition';
-import { FloatingScrollNav } from './components/Navbar';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import './App.css';
 
@@ -18,7 +17,6 @@ function App() {
 
   return (
     <Router>
-      <FloatingScrollNav />
       <PageTransition>
         <Routes>
           <Route path="/" element={<LandingPage />} />
