@@ -3,7 +3,7 @@
 **Repository state reviewed:** `7f2e517eb9ed59c1175466d3e1e8c072b38e0991`
 **Branch reviewed:** `mobile-responsive-and-new-pages` (branched from `main` at `9705270`; tree is otherwise identical to `main`)
 **Date generated:** 2026-09-05
-**Reviewer:** Claude Code repository audit
+**Reviewer:** Repository audit
 **Evidence standard:** source, git history, tests, build output, benchmark, and configuration review. Commands were actually executed in this environment (Node 20-class local toolchain, Windows); every number below is quoted from that execution, not from memory or documentation.
 
 ---
