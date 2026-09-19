@@ -1,0 +1,259 @@
+{
+  "meta": {
+    "generatedAt": "2026-09-05",
+    "commitSha": "7f2e517eb9ed59c1175466d3e1e8c072b38e0991",
+    "branchReviewed": "mobile-responsive-and-new-pages",
+    "evidenceStandard": "source, git history, executed tests, executed build, executed npm audit, executed benchmarks",
+    "notRunInThisEnvironment": ["npm run test:e2e (Playwright) — no browser binaries installed, no preview server started"]
+  },
+  "productMaturity": "Early usable developer tool with limited verified coverage",
+  "architecture": {
+    "clientOnly": true,
+    "serverApis": "none",
+    "webWorkerIsolation": true,
+    "networkCallsFoundInSrc": 0,
+    "hardInputCapBytes": 512000
+  },
+  "supportedModes": ["html", "script", "package-json", "auto"],
+  "parser": {
+    "package": "@babel/parser",
+    "version": "7.29.8",
+    "plugins": ["jsx", "typescript", "classProperties", "objectRestSpread", "optionalChaining", "nullishCoalescingOperator", "topLevelAwait", "decorators-legacy"],
+    "typeChecker": false,
+    "traceDepthHops": 1,
+    "crossFunctionTracing": false
+  },
+  "ruleModules": [
+    {
+      "id": "xss",
+      "file": "src/lib/analysis/rules/xss.ts",
+      "category": "xss",
+      "ruleIds": ["xss-inner-html", "xss-outer-html", "xss-iframe-srcdoc", "xss-insert-adjacent-html", "xss-document-write", "xss-document-writeln", "xss-dangerously-set-inner-html", "xss-jquery-html", "xss-location-javascript-uri", "xss-setattribute-javascript-uri", "xss-jsx-href-javascript-uri"],
+      "detectionMethod": "AST + one-hop same-scope variable resolution",
+      "docsPage": "docs/rules/xss.md",
+      "testFile": "tests/rules/xss.test.ts",
+      "testCount": 31
+    },
+    {
+      "id": "dynamic-exec",
+      "file": "src/lib/analysis/rules/dynamic-exec.ts",
+      "category": "dynamic-exec",
+      "ruleIds": ["exec-eval", "exec-function-ctor", "exec-set-timeout-string", "exec-set-interval-string"],
+      "detectionMethod": "AST, callee name match, no tracing needed",
+      "docsPage": "docs/rules/dynamic-exec.md",
+      "testFile": "tests/rules/dynamic-exec.test.ts",
+      "testCount": 11,
+      "notes": "a non-literal import()/require() specifier check was shipped and reverted same day — see docs/model-improvements.md; permanent 'must not flag' fixtures exist for both"
+    },
+    {
+      "id": "sqli",
+      "file": "src/lib/analysis/rules/sqli.ts",
+      "category": "sqli",
+      "ruleIds": ["sqli-dynamic-query"],
+      "detectionMethod": "AST + one-hop resolution + receiver-name qualification",
+      "sanitizerRecognition": false,
+      "docsPage": "docs/rules/sqli.md",
+      "testFile": "tests/rules/sqli.test.ts",
+      "testCount": 21
+    },
+    {
+      "id": "secrets",
+      "file": "src/lib/analysis/rules/secrets.ts",
+      "category": "secrets",
+      "ruleIds": ["secret-anthropic", "secret-openai", "secret-stripe", "secret-aws", "secret-github-pat", "secret-gitlab-pat", "secret-slack-token", "secret-rsa-private-key", "secret-google-api-key", "secret-generic-assignment", "secret-high-entropy-string"],
+      "detectionMethod": "regex (vendor prefix) + AST name context + statistical entropy fallback",
+      "maskingFunction": "maskSecret() — first 4 + last 4 chars kept",
+      "separateRedactionForLocalHistory": "redactSecrets() — 3 passes (vendor regex, entropy shape, name-context), src/lib/analysis/rules/secrets.ts:79-227",
+      "docsPage": "docs/rules/secrets.md",
+      "testFile": "tests/rules/secrets.test.ts",
+      "testCount": 21
+    },
+    {
+      "id": "node-command",
+      "file": "src/lib/analysis/rules/node-command.ts",
+      "category": "node-command",
+      "ruleIds": ["node-command-exec-dynamic", "node-command-spawn-shell"],
+      "detectionMethod": "AST, name-based callee match only, no import-alias resolution",
+      "docsPage": "docs/rules/node-command.md",
+      "testFile": "tests/rules/node-command-injection.test.ts",
+      "testCount": 6
+    },
+    {
+      "id": "auth",
+      "file": "src/lib/analysis/rules/auth.ts",
+      "category": "auth",
+      "ruleIds": ["auth-hardcoded-credential-comparison", "auth-jwt-decode-without-verify"],
+      "detectionMethod": "AST name/literal pattern (check 1); whole-file heuristic (check 2)",
+      "crossFileAware": false,
+      "docsPage": "docs/rules/auth.md",
+      "testFile": "tests/rules/auth.test.ts",
+      "testCount": 13
+    },
+    {
+      "id": "dependency-hygiene",
+      "file": "src/lib/analysis/rules/dependency-hygiene.ts",
+      "category": "dependency-hygiene",
+      "ruleIds": ["dep-unpinned-version", "dep-non-registry-source", "dep-suspicious-script-content", "dep-lifecycle-script-present", "dep-devtool-in-dependencies"],
+      "detectionMethod": "text/regex over parsed package.json values",
+      "cveScanning": false,
+      "lockfileCheck": false,
+      "docsPage": "docs/rules/dependency-hygiene.md",
+      "testFile": "tests/rules/dependency-hygiene.test.ts",
+      "testCount": 10
+    },
+    {
+      "id": "html",
+      "file": "src/lib/analysis/rules/html.ts",
+      "category": "html",
+      "ruleIds": ["html-missing-viewport", "html-missing-alt", "html-inline-event-handler", "html-missing-csp-meta", "html-script-content-not-analyzed"],
+      "detectionMethod": "regex/text over raw markup, explicitly not AST",
+      "astBased": false,
+      "docsPage": "docs/rules/html.md",
+      "testFile": "tests/unit/html-rules.test.ts",
+      "testCount": 14,
+      "notes": "inline <script> blocks that parse standalone are re-run through the 6 script rules; blocks that don't parse get an info-severity disclosure finding instead"
+    }
+  ],
+  "exportFormats": [
+    { "format": "pdf", "file": "src/lib/export/pdf-generator.ts", "includesSnippet": false, "networkCalls": 0 },
+    { "format": "sarif", "version": "2.1.0", "file": "src/lib/export/sarif-generator.ts", "includesSnippet": true, "helpUriTarget": "docs/rules/<category>.md#<ruleId>", "networkCalls": 0 },
+    { "format": "json", "file": "src/lib/export/json-generator.ts", "includesSnippet": true, "networkCalls": 0 }
+  ],
+  "localStorage": {
+    "keys": ["xaudit:saveLocallyEnabled", "xaudit:lastReportMeta", "xaudit:auditHistory"],
+    "optInDefault": false,
+    "rawCodeEverStored": false,
+    "encrypted": false,
+    "maxHistoryItems": 50
+  },
+  "testResults": {
+    "vitest": {
+      "command": "npm test -- --run",
+      "files": 22,
+      "tests": 213,
+      "allPassing": true,
+      "durationSeconds": 8.05,
+      "executedThisSession": true
+    },
+    "eslint": {
+      "command": "npm run lint",
+      "totalProblems": 60,
+      "errors": 59,
+      "warnings": 1,
+      "inCI": false,
+      "realLiveSrcFilesAffected": ["src/components/PageTransition.jsx", "src/components/checker/HistoryDrawer.jsx", "src/pages/CheckerPage.jsx", "src/pages/DocsPage.jsx", "src/pages/LandingPage.jsx"],
+      "deadCodeFilesAffected": ["src/components/landing/CodeSnake.jsx", "src/components/landing/Hero.jsx", "src/components/landing/HowItWorksSection.jsx", "src/components/landing/LandingNavbar.jsx", "src/components/landing/ServicesSection.jsx"],
+      "benchmarkFixtureFilesAffected": 14,
+      "executedThisSession": true
+    },
+    "typecheck": {
+      "configured": false,
+      "reason": "no tsconfig.json anywhere in the repository, no typecheck npm script"
+    },
+    "build": {
+      "command": "npm run build",
+      "succeeded": true,
+      "mainChunkKB": 1597.43,
+      "mainChunkGzipKB": 448.06,
+      "workerChunkKB": 849.62,
+      "transitivelyBundledLibs": [
+        { "name": "dompurify", "version": "3.4.14", "chunkKB": 28.74, "via": "jspdf", "usedByAppCode": false },
+        { "name": "html2canvas", "version": "1.4.1", "chunkKB": 201.04, "via": "jspdf", "usedByAppCode": false }
+      ],
+      "pwaPrecacheEntries": 174,
+      "pwaPrecacheSizeKiB": 3534.45,
+      "executedThisSession": true
+    },
+    "npmAudit": {
+      "full": { "vulnerabilities": 3, "critical": 0, "high": 0, "moderate": 2, "low": 1 },
+      "prodOnly": {
+        "command": "npm audit --omit=dev",
+        "matchesCIExactly": true,
+        "vulnerabilities": 1,
+        "moderate": 1,
+        "exitCode": 1,
+        "packages": [
+          { "name": "fflate", "version": "0.8.2", "via": "jspdf@4.2.1", "advisory": "GHSA-px8p-9vwx-vf98", "severity": "moderate" }
+        ],
+        "ciCurrentlyPassing": false
+      },
+      "executedThisSession": true
+    },
+    "benchmark": {
+      "command": "npm run bench",
+      "corpus": "tests/fixtures/ (self-authored)",
+      "cases": 113, "tp": 58, "fp": 0, "fn": 0, "tn": 55,
+      "precision": 1.0, "recall": 1.0, "f1": 1.0,
+      "labelAppliedByAudit": "regression signal, not real-world accuracy (matches the report's own disclaimer)",
+      "executedThisSession": true,
+      "matchedCommittedReport": true
+    },
+    "benchmarkHeldOut": {
+      "command": "npm run bench:independent",
+      "corpus": "tests/independent-benchmark/ (held-out, same author, ground truth fixed before scoring)",
+      "files": 21, "tp": 22, "fp": 0, "fn": 0,
+      "precision": 1.0, "recall": 1.0, "f1": 1.0,
+      "labelAppliedByAudit": "held-out second data point, not third-party/independent despite the file's own name",
+      "executedThisSession": true,
+      "matchedCommittedReport": true
+    },
+    "playwrightE2E": {
+      "command": "npm run test:e2e",
+      "file": "tests/e2e/no-network.spec.ts",
+      "executedThisSession": false,
+      "reason": "no browser binaries installed, no preview server started in this environment",
+      "status": "UNVERIFIED"
+    },
+    "baselinePreRewrite": {
+      "cases": 30, "tp": 7, "fp": 4, "fn": 10, "tn": 9,
+      "precision": 0.64, "recall": 0.41, "f1": 0.50,
+      "source": "docs/baseline-audit.md, historical, not re-executed by this audit"
+    }
+  },
+  "ciPipeline": {
+    "file": ".github/workflows/ci.yml",
+    "triggers": { "push": ["main", "rewrite/**"], "pullRequest": ["main"] },
+    "steps": ["checkout", "setup-node@20", "npm ci", "npm test", "npm run bench", "npm run bench:independent", "npm run build", "playwright install chromium", "npm run test:e2e", "upload playwright report on failure", "npm audit --omit=dev", "grep network-API guard across src/"],
+    "lintInCI": false,
+    "typecheckInCI": false,
+    "benchmarkDriftCheckInCI": false,
+    "currentlyPassing": false,
+    "failingStep": "npm audit --omit=dev"
+  },
+  "deadOrOrphanedCode": [
+    { "path": "src/components/landing/AboutUsSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/CTASection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/CodeSnake.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/ComparisonSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/FAQ.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/FeaturesSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/Hero.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/HowItWorksSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/LandingFooter.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/LandingNavbar.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/PricingSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/RefactoringSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/SecurityStandardsSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/ServicesSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/StatsSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/landing/SupportedLanguagesSection.jsx", "reason": "zero imports found anywhere in src/" },
+    { "path": "src/components/checker/FindingDetailModal.jsx", "reason": "zero imports found anywhere in src/; superseded by the inline accordion in FindingsResults.jsx" },
+    { "path": "src/lib/prompt-generator.ts", "reason": "zero imports found anywhere in src/; superseded by a local generateAssistantPrompt() inside FindingsResults.jsx" },
+    { "path": "src/lib/security/escapeText.ts", "reason": "zero imports found anywhere in src/; not a live gap since JSX text interpolation already escapes correctly" }
+  ],
+  "gitHistoryNote": {
+    "mainBranchCommitCount": 9,
+    "realHistoryBranch": "rewrite/honest-ast-engine",
+    "realHistoryCommitCount": 37,
+    "mergeBaseExists": false,
+    "bridgeCommit": "55fece7",
+    "bridgeCommitMessage": "feat(ui): update navbar styling, page transitions, and floating scroll navigation",
+    "bridgeCommitActualScope": "678 files changed — the entire analysis engine, all rule modules, all tests, all docs/*.md files, introduced with a UI-only commit message"
+  },
+  "prohibitedClaims": [
+    "AI-powered", "WebAssembly-based", "zero false positives", "enterprise-grade",
+    "understands intent / context-aware AI", "real-time (as-you-type) analysis",
+    "encrypted local storage", "independent benchmark (without its own qualifying caveat)",
+    "security guarantee", "pass/fail verdict", "substitute for professional review"
+  ]
+}

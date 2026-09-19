@@ -20,6 +20,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint (informational for now — not yet a merge gate)
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Type-check the analysis engine (must pass)
+        run: npm run typecheck
+
       - name: Run test suite (must pass — this is the regression gate)
         run: npm test
 
