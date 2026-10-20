@@ -145,6 +145,12 @@ img { max-width: 100%; display: block; }
   background: transparent;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  /* The blur covers this box's own rectangle, which sits right on top of
+     .page-shell's rounded top corners and squared them off. Take the same
+     top radius as the shell (inherited, so it follows the 22px mobile
+     radius and the light pages' inline 32px too). */
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
 }
 .brand {
   display: flex;
