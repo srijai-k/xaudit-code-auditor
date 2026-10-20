@@ -11,7 +11,7 @@ One page per rule module. Each individual `ruleId` has its own stable anchor on 
 | [`node-command.md`](node-command.md) | `node-command` | `node-command-exec-dynamic`, `node-command-spawn-shell` |
 | [`auth.md`](auth.md) | `auth` | `auth-hardcoded-credential-comparison`, `auth-jwt-decode-without-verify` |
 | [`dependency-hygiene.md`](dependency-hygiene.md) | `dependency-hygiene` | `dep-unpinned-version`, `dep-non-registry-source`, `dep-suspicious-script-content`, `dep-lifecycle-script-present`, `dep-devtool-in-dependencies` |
-| [`html.md`](html.md) | `html` | `html-missing-viewport`, `html-missing-alt`, `html-inline-event-handler`, `html-missing-csp-meta`, `html-script-content-not-analyzed` |
+| [`html.md`](html.md) | `html` | `html-missing-viewport`, `html-missing-alt`, `html-inline-event-handler`, `html-missing-csp-meta`, `html-script-content-not-analyzed`, `html-input-not-html` |
 
 Every entry follows the same structure: what it flags, severity and why, a risky example, a safe example (and why it's *not* flagged — usually the more informative half), known limitations, and which tests exercise it. All examples are pulled verbatim or near-verbatim from the actual, currently-passing test corpus (`tests/fixtures/`, `tests/independent-benchmark/`) — nothing here is illustrative-only or unverified.
 

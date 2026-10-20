@@ -105,7 +105,7 @@
       "id": "html",
       "file": "src/lib/analysis/rules/html.ts",
       "category": "html",
-      "ruleIds": ["html-missing-viewport", "html-missing-alt", "html-inline-event-handler", "html-missing-csp-meta", "html-script-content-not-analyzed"],
+      "ruleIds": ["html-missing-viewport", "html-missing-alt", "html-inline-event-handler", "html-missing-csp-meta", "html-script-content-not-analyzed", "html-input-not-html"],
       "detectionMethod": "regex/text over raw markup, explicitly not AST",
       "astBased": false,
       "docsPage": "docs/rules/html.md",

@@ -84,3 +84,29 @@ This produces `html-script-content-not-analyzed` for this block, since `<% ... %
 **Limitations:** A per-block fallback, not a claim about the script's content — if a document has several `<script>` blocks, only the ones that fail to parse get this finding; the rest are analyzed for real. Doesn't run at all if the input is analyzed as JS/TS/React instead of HTML.
 
 **Tests:** `tests/unit/html-rules.test.ts` — "regression + feature: HTML mode now analyzes parseable inline `<script>` content (F-05)" describe block, exercised via `analyze()` (the extraction/re-parse/line-remap orchestration lives in `analyze.ts`, so these tests go through the real entry point rather than `runHtmlChecks()` alone). Full background in [`docs/self-audit-2026-09-03.md`](../self-audit-2026-09-03.md) finding F-05.
+
+---
+
+## html-input-not-html
+
+**What it flags:** Input analyzed in HTML mode that has no HTML markup in it at all: no doctype, no comment, no closing tag, and no opening tag for a real HTML element. In practice this means someone picked HTML mode by hand and pasted plain JavaScript or TypeScript. Auto-detect never sends markup-free input to HTML mode, so this only shows up after a manual mode choice. It closes the rest of F-05: without it, `runHtmlChecks()` had nothing to look at, there were no `<script>` blocks to extract, and the result was a clean 0-finding report for code no real rule had examined.
+
+**Severity:** Info. It's a disclosure that nothing was examined, not a claim that anything is wrong. The checker doesn't switch modes for you: you picked HTML, so you get told, and you re-run it yourself.
+
+**Risky (informational) example** (plain JavaScript in HTML mode):
+```js
+const x = location.hash;
+el.innerHTML = x;
+```
+This produces `html-input-not-html`, and nothing else. The XSS rule would flag the `innerHTML` assignment under Auto-detect or JS / TS / React mode, but it doesn't run here.
+
+**Safe examples:**
+```html
+<!DOCTYPE html><html><body><h1>Hello</h1></body></html>   <!-- full document, NOT flagged -->
+<div class="card"><p>Hi</p></div>                          <!-- fragment with real tags, NOT flagged -->
+<my-widget></my-widget>                                     <!-- custom element with a closing tag, NOT flagged -->
+```
+
+**Limitations:** A text-pattern check for common HTML markup, not a parser. TypeScript generics (`Array<string>`) and comparisons (`a < b && c > d`) don't count as markup, but a lone custom or unusual tag with no closing tag would get this note even though it's HTML. The reverse gap: input that has real tags but keeps its JavaScript outside `<script>` blocks (a JSX file forced into HTML mode) doesn't get this note and still isn't checked by the JavaScript rules.
+
+**Tests:** `tests/unit/html-rules.test.ts`, the "regression: HTML mode on input with no HTML markup discloses that nothing was examined (F-05)" describe block, exercised via `analyze()`.
