@@ -37,6 +37,19 @@ import type { Finding, Severity } from "../types";
  *     the server (axios, got, http(s).get/request, server-side `fetch`),
  *     unless the string starts with a fixed scheme and host.
  *
+ * Two configuration checks don't need request input, because the risky
+ * thing is the setting itself:
+ *   - express-cors-any-origin-with-credentials: `cors({ origin: true,
+ *     credentials: true })` (the cors package then echoes back whatever
+ *     Origin a request claims), or a manual Access-Control-Allow-Origin
+ *     header set from the request's own Origin in a file that also allows
+ *     credentials. `origin: "*"` with credentials is NOT flagged: browsers
+ *     refuse that combination outright, so it fails safe.
+ *   - express-cookie-insecure: `res.cookie(name, value, options)` for a
+ *     cookie named like a session/auth/token cookie, with no options or
+ *     options that don't set `httpOnly: true`. An options object held in a
+ *     variable isn't flagged (it can't be read from here).
+ *
  * Limitations (disclosed on every finding):
  *   - Name-based: `req`/`request`/`ctx` are assumed to be the request, `res`/
  *     `response` the response, `fs` the file system module. Renamed imports
@@ -139,6 +152,13 @@ function outgoingRequestUrl(node: t.CallExpression): t.Node | null {
 }
 
 const FIXED_HOST = /^https?:\/\/[^/?#]+[/?#]/i;
+const SESSION_COOKIE_NAME = /(^|[^a-z])(session|sess|sid|token|auth|jwt|remember|login|refresh|connect\.sid)([^a-z]|$)|session|token/i;
+
+function objectProp(obj: t.ObjectExpression, key: string): t.Node | undefined {
+    const p = obj.properties.find((q) => t.isObjectProperty(q) && !q.computed && ((t.isIdentifier(q.key) && q.key.name === key) || (t.isStringLiteral(q.key) && q.key.value === key)));
+    return p && t.isObjectProperty(p) ? p.value : undefined;
+}
+const isTrue = (n: t.Node | undefined) => !!n && t.isBooleanLiteral(n) && n.value === true;
 const SAME_SITE_PATH = /^\/[^/\\]/;
 
 interface Check {
@@ -181,6 +201,26 @@ const CHECKS: Record<string, Check> = {
         saferExample:
             "Use `res.sendFile(name, { root: uploadsDir })` (Express then refuses paths outside that folder), or reduce the input to a bare file name with `path.basename(name)` and check it against the files you expect.",
     },
+    "express-cors-any-origin-with-credentials": {
+        ruleId: "express-cors-any-origin-with-credentials",
+        title: "CORS accepts any site, with cookies",
+        severity: "medium",
+        message: () => "CORS is set to accept requests from any website while also allowing credentials (cookies, auth headers).",
+        whyItMatters:
+            "Any site a logged-in user visits can call your API as that user and read the responses: their profile, their data, anything the API returns. The browser sends their cookies along because you told it to.",
+        saferExample:
+            "List the sites you trust: `cors({ origin: [\"https://yourapp.com\"], credentials: true })`. If you don't need cookies across sites, drop `credentials: true`.",
+    },
+    "express-cookie-insecure": {
+        ruleId: "express-cookie-insecure",
+        title: "Session cookie readable by JavaScript",
+        severity: "medium",
+        message: () => "A session/auth cookie is set without `httpOnly: true`, so any script running on the page can read it.",
+        whyItMatters:
+            "If any XSS bug ever gets in (yours or a third-party script's), it can read this cookie and send it off. With the session token in hand, an attacker is logged in as that user, no password needed.",
+        saferExample:
+            "`res.cookie(\"session\", token, { httpOnly: true, secure: true, sameSite: \"lax\", maxAge: 7 * 24 * 3600 * 1000 })`.",
+    },
     "express-ssrf": {
         ruleId: "express-ssrf",
         title: "Server fetches an address taken from the request",
@@ -195,6 +235,24 @@ const CHECKS: Record<string, Check> = {
 
 const LIMITATIONS =
     "Name-based: assumes `req`/`request`/`ctx` is the incoming request, `res`/`response` the response and `fs` the file system module, so renamed variables or imports are missed. Follows one variable back and doesn't cross into other functions. It can't see validation done elsewhere (an allowlist check, a prefix guard), so a value that is actually checked can still be flagged. Escaping calls like escapeHtml(), path.basename() or encodeURIComponent() do stop it.";
+
+const CONFIG_LIMITATIONS =
+    "Reads the settings written at this call only. An options object built elsewhere or held in a variable isn't checked, and a session cookie or CORS setup under an unusual name is missed. For CORS, a custom origin function is not evaluated.";
+
+function makeConfigFinding(check: Check, node: t.Node, code: string): Finding {
+    return {
+        ruleId: check.ruleId,
+        title: check.title,
+        severity: check.severity,
+        category: "express-request",
+        message: check.message({ kind: "request", label: "" }),
+        whyItMatters: check.whyItMatters,
+        saferExample: check.saferExample,
+        limitations: CONFIG_LIMITATIONS,
+        location: locOf(node),
+        snippet: excerptOf(code, node),
+    };
+}
 
 function makeFinding(check: Check, node: t.Node, code: string, source: UserInputSource): Finding {
     return {
@@ -225,8 +283,32 @@ export const expressRequestRule: Rule = {
                 const callee = node.callee;
                 const args = node.arguments.filter((a): a is t.Expression => t.isExpression(a));
 
+                // cors({ origin: true, credentials: true })
+                if (t.isIdentifier(callee) && callee.name === "cors" && args[0] && t.isObjectExpression(args[0])) {
+                    if (isTrue(objectProp(args[0], "origin")) && isTrue(objectProp(args[0], "credentials"))) {
+                        findings.push(makeConfigFinding(CHECKS["express-cors-any-origin-with-credentials"], node, code));
+                    }
+                    return;
+                }
+
                 if (t.isMemberExpression(callee) && !callee.computed && t.isIdentifier(callee.property) && isResponseObject(callee.object)) {
                     const method = callee.property.name;
+
+                    // Manual CORS: echoing the request's Origin back, with credentials allowed somewhere in the file.
+                    if ((method === "setHeader" || method === "header" || method === "set") && args.length >= 2 && t.isStringLiteral(args[0])
+                        && args[0].value.toLowerCase() === "access-control-allow-origin" && /access-control-allow-credentials/i.test(code)) {
+                        if (requestInput(path, args[1])) findings.push(makeConfigFinding(CHECKS["express-cors-any-origin-with-credentials"], node, code));
+                        return;
+                    }
+
+                    // res.cookie("session", value, { ... }) without httpOnly
+                    if (method === "cookie" && args[0] && t.isStringLiteral(args[0]) && SESSION_COOKIE_NAME.test(args[0].value)) {
+                        const opts = args[2];
+                        if (opts && !t.isObjectExpression(opts)) return;
+                        if (opts && isTrue(objectProp(opts, "httpOnly"))) return;
+                        findings.push(makeConfigFinding(CHECKS["express-cookie-insecure"], node, code));
+                        return;
+                    }
 
                     if (method === "send" && args[0]) {
                         const body = args[0];

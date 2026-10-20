@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { MAX_SOURCE_BYTES } from '../../lib/analysis/types';
 import { samplesForMode } from '../../data/samples';
+import CodeEditor from './CodeEditor';
 
 const MODES = [
     { id: 'html', label: 'HTML' },
@@ -9,7 +10,7 @@ const MODES = [
     { id: 'auto', label: 'Auto-detect' },
 ];
 
-export default function CodeInput({ code, onCodeChange, mode, onModeChange, onRun, running, stageLine }) {
+export default function CodeInput({ code, onCodeChange, mode, onModeChange, onRun, running, stageLine, highlights, jumpRef, placeholder }) {
     const sizeBytes = new TextEncoder().encode(code).length;
     const overLimit = sizeBytes > MAX_SOURCE_BYTES;
 
@@ -55,13 +56,12 @@ export default function CodeInput({ code, onCodeChange, mode, onModeChange, onRu
                 </div>
             </div>
 
-            <textarea
+            <CodeEditor
                 value={code}
-                onChange={(e) => onCodeChange(e.target.value)}
-                placeholder={mode === 'html' ? '// Paste HTML here...' : '// Paste JavaScript, TypeScript, React/JSX, or package.json here...'}
-                spellCheck="false"
-                rows={12}
-                className="checker-textarea"
+                onChange={onCodeChange}
+                placeholder={placeholder || (mode === 'html' ? '// Paste HTML here...' : '// Paste JavaScript, TypeScript, React/JSX, or package.json here...')}
+                highlights={highlights}
+                jumpRef={jumpRef}
             />
 
             <div className="checker-editor-footer">

@@ -9,8 +9,8 @@ One page per rule module. Each individual `ruleId` has its own stable anchor on 
 | [`secrets.md`](secrets.md) | `secrets` | `secret-anthropic`, `secret-openai`, `secret-stripe`, `secret-aws`, `secret-github-pat`, `secret-gitlab-pat`, `secret-slack-token`, `secret-rsa-private-key`, `secret-google-api-key`, `secret-generic-assignment`, `secret-high-entropy-string` |
 | [`dynamic-exec.md`](dynamic-exec.md) | `dynamic-exec` | `exec-eval`, `exec-function-ctor`, `exec-set-timeout-string`, `exec-set-interval-string` |
 | [`node-command.md`](node-command.md) | `node-command` | `node-command-exec-dynamic`, `node-command-spawn-shell` |
-| [`auth.md`](auth.md) | `auth` | `auth-hardcoded-credential-comparison`, `auth-jwt-decode-without-verify` |
-| [`express-request.md`](express-request.md) | `express-request` | `express-reflected-xss`, `express-open-redirect`, `express-path-traversal`, `express-ssrf` |
+| [`auth.md`](auth.md) | `auth` | `auth-hardcoded-credential-comparison`, `auth-jwt-decode-without-verify`, `auth-weak-password-hash`, `auth-insecure-random-token`, `auth-jwt-literal-secret` |
+| [`express-request.md`](express-request.md) | `express-request` | `express-reflected-xss`, `express-open-redirect`, `express-path-traversal`, `express-ssrf`, `express-cors-any-origin-with-credentials`, `express-cookie-insecure` |
 | [`dependency-hygiene.md`](dependency-hygiene.md) | `dependency-hygiene` | `dep-unpinned-version`, `dep-non-registry-source`, `dep-suspicious-script-content`, `dep-lifecycle-script-present`, `dep-devtool-in-dependencies` |
 | [`html.md`](html.md) | `html` | `html-missing-viewport`, `html-missing-alt`, `html-inline-event-handler`, `html-missing-csp-meta`, `html-script-content-not-analyzed`, `html-input-not-html` |
 

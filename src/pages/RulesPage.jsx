@@ -52,11 +52,11 @@ const RULE_MODULES = [
     {
         id: 'auth',
         title: 'Weak Auth Patterns',
-        severity: 'Medium',
+        severity: 'High → Medium',
         severityLevel: 'medium',
         languages: ['JS', 'TS'],
-        receiver: 'Hardcoded credential string comparisons, jwt.decode() without verify()',
-        behavior: 'Medium. A password checked against a string sitting right there in the code, or a JWT that gets read but never verified.'
+        receiver: 'Hardcoded credential comparisons, jwt.decode() without verify(), fast hashes of passwords, Math.random() tokens, jwt.sign() with a literal secret',
+        behavior: 'A password checked against a string sitting right there in the code, a JWT read but never verified, a password stored as MD5 or SHA-256, a reset code made with Math.random(), or a JWT secret typed into the code. Medium to High, and all judged by name.'
     },
     {
         id: 'express',
@@ -64,8 +64,8 @@ const RULE_MODULES = [
         severity: 'High → Medium',
         severityLevel: 'high',
         languages: ['JS', 'TS'],
-        receiver: 'res.send(), res.redirect(), res.sendFile()/download(), fs.* paths, axios/got/http(s)/server fetch URLs',
-        behavior: 'Only fires when something from the request (req.query, req.body, req.params, req.headers) reaches the call. Escaping it first, like escapeHtml() or path.basename(), stops the finding. Open redirects are Medium, the rest High.'
+        receiver: 'res.send(), res.redirect(), res.sendFile()/download(), fs.* paths, axios/got/http(s)/server fetch URLs, cors(), res.cookie()',
+        behavior: 'Only fires when something from the request (req.query, req.body, req.params, req.headers) reaches the call. Escaping it first, like escapeHtml() or path.basename(), stops the finding. Also flags CORS that trusts any site with cookies, and session cookies scripts can read. Open redirects, CORS and cookies are Medium, the rest High.'
     },
     {
         id: 'deps',

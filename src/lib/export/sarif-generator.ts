@@ -80,22 +80,15 @@ function buildRuleDescriptor(finding: Finding): SarifRuleDescriptor {
     };
 }
 
-export function generateSarif(result: AnalysisResult, toolVersion = "0.1.0"): object {
-    const ruleDescriptors = new Map<string, SarifRuleDescriptor>();
-    for (const finding of result.findings) {
-        if (!ruleDescriptors.has(finding.ruleId)) {
-            ruleDescriptors.set(finding.ruleId, buildRuleDescriptor(finding));
-        }
-    }
-
-    const results = result.findings.map((finding) => ({
+function sarifResultsFor(result: AnalysisResult, uri: string) {
+    return result.findings.map((finding) => ({
         ruleId: finding.ruleId,
         level: SEVERITY_TO_SARIF_LEVEL[finding.severity],
         message: { text: finding.message },
         locations: [
             {
                 physicalLocation: {
-                    artifactLocation: { uri: "pasted-input" },
+                    artifactLocation: { uri },
                     ...(finding.location
                         ? {
                               region: {
@@ -116,6 +109,31 @@ export function generateSarif(result: AnalysisResult, toolVersion = "0.1.0"): ob
             limitations: finding.limitations,
         },
     }));
+}
+
+export function generateSarif(result: AnalysisResult, toolVersion = "0.1.0"): object {
+    return generateSarifForFiles([{ uri: "pasted-input", result }], toolVersion, result.language, result.timestamp);
+}
+
+/**
+ * One SARIF run covering many files - what the CLI and GitHub Action write,
+ * so code scanning can attach each finding to the right file. `uri` should
+ * be a path relative to the repository root.
+ */
+export function generateSarifForFiles(
+    files: { uri: string; result: AnalysisResult }[],
+    toolVersion = "0.1.0",
+    language: string = "mixed",
+    timestamp: number = Date.now(),
+): object {
+    const ruleDescriptors = new Map<string, SarifRuleDescriptor>();
+    for (const { result } of files) {
+        for (const finding of result.findings) {
+            if (!ruleDescriptors.has(finding.ruleId)) ruleDescriptors.set(finding.ruleId, buildRuleDescriptor(finding));
+        }
+    }
+    const results = files.flatMap(({ uri, result }) => sarifResultsFor(result, uri));
+    const result = { language, timestamp };
 
     return {
         $schema: "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",

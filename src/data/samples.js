@@ -99,6 +99,32 @@ app.get("/download/:name", (req, res) => {
 app.listen(3000);`,
     },
     {
+        id: 'auth-helpers',
+        mode: 'script',
+        label: 'Signup + reset',
+        expect: ['auth-weak-password-hash', 'auth-insecure-random-token', 'auth-jwt-literal-secret', 'express-cookie-insecure'],
+        code: `// "Add signup, login and forgot-password to my Express app."
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
+
+app.post("/signup", async (req, res) => {
+  const { email, password } = req.body;
+  const passwordHash = crypto.createHash("sha256").update(password).digest("hex");
+  const user = await db.users.create({ email, passwordHash });
+
+  const token = jwt.sign({ id: user.id }, "my-super-secret-key", { expiresIn: "7d" });
+  res.cookie("session", token);
+  res.json({ ok: true });
+});
+
+app.post("/forgot-password", async (req, res) => {
+  const resetToken = Math.random().toString(36).slice(2);
+  await db.resets.create({ email: req.body.email, resetToken });
+  await sendEmail(req.body.email, "Your reset code: " + resetToken);
+  res.json({ ok: true });
+});`,
+    },
+    {
         id: 'landing-page',
         mode: 'html',
         label: 'Landing page',

@@ -1320,5 +1320,136 @@
     "expectSeverity": null,
     "forbidSeverity": null,
     "note": "a value read from the page URL's query string one line earlier — the finding names the source"
+  },
+  "auth-md5-password-hash": {
+    "path": "fixtures/vulnerable/auth-md5-password-hash.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-weak-password-hash"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a signup handler storing an MD5 of the password"
+  },
+  "auth-sha256-user-password": {
+    "path": "fixtures/vulnerable/auth-sha256-user-password.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-weak-password-hash"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "plain SHA-256 of user.password (fast, unsalted)"
+  },
+  "auth-md5-file-checksum-safe": {
+    "path": "fixtures/safe/auth-md5-file-checksum-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "MD5 used as a file checksum/ETag: not a password, not flagged"
+  },
+  "auth-bcrypt-hash-safe": {
+    "path": "fixtures/safe/auth-bcrypt-hash-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "bcrypt is a slow password hash: the safe way to do it"
+  },
+  "auth-math-random-reset-token": {
+    "path": "fixtures/vulnerable/auth-math-random-reset-token.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-insecure-random-token"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a password-reset token built from Math.random()"
+  },
+  "auth-math-random-otp-function": {
+    "path": "fixtures/vulnerable/auth-math-random-otp-function.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-insecure-random-token"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a one-time login code from a function named like an OTP generator"
+  },
+  "auth-math-random-ui-safe": {
+    "path": "fixtures/safe/auth-math-random-ui-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "low",
+    "note": "Math.random() for an animation delay, a shuffle, and a variable named footprint (not an OTP): none are secrets"
+  },
+  "auth-jwt-sign-literal-secret": {
+    "path": "fixtures/vulnerable/auth-jwt-sign-literal-secret.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-jwt-literal-secret"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "jwt.sign() with the secret typed into the call"
+  },
+  "auth-jwt-env-secret-safe": {
+    "path": "fixtures/safe/auth-jwt-env-secret-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "JWT secret loaded from the environment"
+  },
+  "express-cors-origin-true-credentials": {
+    "path": "fixtures/vulnerable/express-cors-origin-true-credentials.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-cors-any-origin-with-credentials"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "cors() reflecting any origin while allowing cookies"
+  },
+  "express-cors-allowlist-safe": {
+    "path": "fixtures/safe/express-cors-allowlist-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "CORS limited to a known origin, with credentials"
+  },
+  "express-cookie-session-no-httponly": {
+    "path": "fixtures/vulnerable/express-cookie-session-no-httponly.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-cookie-insecure"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a session cookie set without httpOnly"
+  },
+  "express-cookie-httponly-safe": {
+    "path": "fixtures/safe/express-cookie-httponly-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "session cookie with httpOnly, plus a harmless theme cookie"
   }
 }
