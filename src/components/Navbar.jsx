@@ -23,12 +23,12 @@ export function TopTicker() {
             </strong>
             <div className="ticker-track">
                 <div className="ticker-inner">
-                    <span style={isLight ? { color: '#444' } : {}}>Works on JavaScript, TypeScript, React, HTML and <b style={isLight ? { color: '#111' } : {}}>package.json</b></span>
+                    <span style={isLight ? { color: '#444' } : {}}>Check code from <b style={isLight ? { color: '#111' } : {}}>ChatGPT, Claude or Copilot</b></span>
                     <span style={isLight ? { color: '#444' } : {}}>Your code never leaves <b style={isLight ? { color: '#111' } : {}}>this tab</b></span>
                     <span style={isLight ? { color: '#444' } : {}}>Files up to <b style={isLight ? { color: '#111' } : {}}>500KB</b></span>
                     <span style={isLight ? { color: '#444' } : {}}>No scores, no grades, no <b style={isLight ? { color: '#111' } : {}}>promises</b></span>
                     <span style={isLight ? { color: '#444' } : {}}>Every claim on this site has <b style={isLight ? { color: '#111' } : {}}>a test</b> behind it</span>
-                    <span style={isLight ? { color: '#444' } : {}}>Works on JavaScript, TypeScript, React, HTML and <b style={isLight ? { color: '#111' } : {}}>package.json</b></span>
+                    <span style={isLight ? { color: '#444' } : {}}>Check code from <b style={isLight ? { color: '#111' } : {}}>ChatGPT, Claude or Copilot</b></span>
                     <span style={isLight ? { color: '#444' } : {}}>Your code never leaves <b style={isLight ? { color: '#111' } : {}}>this tab</b></span>
                 </div>
             </div>

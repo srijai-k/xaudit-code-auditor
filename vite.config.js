@@ -60,7 +60,7 @@ export default defineConfig({
       manifest: {
         name: 'XAUDIT',
         short_name: 'XAUDIT',
-        description: 'Client-side static code checker for JavaScript, TypeScript, React/JSX, and HTML patterns.',
+        description: 'Check the code your AI wrote. Points at risky JavaScript, TypeScript, React, HTML and package.json patterns, right in your browser.',
         theme_color: '#050505',
         background_color: '#050505',
         display: 'standalone',

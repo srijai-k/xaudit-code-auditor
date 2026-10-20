@@ -1,48 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { MAX_SOURCE_BYTES } from '../../lib/analysis/types';
-
-const SAMPLES = {
-    html: `<!DOCTYPE html>
-<html>
-<head>
-    <title>Sample Page</title>
-</head>
-<body>
-    <h1>Hello World</h1>
-    <img src="https://example.com/logo.png">
-    <button onclick="alert('hi')">Submit</button>
-</body>
-</html>`,
-    script: `import React from 'react';
-
-export default function Profile({ user }) {
-  const handleClick = () => console.log('clicked');
-
-  return (
-    <div onClick={handleClick}>
-      <button onClick={handleClick}>Save</button>
-      <div dangerouslySetInnerHTML={{ __html: user.bio }} />
-    </div>
-  );
-}`,
-    'package-json': `{
-  "name": "example-app",
-  "version": "1.0.0",
-  "dependencies": {
-    "express": "*",
-    "lodash": "^4.17.21",
-    "some-fork": "git+https://github.com/someuser/some-fork.git",
-    "eslint": "^9.0.0"
-  },
-  "devDependencies": {
-    "vitest": "^3.0.0"
-  },
-  "scripts": {
-    "postinstall": "node ./scripts/setup.js",
-    "build": "vite build"
-  }
-}`,
-};
+import { samplesForMode } from '../../data/samples';
 
 const MODES = [
     { id: 'html', label: 'HTML' },
@@ -64,8 +22,13 @@ export default function CodeInput({ code, onCodeChange, mode, onModeChange, onRu
         }
     };
 
+    // Each click loads the next sample that fits the selected mode, so
+    // clicking again shows a different kind of mistake.
+    const sampleTurn = useRef(0);
     const loadSample = () => {
-        onCodeChange(SAMPLES[mode] || SAMPLES.script);
+        const options = samplesForMode(mode);
+        onCodeChange(options[sampleTurn.current % options.length].code);
+        sampleTurn.current += 1;
     };
 
     return (

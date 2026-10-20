@@ -64,7 +64,7 @@ export default function DocsPage() {
                             <section id="overview" className="docs-card">
                                 <h2>Overview</h2>
                                 <p>
-                                    XAUDIT is a code checker that runs in your browser. It reads JavaScript, TypeScript, React/JSX and HTML with a real parser (<code>@babel/parser</code>), reads package.json as JSON, and runs a small set of rules I wrote and tested by hand. All of it happens in a Web Worker. There's no AI model in it, and it isn't just searching text with regex.
+                                    XAUDIT is a code checker that runs in your browser, made for checking code you got from an AI tool (or anywhere else) before you use it. It reads JavaScript, TypeScript, React/JSX and HTML with a real parser (<code>@babel/parser</code>), reads package.json as JSON, and runs a small set of rules I wrote and tested by hand. All of it happens in a Web Worker. There's no AI model in it, and it isn't just searching text with regex.
                                 </p>
                                 <div className="docs-callout warning">
                                     <strong>Worth saying up front:</strong> everything XAUDIT reports needs a human to look at it. A clean result doesn't mean your code is secure.
