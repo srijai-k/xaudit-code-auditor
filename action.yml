@@ -1,0 +1,45 @@
+name: XAUDIT
+description: Check JavaScript, TypeScript, React, HTML and package.json files for common security mistakes. Runs offline on the runner; nothing is sent anywhere.
+author: srijai-k
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  path:
+    description: File or folder to check (space-separate several). node_modules, dist, build and similar folders are skipped.
+    default: "."
+  fail-on:
+    description: Fail the job if there's a finding at or above this severity (critical, high, medium, low, info) or "none" to never fail.
+    default: high
+  sarif-file:
+    description: Where to write the SARIF report, for github/codeql-action/upload-sarif.
+    default: xaudit.sarif
+
+outputs:
+  sarif-file:
+    description: Path of the SARIF report.
+    value: ${{ inputs.sarif-file }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install XAUDIT
+      shell: bash
+      run: npm ci --prefix "${{ github.action_path }}" --no-audit --no-fund --loglevel=error
+
+    - name: Write SARIF report
+      shell: bash
+      run: |
+        "${{ github.action_path }}/node_modules/.bin/tsx" "${{ github.action_path }}/src/cli/xaudit.ts" ${{ inputs.path }} \
+          --format sarif --output "${{ inputs.sarif-file }}" --fail-on none
+
+    - name: Check findings
+      shell: bash
+      run: |
+        "${{ github.action_path }}/node_modules/.bin/tsx" "${{ github.action_path }}/src/cli/xaudit.ts" ${{ inputs.path }} \
+          --fail-on "${{ inputs.fail-on }}"

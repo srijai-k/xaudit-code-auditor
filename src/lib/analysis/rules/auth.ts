@@ -1,5 +1,6 @@
 import * as t from "@babel/types";
-import { traverseAst, locOf, excerptOf } from "../ast-utils";
+import type { NodePath } from "@babel/traverse";
+import { traverseAst, locOf, excerptOf, isStaticStringExpression, resolveSingleAssignment } from "../ast-utils";
 import type { Rule, RuleContext } from "../rule";
 import type { Finding } from "../types";
 
@@ -41,7 +42,20 @@ import type { Finding } from "../types";
  *      method) specifically to avoid flagging an unrelated decode() call
  *      (base64, JSON, a custom codec) that has nothing to do with JWTs.
  *
- * Both checks are whole-file or name-based heuristics, not data-flow
+ *   3. `auth-weak-password-hash`: a value named like a password run through
+ *      a fast general-purpose hash (createHash("md5"/"sha1"/"sha256").update(),
+ *      md5(), CryptoJS.SHA256()). Gated on the password-like NAME so ordinary
+ *      checksums and cache keys aren't flagged.
+ *
+ *   4. `auth-insecure-random-token`: Math.random() used to build something
+ *      named like a secret (token, otp, reset code, session id...). Judged by
+ *      the nearest variable/assignment/property/function name only, so
+ *      Math.random() for animation delays or shuffles isn't flagged.
+ *
+ *   5. `auth-jwt-literal-secret`: jwt.sign()/jwt.verify() given a string
+ *      literal as the secret, directly or one variable hop back.
+ *
+ * All of these are whole-file or name-based heuristics, not data-flow
  * analysis — see each finding's own `limitations` field for exactly what
  * that means in practice.
  */
@@ -144,6 +158,188 @@ export const authRule: Rule = {
             }
         }
 
+        // ---- Checks 3-5: password hashing, random tokens, JWT secrets --
+        traverseAst(ast, {
+            CallExpression(path) {
+                const { node } = path;
+                const callee = node.callee;
+
+                // Check 3: a password-named value through a fast hash.
+                const hashed = fastHashOfPassword(node);
+                if (hashed) {
+                    findings.push({
+                        ruleId: "auth-weak-password-hash",
+                        title: "Password hashed with a fast, general-purpose hash",
+                        severity: "high",
+                        category: "auth",
+                        message: `"${hashed.name}" is hashed with ${hashed.algo}. That's a fast hash meant for checksums, not for storing passwords.`,
+                        whyItMatters: "If the database ever leaks, fast hashes like MD5, SHA-1 and plain SHA-256 can be tried billions of times a second on a normal graphics card, and unsalted ones match precomputed tables instantly. Most real passwords fall in minutes.",
+                        saferExample: "Use a password hashing function built to be slow: `const hash = await bcrypt.hash(password, 12)` and `await bcrypt.compare(password, hash)`, or argon2 / scrypt.",
+                        limitations: "Name-based: only fires when the hashed value is named like a password (password, passwd, pwd, pass), directly or as a property. A password under another name is missed, and a non-password value with a password-like name is flagged. Does not check whether a salt or many iterations are added around the hash.",
+                        location: locOf(node),
+                        snippet: excerptOf(code, node),
+                    });
+                    return;
+                }
+
+                // Check 5: jwt.sign / jwt.verify with a secret written in the code.
+                if (t.isMemberExpression(callee) && !callee.computed && t.isIdentifier(callee.property) && t.isIdentifier(callee.object)
+                    && JWT_OBJECT_NAMES.has(callee.object.name) && (callee.property.name === "sign" || callee.property.name === "verify")) {
+                    const secretArg = node.arguments[1];
+                    if (!secretArg || !t.isExpression(secretArg)) return;
+                    let literal: t.Node | undefined = isStaticStringExpression(secretArg) ? secretArg : undefined;
+                    let via: string | undefined;
+                    if (!literal && t.isIdentifier(secretArg)) {
+                        const r = resolveSingleAssignment(path, secretArg);
+                        if (r.resolved && r.initNode && isStaticStringExpression(r.initNode)) {
+                            literal = r.initNode;
+                            via = secretArg.name;
+                        }
+                    }
+                    if (!literal) return;
+                    findings.push({
+                        ruleId: "auth-jwt-literal-secret",
+                        title: `jwt.${callee.property.name}() with a secret written in the code`,
+                        severity: "high",
+                        category: "auth",
+                        message: `The JWT signing secret is a string written straight into the source${via ? ` (in \`${via}\`, one line up)` : ""}.`,
+                        whyItMatters: "Anyone who can read the code (a public repo, a leaked zip, a shared screenshot) can sign their own tokens and log in as any user, including an admin. Secrets like \"secret\" or \"mysecret123\" are also among the first an attacker guesses.",
+                        saferExample: "Load it from the environment and fail fast if it's missing: `const secret = process.env.JWT_SECRET; if (!secret) throw new Error(\"JWT_SECRET not set\"); jwt.sign(payload, secret, { expiresIn: \"1h\" })`.",
+                        limitations: "Only recognises the call as jwt.sign/verify on an object named jwt, JWT or jsonwebtoken, and follows a variable back one step. A secret built from a literal in some other way, or passed through a config object, is missed.",
+                        location: locOf(node),
+                        snippet: excerptOf(code, node),
+                    });
+                    return;
+                }
+
+                // Check 4: Math.random() making something secret.
+                if (isMathRandomCall(node)) {
+                    const owner = secretNameOwning(path);
+                    if (!owner) return;
+                    findings.push({
+                        ruleId: "auth-insecure-random-token",
+                        title: "Math.random() used to make a secret value",
+                        severity: "medium",
+                        category: "auth",
+                        message: `Math.random() is used to build "${owner}". Math.random() isn't meant for anything secret.`,
+                        whyItMatters: "Math.random() is predictable: its output can be reconstructed from a handful of earlier values, and it has far less randomness than it looks. A reset link, login code or session id made with it can be guessed.",
+                        saferExample: "Use the crypto module: `crypto.randomBytes(32).toString(\"hex\")` or `crypto.randomUUID()` in Node, `crypto.getRandomValues(...)` in the browser. For a 6-digit code: `crypto.randomInt(0, 1_000_000)`.",
+                        limitations: "Name-based: only fires when the value goes into something named like a secret (token, secret, password, otp, nonce, salt, session id, reset, verification, api key, invite), as a variable, property, or the function that returns it. Math.random() used for harmless things (animations, shuffling a UI list) is left alone, and a secret under an unusual name is missed.",
+                        location: locOf(node),
+                        snippet: excerptOf(code, path.parentPath?.node ?? node),
+                    });
+                }
+            },
+        });
+
         return findings;
     },
 };
+
+// ---- helpers for checks 3-5 ---------------------------------------------
+
+const FAST_HASHES = /^(md4|md5|sha1|sha-1|sha224|sha256|sha-256|sha384|sha512|sha-512|ripemd160)$/i;
+const FAST_HASH_FUNCTIONS = new Set(["md5", "sha1", "sha256", "sha512", "MD5", "SHA1", "SHA256", "SHA512"]);
+const JWT_OBJECT_NAMES = new Set(["jwt", "JWT", "jsonwebtoken"]);
+
+/** Splits camelCase / snake_case / kebab-case into lowercase words: "resetToken" -> ["reset", "token"]. */
+function wordsOf(name: string): string[] {
+    return name
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+        .split(/[^A-Za-z0-9]+/)
+        .filter(Boolean)
+        .map((w) => w.toLowerCase());
+}
+
+const PASSWORD_WORDS = new Set(["password", "passwd", "pwd", "pass", "passphrase"]);
+function isPasswordName(name: string): boolean {
+    return wordsOf(name).some((w) => PASSWORD_WORDS.has(w));
+}
+
+const SECRET_WORDS = new Set(["token", "secret", "password", "passwd", "otp", "nonce", "salt", "sid", "apikey", "invite", "passphrase"]);
+const SECRET_PAIRS: [string, Set<string>][] = [
+    ["session", new Set(["id", "key"])],
+    ["reset", new Set(["token", "code", "link", "key"])],
+    ["verification", new Set(["code", "token", "id"])],
+    ["api", new Set(["key"])],
+    ["auth", new Set(["code", "key"])],
+];
+/** Whole-word match, so "footprint" isn't an "otp" and "resetDelay" isn't a reset token. */
+function isSecretName(name: string): boolean {
+    const words = wordsOf(name);
+    if (words.some((w) => SECRET_WORDS.has(w))) return true;
+    return words.some((w, i) => SECRET_PAIRS.some(([first, seconds]) => w === first && seconds.has(words[i + 1] ?? "")));
+}
+
+function nameOf(node: t.Node): string | undefined {
+    if (t.isIdentifier(node)) return node.name;
+    if (t.isMemberExpression(node) && !node.computed && t.isIdentifier(node.property)) return node.property.name;
+    return undefined;
+}
+
+/**
+ * `crypto.createHash("md5").update(password)`, `md5(password)`,
+ * `CryptoJS.SHA256(password)`, `sha1(user.password)`.
+ */
+function fastHashOfPassword(node: t.CallExpression): { name: string; algo: string } | null {
+    const callee = node.callee;
+    const arg = node.arguments[0];
+    if (!arg || !t.isExpression(arg)) return null;
+    const argName = nameOf(arg);
+    if (!argName || !isPasswordName(argName)) return null;
+
+    // .update(password) on a createHash(<fast>) chain
+    if (t.isMemberExpression(callee) && !callee.computed && t.isIdentifier(callee.property) && callee.property.name === "update") {
+        let obj: t.Node = callee.object;
+        while (t.isCallExpression(obj) && t.isMemberExpression(obj.callee) && !(t.isIdentifier(obj.callee.property) && obj.callee.property.name === "createHash")) {
+            obj = obj.callee.object;
+        }
+        if (t.isCallExpression(obj) && t.isMemberExpression(obj.callee) && t.isIdentifier(obj.callee.property) && obj.callee.property.name === "createHash") {
+            const algo = obj.arguments[0];
+            if (t.isStringLiteral(algo) && FAST_HASHES.test(algo.value)) return { name: argName, algo: algo.value.toUpperCase() };
+        }
+        return null;
+    }
+    // md5(password) / CryptoJS.SHA256(password)
+    const fn = t.isIdentifier(callee) ? callee.name : t.isMemberExpression(callee) && !callee.computed && t.isIdentifier(callee.property) ? callee.property.name : undefined;
+    if (fn && FAST_HASH_FUNCTIONS.has(fn)) return { name: argName, algo: fn.toUpperCase() };
+    return null;
+}
+
+function isMathRandomCall(node: t.CallExpression): boolean {
+    const c = node.callee;
+    return t.isMemberExpression(c) && !c.computed && t.isIdentifier(c.object) && c.object.name === "Math" && t.isIdentifier(c.property) && c.property.name === "random";
+}
+
+/**
+ * The secret-looking name this Math.random() call ends up in, if any:
+ * walks up to the nearest variable, assignment, object property or
+ * enclosing function and checks that one name. Stops at the first of those
+ * it reaches, so `const delay = Math.random() * 1000` inside a function
+ * called makeToken is judged by "delay", not by the function.
+ */
+function secretNameOwning(path: NodePath): string | undefined {
+    let p: NodePath | null = path.parentPath;
+    for (let depth = 0; p && depth < 12; depth++, p = p.parentPath) {
+        const n = p.node;
+        if (t.isVariableDeclarator(n)) {
+            const name = t.isIdentifier(n.id) ? n.id.name : undefined;
+            return name && isSecretName(name) ? name : undefined;
+        }
+        if (t.isAssignmentExpression(n)) {
+            const name = nameOf(n.left);
+            return name && isSecretName(name) ? name : undefined;
+        }
+        if (t.isObjectProperty(n)) {
+            const name = t.isIdentifier(n.key) ? n.key.name : t.isStringLiteral(n.key) ? n.key.value : undefined;
+            return name && isSecretName(name) ? name : undefined;
+        }
+        if (t.isFunctionDeclaration(n) || t.isFunctionExpression(n) || t.isArrowFunctionExpression(n)) {
+            let name: string | undefined = t.isFunctionDeclaration(n) || t.isFunctionExpression(n) ? n.id?.name : undefined;
+            if (!name && p.parentPath && t.isVariableDeclarator(p.parentPath.node) && t.isIdentifier(p.parentPath.node.id)) name = p.parentPath.node.id.name;
+            return name && isSecretName(name) ? `${name}()` : undefined;
+        }
+    }
+    return undefined;
+}

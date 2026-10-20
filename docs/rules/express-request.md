@@ -2,11 +2,13 @@
 
 Source: [`src/lib/analysis/rules/express-request.ts`](../../src/lib/analysis/rules/express-request.ts) · Tests: [`tests/rules/express-request.test.ts`](../../tests/rules/express-request.test.ts) · Category: `express-request`
 
-Four narrow checks for Express/Koa-style Node.js handlers. Every one of them needs the same thing before it fires: a value that visibly comes from the incoming request reaching the call. "The request" means `req.query`, `req.body`, `req.params`, `req.headers`, `req.cookies`, `req.get(...)`/`req.header(...)`, or Koa's `ctx.query`/`ctx.params`/`ctx.request.body`.
+Narrow checks for Express/Koa-style Node.js handlers. The first four need the same thing before they fire: a value that visibly comes from the incoming request reaching the call. "The request" means `req.query`, `req.body`, `req.params`, `req.headers`, `req.cookies`, `req.get(...)`/`req.header(...)`, or Koa's `ctx.query`/`ctx.params`/`ctx.request.body`.
 
 The input is followed directly, through string building (`+`, template literals), through text-preserving calls (`.trim()`, `.slice()`, `decodeURIComponent()`, `path.join()`), and one never-reassigned variable back, including destructuring (`const { name } = req.query`). Any other function call is treated as opaque on purpose, so `escapeHtml(req.query.name)` or `path.basename(req.params.file)` stops the finding.
 
 A dynamic value from anywhere else is **not** flagged by this module. "Any non-literal reaching `res.redirect`" would fire on nearly every real redirect, the same over-breadth mistake the reverted `import()`/`require()` check made (see [`docs/model-improvements.md`](../model-improvements.md)).
+
+The last two (`express-cors-any-origin-with-credentials`, `express-cookie-insecure`) are configuration checks: the risky thing is the setting itself, so they don't need request input.
 
 **Shared limitations:** name-based. `req`/`request`/`ctx` are assumed to be the request, `res`/`response` the response and `fs` the file system module, so renamed variables or imports are missed. One variable hop, no cross-function tracking: input passed into a helper function first is not followed (a documented false negative, `tests/fixtures/edge-cases/express-input-through-helper-not-caught.ts`). It can't see validation done elsewhere in the handler (an allowlist check, a prefix guard), so a value that really is checked can still be flagged.
 
@@ -115,3 +117,54 @@ Browser code requesting a URL from the page's own query string is not flagged ei
 **Limitations:** see shared limitations above. Other HTTP clients (`superagent`, `needle`, `undici.request`) aren't recognised. A host allowlist check elsewhere doesn't suppress the finding.
 
 **Tests:** `tests/fixtures/vulnerable/express-ssrf-axios-query-url.ts`, `express-ssrf-server-fetch-callback.ts` · safe: `tests/fixtures/safe/express-axios-fixed-host-safe.ts`, `express-browser-url-not-ssrf-safe.ts`
+
+---
+
+## express-cors-any-origin-with-credentials
+
+A configuration check: it doesn't need request input, because the risky thing is the setting itself.
+
+**What it flags:** `cors({ origin: true, credentials: true })` (the `cors` package then echoes back whatever origin a request claims), or a manual `res.setHeader/header/set("Access-Control-Allow-Origin", <request input>)` in a file that also sets `Access-Control-Allow-Credentials`.
+
+**Severity:** Medium. Any site a logged-in user visits can call the API as them and read the answers.
+
+**Risky example:**
+```js
+app.use(cors({ origin: true, credentials: true }));
+```
+
+**Safe examples (not flagged):**
+```js
+app.use(cors({ origin: ["https://app.example.com"], credentials: true }));
+app.use(cors());
+```
+`origin: "*"` with credentials isn't flagged either: browsers refuse that combination, so it fails safe.
+
+**Limitations:** reads the settings written in this call only. An options object built elsewhere, or a custom origin function, isn't evaluated.
+
+**Tests:** `tests/fixtures/vulnerable/express-cors-origin-true-credentials.ts` · safe: `tests/fixtures/safe/express-cors-allowlist-safe.ts`
+
+---
+
+## express-cookie-insecure
+
+A configuration check: it doesn't need request input.
+
+**What it flags:** `res.cookie(name, value, options)` for a cookie whose literal name looks like a session/auth cookie (session, sess, sid, token, auth, jwt, remember, login, refresh), with no options at all or an inline options object that doesn't set `httpOnly: true`.
+
+**Severity:** Medium. Any script on the page, including one injected through an XSS bug, can read the cookie and take over the session.
+
+**Risky example:**
+```js
+res.cookie("session", token, { secure: true });
+```
+
+**Safe examples (not flagged):**
+```js
+res.cookie("session", token, { httpOnly: true, secure: true, sameSite: "lax" });
+res.cookie("theme", "dark");
+```
+
+**Limitations:** an options object held in a variable isn't checked (not flagged). Only `httpOnly` is required; a missing `secure` or `sameSite` is mentioned in the safer example but doesn't trigger the finding on its own. Cookies named outside the list are missed.
+
+**Tests:** `tests/fixtures/vulnerable/express-cookie-session-no-httponly.ts` · safe: `tests/fixtures/safe/express-cookie-httponly-safe.ts`

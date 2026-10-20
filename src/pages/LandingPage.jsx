@@ -164,9 +164,37 @@ greeting.innerHTML =
             <li><b>01</b><h3>Ask your AI</h3><p>Get the code from ChatGPT, Claude, Copilot, Cursor or v0, same as always.</p></li>
             <li><b>02</b><h3>Paste it here</h3><p>XAUDIT reads it in your browser and points at anything risky. Nothing leaves the tab.</p></li>
             <li><b>03</b><h3>Copy the prompt</h3><p>Every finding comes with a ready-made prompt for Cursor, Claude, ChatGPT or v0 that explains the problem and asks for a fix.</p></li>
-            <li><b>04</b><h3>Paste it back</h3><p>Your AI fixes it. Run it through again if you want to be sure.</p></li>
+            <li><b>04</b><h3>Check the fix</h3><p>Paste your AI's new version back in. XAUDIT tells you what actually got fixed, what's still there, and anything new it broke.</p></li>
           </ol>
           <button className="cta" onClick={() => navigate('/check')}><span>+</span> Try it with a sample</button>
+        </section>
+
+        <section id="vs-ai" className="versus reveal">
+          <p className="eyebrow purple"><span></span>Why not just ask your AI?</p>
+          <h2>Sometimes you should. It just shouldn't be the one grading its own homework.</h2>
+          <div className="versus-table" role="table" aria-label="XAUDIT compared with asking an AI chatbot">
+            <div className="versus-row versus-head" role="row">
+              <span role="columnheader"></span>
+              <span role="columnheader">XAUDIT</span>
+              <span role="columnheader">Asking an AI</span>
+            </div>
+            {[
+              ['Same code, same answer', 'Every time', 'Can change between tries'],
+              ['Checks whether a fix actually worked', 'Compares before and after', 'Tends to say it did'],
+              ['Where your code goes', 'Nowhere. It stays in this tab', "To the AI company's servers"],
+              ['Tells you what it didn\'t check', 'On every finding', 'Rarely'],
+              ['How many kinds of problems it knows', 'A short, tested list', 'Far more'],
+              ['Understands what your app is for', 'No', 'Often'],
+              ['Explains anything you ask about', 'Only its own findings', 'Yes'],
+            ].map(([label, x, ai]) => (
+              <div className="versus-row" role="row" key={label}>
+                <span role="rowheader">{label}</span>
+                <span role="cell">{x}</span>
+                <span role="cell">{ai}</span>
+              </div>
+            ))}
+          </div>
+          <p className="versus-foot">So use both. Let your AI write it and explain it. Let XAUDIT check it, including the fix.</p>
         </section>
 
         <section id="engine" className="services reveal">
@@ -250,9 +278,9 @@ greeting.innerHTML =
             <article className="rule-card reveal"><p>03</p><h3>SQL injection</h3><span>Queries glued together with + or template strings and passed to something that looks like a database. It's narrow on purpose.</span></article>
             <article className="rule-card reveal"><p>04</p><h3>Hardcoded secrets</h3><span>Keys from OpenAI, Stripe, AWS, GitHub and friends, plus random-looking strings that might be keys. UUIDs and hashes get left alone.</span></article>
             <article className="rule-card reveal"><p>05</p><h3>Node command patterns</h3><span>exec, execSync and spawn({'{'} shell: true {'}'}) when the command isn't a fixed string.</span></article>
-            <article className="rule-card reveal"><p>06</p><h3>Weak auth patterns</h3><span>A password compared against a hardcoded string, or jwt.decode() with no jwt.verify() anywhere in the file.</span></article>
+            <article className="rule-card reveal"><p>06</p><h3>Weak auth patterns</h3><span>Hardcoded password checks, passwords stored as MD5 or SHA-256, reset codes made with Math.random(), and JWT secrets typed into the code.</span></article>
             <article className="rule-card reveal"><p>07</p><h3>Dependency hygiene</h3><span>"latest" as a version, git dependencies, sketchy install scripts and dev tools sitting in the wrong section of package.json.</span></article>
-            <article className="rule-card reveal"><p>08</p><h3>Express routes</h3><span>Request input sent back as HTML, used in a redirect, a file path, or a URL the server fetches. Escape it first and the finding goes away.</span></article>
+            <article className="rule-card reveal"><p>08</p><h3>Express routes</h3><span>Request input sent back as HTML, used in a redirect, a file path or a URL the server fetches. Plus CORS that trusts any site and session cookies scripts can read.</span></article>
             <article className="rule-card reveal"><p>HTML</p><h3>HTML hygiene</h3><span>Missing viewport, missing alt text, inline onclick. Basic housekeeping. It's not a security scan.</span></article>
           </div>
         </section>

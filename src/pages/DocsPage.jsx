@@ -119,8 +119,8 @@ export default function DocsPage() {
                                         </tr>
                                         <tr>
                                             <td><strong>Weak Authentication Patterns</strong></td>
-                                            <td>A credential-shaped name compared directly against a string literal; <code>jwt.decode()</code> with no <code>jwt.verify()</code> anywhere in the same file.</td>
-                                            <td>Comparisons against non-literals; fields named credential-shaped without equality comparison; <code>jwt.verify()</code> in a different file; test assertions.</td>
+                                            <td>A credential-shaped name compared directly against a string literal; <code>jwt.decode()</code> with no <code>jwt.verify()</code> anywhere in the same file; a password run through MD5/SHA-1/SHA-256; <code>Math.random()</code> used for a token, reset code or OTP; <code>jwt.sign()</code>/<code>verify()</code> with a secret written in the code.</td>
+                                            <td>Comparisons against non-literals; fields named credential-shaped without equality comparison; <code>jwt.verify()</code> in a different file; test assertions; fast hashes of non-password data (checksums, ETags); <code>Math.random()</code> for animations or shuffles; JWT secrets from the environment.</td>
                                         </tr>
                                         <tr>
                                             <td><strong>HTML Hygiene</strong></td>
@@ -129,7 +129,7 @@ export default function DocsPage() {
                                         </tr>
                                         <tr>
                                             <td><strong>Express Request Input</strong></td>
-                                            <td>Something from the request (<code>req.query</code>, <code>req.body</code>, <code>req.params</code>, <code>req.headers</code>) reaching <code>res.send()</code> as HTML, <code>res.redirect()</code>, a file path (<code>res.sendFile</code>, <code>fs.*</code>), or the URL of an outgoing request (axios, got, http(s), server-side fetch).</td>
+                                            <td>Something from the request (<code>req.query</code>, <code>req.body</code>, <code>req.params</code>, <code>req.headers</code>) reaching <code>res.send()</code> as HTML, <code>res.redirect()</code>, a file path (<code>res.sendFile</code>, <code>fs.*</code>), or the URL of an outgoing request (axios, got, http(s), server-side fetch). Also <code>cors(&#123; origin: true, credentials: true &#125;)</code> and session cookies set without <code>httpOnly</code>.</td>
                                             <td>Dynamic values that don't come from the request; input passed through an escaping call first (<code>escapeHtml</code>, <code>path.basename</code>); <code>res.sendFile</code> with a <code>root</code> option; redirects to a fixed same-site path; requests to a fixed host.</td>
                                         </tr>
                                         <tr>
@@ -189,6 +189,10 @@ export default function DocsPage() {
                                     <li><strong>SARIF 2.1.0</strong>: The standard format GitHub Code Scanning, VS Code's SARIF viewer, and most CI tools already read. Each rule's <code>helpUri</code> links to its own section in the docs.</li>
                                     <li><strong>JSON</strong>: The whole result, plus the on-screen disclaimer.</li>
                                 </ul>
+                                <h3>Checking a whole project</h3>
+                                <p>
+                                    The same engine runs from the command line (<code>npm run xaudit -- your-project/</code>) and as a GitHub Action that writes SARIF for code scanning on every pull request. Both run offline on your machine or the CI runner. Setup is in <code>docs/cli-and-github-action.md</code> in the repo.
+                                </p>
                             </section>
                         )}
 
@@ -359,7 +363,7 @@ export default function DocsPage() {
                             <section id="rules-reference" className="docs-card">
                                 <h2>Every rule ID</h2>
                                 <p>
-                                    46 rule IDs across 9 rule modules. Each one has its own page in <code>docs/rules/</code>:
+                                    51 rule IDs across 9 rule modules. Each one has its own page in <code>docs/rules/</code>:
                                 </p>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', marginTop: '16px' }}>
                                     {[
@@ -368,9 +372,9 @@ export default function DocsPage() {
                                         'secret-openai', 'secret-anthropic', 'secret-stripe', 'secret-aws', 'secret-github', 'secret-gitlab', 'secret-slack', 'secret-pem-key', 'secret-google-api', 'secret-generic-assignment', 'secret-high-entropy-string',
                                         'exec-eval', 'exec-function-ctor', 'exec-set-timeout-string', 'exec-set-interval-string',
                                         'node-command-exec-dynamic', 'node-command-spawn-shell',
-                                        'auth-hardcoded-credential-comparison', 'auth-jwt-decode-without-verify',
+                                        'auth-hardcoded-credential-comparison', 'auth-jwt-decode-without-verify', 'auth-weak-password-hash', 'auth-insecure-random-token', 'auth-jwt-literal-secret',
                                         'dep-unpinned-version', 'dep-non-registry-source', 'dep-suspicious-script-content', 'dep-lifecycle-script-present', 'dep-devtool-in-dependencies',
-                                        'express-reflected-xss', 'express-open-redirect', 'express-path-traversal', 'express-ssrf',
+                                        'express-reflected-xss', 'express-open-redirect', 'express-path-traversal', 'express-ssrf', 'express-cors-any-origin-with-credentials', 'express-cookie-insecure',
                                         'html-missing-viewport', 'html-missing-alt', 'html-inline-event-handler', 'html-missing-csp-meta', 'html-script-content-not-analyzed', 'html-input-not-html'
                                     ].map((id) => (
                                         <div key={id} style={{ padding: '10px 14px', borderRadius: '12px', background: '#0d0d0d', border: '1px solid var(--line)', fontFamily: 'monospace', fontSize: '12px', color: '#eee' }}>

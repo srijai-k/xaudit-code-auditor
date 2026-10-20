@@ -308,3 +308,22 @@ GitHub's own documented SARIF extension field, `properties["security-severity"]`
 **What this does *not* do:** still one variable hop and no cross-function tracking; receivers are recognised by name (`req`, `res`, `fs`); validation done elsewhere in a handler (an allowlist check) doesn't suppress a finding.
 
 **Full suite after this:** 278/278 unit tests passing (was 256).
+
+
+## Checking the AI's fix, highlighted lines, more AI-shortcut rules, a CLI and a GitHub Action (2026-10-20)
+
+**Why:** the site is now aimed at people checking code their AI wrote, and the honest question they'll ask is "why not just ask the AI?" These changes are the parts an AI chat can't credibly do for itself.
+
+**Checking the fix (`src/lib/analysis/compare.ts`).** After a check, "Check your AI's fix" keeps the result as a baseline; the next run is compared against it: fixed, still there, new. The matching deliberately errs against claiming a fix: same rule and same code excerpt first, then the same rule anywhere, and only what's left over counts as fixed or new. So an AI renaming a variable around an unchanged `innerHTML` assignment shows as "still there". The comparison only happens when asked for, so two unrelated pastes are never compared. `tests/unit/compare-runs.test.ts` covers a real fix, a reworded non-fix, duplicate findings and an identical re-run.
+
+**Highlighted lines.** The checker's textarea now has line numbers and a band on every flagged line (coloured by the worst severity on that line), and each finding's line number jumps to it. The textarea is still the real input; the layers behind it are scrolled to match. Wrapping is off on purpose so the bands can't drift.
+
+**Five more rules for common AI shortcuts.** In `auth.ts`: `auth-weak-password-hash` (a password-named value through MD5/SHA-1/SHA-256), `auth-insecure-random-token` (`Math.random()` building something named like a token/OTP/reset code), `auth-jwt-literal-secret`. In `express-request.ts`: `express-cors-any-origin-with-credentials` and `express-cookie-insecure`. Names are matched as whole words (camelCase/snake_case split), which caught two false alarms before they shipped: "footprint" contains "otp", and "resetDelay" isn't a reset token. `origin: "*"` with credentials is deliberately not flagged, because browsers refuse it.
+
+**Python gets a plain answer.** Pasting Python used to produce Babel's "Unexpected token". Now, only after the JS parser has already failed and only with two independent Python tells, the error says it looks like Python and that no rules ran. Broken JavaScript still gets the normal parse error (`tests/unit/python-input.test.ts`).
+
+**Command line and GitHub Action.** `src/cli/xaudit.ts` runs the engine over files on disk (text/JSON/SARIF, `--fail-on`, exit codes), and `action.yml` makes the repo usable as a GitHub Action that writes SARIF for code scanning. `generateSarifForFiles` was split out of the SARIF generator so one report can cover many files; the single-paste export is unchanged (its tests still pass). CI now smoke-tests the CLI on the fixtures.
+
+**A real-AI benchmark harness (`tests/ai-benchmark/`, `npm run bench:ai`).** 25 everyday prompts, folders for each tool's unedited answers, and a `labels.json` where a person records which findings are real. The script only reports; it never decides what's real. **No responses have been collected yet**, so the report is empty on purpose, and nothing in it should be quoted until it isn't.
+
+**Full suite after this:** 300/300 unit tests passing (was 278); every earlier fixture and both existing benchmarks are unchanged.

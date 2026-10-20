@@ -68,3 +68,75 @@ function decodeMessage(encoder, value) { return encoder.decode(value); }   // NO
 **Limitations:** Whole-file, not cross-file — if verification genuinely happens in a *different* file or service (a realistic microservices pattern: an API gateway verifies, a downstream service just reads already-trusted claims), this will still flag it as a false positive, because this engine has no cross-file or cross-service awareness at all. See `tests/independent-benchmark/samples/legacy-token-reader.js` for a realistic example of this exact, disclosed limitation.
 
 **Tests:** `tests/fixtures/vulnerable/auth-jwt-decode-no-verify.ts` · `tests/fixtures/safe/auth-jwt-verify-used.ts`, `auth-unrelated-decode-not-jwt.ts` · `tests/independent-benchmark/samples/jwt-session.js`, `legacy-token-reader.js`
+
+---
+
+## auth-weak-password-hash
+
+**What it flags:** a value named like a password (`password`, `passwd`, `pwd`, `pass`, `passphrase`, as a whole word in the name, so `userPassword` and `req.body.pass` count but `passport` and `bypass` don't) run through a fast general-purpose hash: `crypto.createHash("md5" | "sha1" | "sha256" | "sha512" | ...).update(password)`, `md5(password)`, `sha1(password)`, `CryptoJS.MD5(...)`/`CryptoJS.SHA256(...)`.
+
+**Severity:** High. If the database leaks, fast hashes can be tried billions of times a second, and unsalted ones match precomputed tables.
+
+**Risky example:**
+```js
+const hash = crypto.createHash("md5").update(password).digest("hex");
+```
+
+**Safe examples (not flagged):**
+```js
+const etag = crypto.createHash("md5").update(fileBuffer).digest("hex"); // a checksum, not a password
+const hash = await bcrypt.hash(password, 12);                             // a slow password hash
+```
+
+**Limitations:** name-based: a password under another name is missed, and a non-password value with a password-like name is flagged. Doesn't check for a salt or many iterations around the hash.
+
+**Tests:** `tests/fixtures/vulnerable/auth-md5-password-hash.ts`, `auth-sha256-user-password.ts` · safe: `tests/fixtures/safe/auth-md5-file-checksum-safe.ts`, `auth-bcrypt-hash-safe.ts`
+
+---
+
+## auth-insecure-random-token
+
+**What it flags:** `Math.random()` used to build something named like a secret: token, secret, password, otp, nonce, salt, sid, api key, invite, session id/key, reset token/code/link, verification code/token, auth code. The name is judged as whole words (camelCase and snake_case are split), from the nearest variable, assignment target, object property, or the function that returns it.
+
+**Severity:** Medium. `Math.random()` is predictable, so a reset link, login code or session id built with it can be guessed.
+
+**Risky examples:**
+```js
+const resetToken = Math.random().toString(36).slice(2);
+function generateOtp() { return Math.floor(Math.random() * 1000000); }
+```
+
+**Safe examples (not flagged):**
+```js
+const resetDelay = Math.random() * 1000;   // "reset" alone isn't a secret
+const footprint = Math.random();           // whole-word match: not an "otp"
+items.sort(() => Math.random() - 0.5);     // a shuffle
+```
+Only the nearest name counts, so `const jitter = Math.random()` inside a function called `makeToken` is judged by "jitter".
+
+**Limitations:** name-based: a secret under an unusual name is missed. Doesn't follow the value after it's made.
+
+**Tests:** `tests/fixtures/vulnerable/auth-math-random-reset-token.ts`, `auth-math-random-otp-function.ts` · safe: `tests/fixtures/safe/auth-math-random-ui-safe.ts`
+
+---
+
+## auth-jwt-literal-secret
+
+**What it flags:** `jwt.sign(payload, secret)` or `jwt.verify(token, secret)` (on an object named `jwt`, `JWT` or `jsonwebtoken`) where the secret is a string literal, directly or one never-reassigned variable back.
+
+**Severity:** High. Anyone who can read the code can sign their own tokens and log in as any user.
+
+**Risky example:**
+```js
+const token = jwt.sign({ id: user.id, role: user.role }, "mysecret123", { expiresIn: "7d" });
+```
+
+**Safe example (not flagged):**
+```js
+const secret = process.env.JWT_SECRET;
+const token = jwt.sign({ id: user.id }, secret, { expiresIn: "1h" });
+```
+
+**Limitations:** only recognises the call on an object named jwt/JWT/jsonwebtoken, and follows one variable hop. A secret passed through a config object or built some other way is missed. When the literal sits in a variable named like a secret, `secret-generic-assignment` may also fire on that line.
+
+**Tests:** `tests/fixtures/vulnerable/auth-jwt-sign-literal-secret.ts` · safe: `tests/fixtures/safe/auth-jwt-env-secret-safe.ts`
