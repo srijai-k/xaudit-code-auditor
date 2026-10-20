@@ -17,7 +17,8 @@
 //     carry text (the testimonials page uses it for quotes). Cards get a font
 //     size proportional to their own height, so content sized in `em` scales
 //     with the wheel instead of overflowing it.
-//   - `meta` puts a second line under the front-card title.
+//   - `meta` puts a second line under the front-card title, and `avatar` a
+//     small image above it.
 //   - `geometry` overrides the card proportions and ring radius, for content
 //     that needs a bigger or squarer card than cover art does.
 //   - `cardClassName` restyles the card shell (radius, shadow, background).
@@ -46,6 +47,8 @@ export interface WorksWheelItem {
   content?: React.ReactNode;
   /** Second line under the front-card title. */
   meta?: string;
+  /** Small image shown above the front-card title (a face, a logo). Decorative: the title names it. */
+  avatar?: string;
   /** Where the card links to. Omit for a wheel that only browses. */
   href?: string;
 }
@@ -533,6 +536,14 @@ export function WorksWheel({
         className="pointer-events-none absolute top-1/2 left-[8%] -translate-y-1/2 tracking-tight opacity-0"
         style={{ fontSize: metrics.title, maxWidth: metrics.titleRoom }}
       >
+        {items[active]?.avatar ? (
+          <img
+            src={items[active].avatar}
+            alt=""
+            draggable={false}
+            className="mb-[0.35em] h-[1.9em] w-auto -rotate-6 drop-shadow-[0_6px_10px_rgba(0,0,0,0.45)]"
+          />
+        ) : null}
         <div className="leading-[1.05]">{items[active]?.title}</div>
         {items[active]?.meta ? (
           <div className="text-muted-foreground mt-[0.5em] text-[0.36em] tracking-normal">

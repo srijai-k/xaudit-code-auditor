@@ -1951,12 +1951,25 @@ footer {
 }
 .quote-card.is-lav { background: var(--lav); }
 .quote-card.is-cream { background: var(--cream); }
-.quote-card-mark {
+.quote-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   flex-shrink: 0;
-  width: 2em;
-  height: 2em;
-  margin-bottom: 0.85em;
-  color: rgba(13, 13, 13, 0.5);
+  margin-bottom: 0.7em;
+}
+/* Memoji face sticker (white die-cut border is baked into the image). */
+.quote-card-face {
+  height: 4.4em;
+  margin: -0.3em 0 0 -0.3em;
+  width: auto;
+  transform: rotate(-6deg);
+  filter: drop-shadow(0 0.25em 0.35em rgba(13, 13, 13, 0.22));
+}
+.quote-card-mark {
+  width: 1.7em;
+  height: 1.7em;
+  color: rgba(13, 13, 13, 0.45);
   stroke-width: 1.6;
 }
 .quote-card.is-cream .quote-card-mark { color: #7c3aed; }
@@ -2029,6 +2042,12 @@ footer {
   font-weight: 700;
 }
 .quote-spotlight-names b { color: #f0f0f0; font-weight: 800; }
+.quote-spotlight-face {
+  height: 52px;
+  width: auto;
+  transform: rotate(-6deg);
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+}
 
 @media (max-width: 620px) {
   .quotes-hero { padding: 28px 20px 36px; }
