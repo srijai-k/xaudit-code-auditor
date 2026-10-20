@@ -27,6 +27,7 @@ const RULE_FILES: Record<string, string> = {
     "node-command": "node-command.ts",
     auth: "auth.ts",
     "dependency-hygiene": "dependency-hygiene.ts",
+    "express-request": "express-request.ts",
     html: "html.ts",
 };
 
@@ -43,6 +44,7 @@ const RULE_ID_PREFIXES: Record<string, string> = {
     "node-command": "node-command-",
     auth: "auth-",
     "dependency-hygiene": "dep-",
+    "express-request": "express-",
     html: "html-",
 };
 
@@ -76,6 +78,7 @@ const KNOWN_NON_RULE_IDS = new Set([
     "api-key",
     "private-key",
     "user-name",
+    "express-request", // the rule module's own id/category, not a finding ruleId
 ]);
 
 describe("unit: docs/rules/ stays in sync with every actual ruleId (drift protection)", () => {

@@ -59,6 +59,15 @@ const RULE_MODULES = [
         behavior: 'Medium. A password checked against a string sitting right there in the code, or a JWT that gets read but never verified.'
     },
     {
+        id: 'express',
+        title: 'Express Request Input',
+        severity: 'High → Medium',
+        severityLevel: 'high',
+        languages: ['JS', 'TS'],
+        receiver: 'res.send(), res.redirect(), res.sendFile()/download(), fs.* paths, axios/got/http(s)/server fetch URLs',
+        behavior: 'Only fires when something from the request (req.query, req.body, req.params, req.headers) reaches the call. Escaping it first, like escapeHtml() or path.basename(), stops the finding. Open redirects are Medium, the rest High.'
+    },
+    {
         id: 'deps',
         title: 'Dependency Hygiene',
         severity: 'Critical → Info',
@@ -105,7 +114,7 @@ export default function RulesPage() {
                             Rules
                         </div>
                         <h1 className="text-fade-in stagger-2" style={{ fontSize: 'clamp(44px, 5.5vw, 76px)', fontWeight: 400, color: '#111', margin: 0, lineHeight: 1.05, letterSpacing: '-0.03em', maxWidth: '980px', fontFamily: 'Telegraf, "Haffer SQ", Arial, sans-serif' }}>
-                            Eight rules. Each one knows what it can't see.
+                            Nine rules. Each one knows what it can't see.
                         </h1>
                     </div>
 
@@ -174,7 +183,7 @@ export default function RulesPage() {
                         {/* Metric Cards Grid */}
                         <div className="privacy-pills-grid" style={{ display: 'grid', gap: '16px' }}>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                <div style={{ fontSize: '32px', fontWeight: 800, color: '#cca7f3' }}>8</div>
+                                <div style={{ fontSize: '32px', fontWeight: 800, color: '#cca7f3' }}>9</div>
                                 <div style={{ fontSize: '13px', color: '#aaa', fontWeight: 700, marginTop: '4px', textTransform: 'uppercase' }}>Rule Modules</div>
                             </div>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>

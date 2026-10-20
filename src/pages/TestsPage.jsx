@@ -132,7 +132,7 @@ export default function TestsPage() {
                             table of contents shape communicates better than tiles. */}
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             {[
-                                { tag: 'Unit', title: 'tests/rules/*', body: "Each of the 8 rules gets tested against code it should flag and code it should leave alone. If a rule says it skips something, there's a test making sure it does." },
+                                { tag: 'Unit', title: 'tests/rules/*', body: "Each of the 9 rule groups gets tested against code it should flag and code it should leave alone. If a rule says it skips something, there's a test making sure it does." },
                                 { tag: 'Regression', title: 'tests/regression/*', body: "Every real bug I fixed gets a test so it can't sneak back in. Parameterized queries, decorators, newer syntax and short inputs all have one." },
                                 { tag: 'Docs', title: 'Coverage', body: 'A test pulls every rule ID out of the source code and fails if any of them is missing a docs page.' },
                                 { tag: 'E2E', title: 'Playwright', body: 'Playwright opens the real built app, goes from the landing page to the checker, runs a scan and exports a PDF. If anything tries to reach the internet along the way, it fails.' },

@@ -79,6 +79,16 @@
       "testCount": 6
     },
     {
+      "id": "express-request",
+      "file": "src/lib/analysis/rules/express-request.ts",
+      "category": "express-request",
+      "ruleIds": ["express-reflected-xss", "express-open-redirect", "express-path-traversal", "express-ssrf"],
+      "detectionMethod": "AST, name-based request/response/fs receivers, request-input source tracking one variable hop back (ast-utils.ts findUserInput)",
+      "docsPage": "docs/rules/express-request.md",
+      "testFile": "tests/rules/express-request.test.ts",
+      "testCount": 17
+    },
+    {
       "id": "auth",
       "file": "src/lib/analysis/rules/auth.ts",
       "category": "auth",
