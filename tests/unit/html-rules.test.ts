@@ -115,3 +115,46 @@ describe("regression + feature: HTML mode now analyzes parseable inline <script>
         expect(result.findings.some((f) => f.ruleId === "html-script-content-not-analyzed")).toBe(false);
     });
 });
+
+// The other half of F-05: HTML mode picked by hand for input with no markup
+// at all. There are no <script> blocks to extract, so before this the result
+// was a clean 0-finding report for code no real rule had looked at.
+describe("regression: HTML mode on input with no HTML markup discloses that nothing was examined (F-05)", () => {
+    it("plain JavaScript in HTML mode gets the html-input-not-html disclosure instead of a silent clean result", () => {
+        const result = analyze("const x = location.hash; el.innerHTML = x;", "html");
+        expect(result.status).toBe("ok");
+        const disclosure = result.findings.find((f) => f.ruleId === "html-input-not-html");
+        expect(disclosure).toBeDefined();
+        expect(disclosure?.severity).toBe("info");
+        expect(result.findings.length).toBeGreaterThan(0);
+    });
+
+    it("does not switch modes silently: the JS rules still don't run on markup-free input in HTML mode", () => {
+        const result = analyze("const x = location.hash; el.innerHTML = x;", "html");
+        expect(result.language).toBe("html");
+        expect(result.findings.some((f) => f.category === "xss")).toBe(false);
+    });
+
+    it("TypeScript generics and comparisons are not mistaken for markup", () => {
+        const result = analyze("const xs: Array<string> = []; if (a < b && c > d) run();", "html");
+        expect(result.findings.some((f) => f.ruleId === "html-input-not-html")).toBe(true);
+    });
+
+    it("a real HTML document gets no html-input-not-html finding", () => {
+        const html = `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width"></head><body><h1>Hello</h1></body></html>`;
+        const result = analyze(html, "html");
+        expect(result.findings.some((f) => f.ruleId === "html-input-not-html")).toBe(false);
+    });
+
+    it("an HTML fragment with no doctype gets no html-input-not-html finding", () => {
+        for (const fragment of [`<img src="a.png" alt="a">`, `<div class="card"><p>Hi</p></div>`, `<my-widget></my-widget>`]) {
+            const result = analyze(fragment, "html");
+            expect(result.findings.some((f) => f.ruleId === "html-input-not-html"), fragment).toBe(false);
+        }
+    });
+
+    it("auto-detect never produces it: plain JS goes to script mode and gets real findings", () => {
+        const result = analyze("const x = location.hash; el.innerHTML = x;", "auto");
+        expect(result.findings.some((f) => f.ruleId === "html-input-not-html")).toBe(false);
+    });
+});

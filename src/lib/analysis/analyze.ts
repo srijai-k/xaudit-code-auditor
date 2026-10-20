@@ -1,6 +1,6 @@
 import { parseSource } from "./parse";
 import { dedupeFindings } from "./dedupe";
-import { runHtmlChecks, extractInlineScripts, buildScriptNotAnalyzedFinding } from "./rules/html";
+import { runHtmlChecks, extractInlineScripts, buildScriptNotAnalyzedFinding, looksLikeHtml, buildInputNotHtmlFinding } from "./rules/html";
 import { xssRule } from "./rules/xss";
 import { dynamicExecRule } from "./rules/dynamic-exec";
 import { sqliRule } from "./rules/sqli";
@@ -86,6 +86,12 @@ export function analyze(code: string, requestedMode: AnalysisMode | "auto" = "au
         onStage?.("analyzing", "HTML hygiene + real rules on parseable inline <script> content");
         let allFindings: Finding[] = runHtmlChecks(source);
         rulesRun.push({ ruleId: "html" });
+
+        // HTML mode is only ever reached with no markup when the user picked
+        // it by hand (auto-detect needs a doctype or <html> tag). Say so
+        // instead of returning a clean report for code nothing examined.
+        // No silent mode switch: the user chose HTML, so they get told.
+        if (!looksLikeHtml(source)) allFindings.push(buildInputNotHtmlFinding());
 
         // Inline <script> content used to be a total blind spot in HTML
         // mode — see html.ts's own doc comment and F-05 in
