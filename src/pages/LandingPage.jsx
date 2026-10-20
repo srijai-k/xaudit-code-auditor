@@ -129,11 +129,12 @@ greeting.innerHTML =
           <blockquote>“What I liked most was that XAUDIT <em>does not try to solve everything at once.</em>”</blockquote>
           <div className="quote-spotlight-foot">
             <div className="quote-spotlight-names">
+              <img className="quote-spotlight-face" src="/testimonials/oliver-wesche.webp" alt="" draggable={false} decoding="async" />
               <b>Oliver Wesche · Harvard University alum</b>
-              <span>+ four more alumni of Carnegie Mellon University and the University of North Carolina at Chapel Hill</span>
+              <span>+ five more alumni of Carnegie Mellon University and the University of North Carolina at Chapel Hill</span>
             </div>
             <button className="cta" onClick={() => navigate('/testimonials')}>
-              <span>+</span> Read all five
+              <span>+</span> Read all six
             </button>
           </div>
         </section>

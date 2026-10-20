@@ -1,6 +1,7 @@
 // What people said after trying XAUDIT. Quotes are verbatim — edit the
 // wording only if the person who said it asks for the change. Everyone here
 // is an alum of the school listed; `credit` is the line shown under the name.
+// `face` is their memoji sticker in public/testimonials/, named after them.
 export const TESTIMONIALS = [
     {
         name: 'Krishna Donepudi',
@@ -27,4 +28,13 @@ export const TESTIMONIALS = [
         school: 'Harvard University',
         quote: 'What I liked most was that XAUDIT does not try to solve everything at once. It has a clear use case, a straightforward way to get value from it, and a pretty deliberate approach to communicating its limitations. I think that kind of focus is harder to get right than it looks, especially when building a technical product from scratch.',
     },
-].map((t) => ({ ...t, credit: `${t.school} alum` }));
+    {
+        name: 'Shweta Shinju',
+        school: 'Carnegie Mellon University',
+        quote: 'I spent some time going through the website and what stood out was how much detail there is behind what initially looks like a simple tool. The rule documentation, the examples of safer alternatives, and the explanations of what each check misses make it feel like a much more complete project than I expected.',
+    },
+].map((t) => ({
+    ...t,
+    credit: `${t.school} alum`,
+    face: `/testimonials/${t.name.toLowerCase().replace(/\s+/g, '-')}.webp`,
+}));

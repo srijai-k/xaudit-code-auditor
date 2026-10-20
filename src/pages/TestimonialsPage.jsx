@@ -30,7 +30,10 @@ function useWheelLayout() {
 function QuoteCard({ testimonial, index }) {
     return (
         <div className={`quote-card ${index % 2 ? 'is-cream' : 'is-lav'}`}>
-            <Quote className="quote-card-mark" aria-hidden="true" />
+            <div className="quote-card-head">
+                <img className="quote-card-face" src={testimonial.face} alt="" draggable={false} decoding="async" />
+                <Quote className="quote-card-mark" aria-hidden="true" />
+            </div>
             <p className="quote-card-text">{testimonial.quote}</p>
             <div className="quote-card-by">
                 <b>{testimonial.name}</b>
@@ -49,6 +52,7 @@ const TRACK_HEIGHT = `calc(100vh - 128px + ${(TESTIMONIALS.length + 0.25) * STEP
 const WHEEL_ITEMS = TESTIMONIALS.map((t, i) => ({
     title: t.name,
     meta: t.credit,
+    avatar: t.face,
     content: <QuoteCard testimonial={t} index={i} />,
 }));
 
@@ -70,7 +74,7 @@ export default function TestimonialsPage() {
                         <p className="eyebrow purple text-fade-in stagger-1"><span></span>Testimonials</p>
                         <h1 className="text-fade-in stagger-2">I asked a few people to try it. Here's what they said.</h1>
                         <p className="hero-copy text-fade-in stagger-3">
-                            Five alumni of Carnegie Mellon University, the University of North Carolina at Chapel Hill and Harvard University used XAUDIT and wrote down what they thought. Everything here is in their own words.
+                            Six alumni of Carnegie Mellon University, the University of North Carolina at Chapel Hill and Harvard University used XAUDIT and wrote down what they thought. Everything here is in their own words.
                         </p>
                     </section>
 
