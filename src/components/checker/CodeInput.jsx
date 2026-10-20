@@ -104,7 +104,7 @@ export default function CodeInput({ code, onCodeChange, mode, onModeChange, onRu
             <div className="checker-editor-footer">
                 <span className={`checker-limit-text ${overLimit ? 'over' : ''}`}>
                     {(sizeBytes / 1024).toFixed(1)} KB / {(MAX_SOURCE_BYTES / 1024).toFixed(0)} KB
-                    {overLimit && ' — over the analysis limit, will be rejected'}
+                    {overLimit && ' · too big, this will get rejected'}
                 </span>
                 <button
                     onClick={onRun}

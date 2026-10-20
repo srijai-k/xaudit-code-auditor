@@ -1863,3 +1863,176 @@ footer {
 }
 
 
+
+/* ==========================================================================
+   TESTIMONIALS PAGE + LANDING SPOTLIGHT
+   The wheel itself is src/components/ui/works-wheel.tsx; everything it
+   doesn't decide (card faces, the frame around it, the stacked fallback
+   for touch/small screens) lives here so it stays on the same tokens as
+   the rest of the site.
+   ========================================================================== */
+
+.quotes-hero {
+  padding: 40px 7vw 48px;
+}
+.quotes-hero .hero-copy { max-width: 620px; }
+
+/* Same frame language as .showpiece on the landing page: an inset, rounded
+   block with a notch cut out of one corner. Only the bottom-left notch —
+   the top-right corner is where the wheel's name index sits. */
+/* Scroll-driven wheel: the track's height is the scrolling it takes to turn
+   through every quote (one ~65vh step per quote plus a quarter-step hold on the last one, plus
+   the pin's own height),
+   and the pin holds the wheel just under the sticky ticker + header (47px +
+   72px) for all of it. .page-shell-body normally clips with overflow:hidden,
+   which would scope the sticky pin to a box that never scrolls — clip does
+   the same clipping without becoming a scroll container. */
+.page-shell-body.has-pin { overflow: clip; }
+.quote-wheel-track {
+  position: relative;
+  /* height is set inline from the number of quotes (TestimonialsPage.jsx) */
+}
+.quote-wheel-pin {
+  position: sticky;
+  top: 128px;
+  height: calc(100vh - 128px);
+  display: flex;
+  flex-direction: column;
+}
+.quote-wheel-pin .quote-wheel-shell {
+  flex: 1;
+  height: auto;
+  max-height: 860px;
+}
+.quote-wheel-pin .quote-wheel-hint { margin: 14px auto 18px; }
+
+.quote-wheel-shell {
+  position: relative;
+  width: calc(100% - 122px);
+  height: clamp(600px, 78vh, 860px);
+  margin: 0 auto;
+  background: #19151e;
+  border-radius: 24px;
+  overflow: hidden;
+}
+.quote-wheel {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  color: var(--cream);
+  font-family: "Instrument Sans", Arial, sans-serif;
+  font-weight: 300;
+}
+.quote-wheel ol button { font-weight: 700; }
+
+.quote-wheel-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px auto 76px;
+  padding: 0 24px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* One quote. Sized in em so it scales with whatever font-size its parent
+   gives it — the wheel sets that from the card's own height. */
+.quote-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.9em 2em 1.6em;
+  border-radius: inherit;
+  color: var(--ink);
+  font-family: "Instrument Sans", Arial, sans-serif;
+}
+.quote-card.is-lav { background: var(--lav); }
+.quote-card.is-cream { background: var(--cream); }
+.quote-card-mark {
+  flex-shrink: 0;
+  width: 2em;
+  height: 2em;
+  margin-bottom: 0.85em;
+  color: rgba(13, 13, 13, 0.5);
+  stroke-width: 1.6;
+}
+.quote-card.is-cream .quote-card-mark { color: #7c3aed; }
+.quote-card-text {
+  flex: 1;
+  margin: 0;
+  font-size: 1.08em;
+  line-height: 1.45;
+  font-weight: 500;
+}
+.quote-card-by {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.3em 1em;
+  padding-top: 0.9em;
+  border-top: 1px solid rgba(0, 0, 0, 0.14);
+  font-size: 0.86em;
+}
+.quote-card-by b { font-weight: 800; }
+.quote-card-by span { color: rgba(13, 13, 13, 0.6); font-weight: 700; }
+
+/* Touch screens and anything under 1024px wide get the quotes as a plain
+   stack instead of the wheel. */
+.quote-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+  padding: 0 5vw 72px;
+}
+.quote-stack .quote-card {
+  height: auto;
+  font-size: 16px;
+  border-radius: 24px;
+}
+
+/* Landing page: one line pulled from the testimonials, big. */
+.quote-spotlight {
+  padding: 24px 7vw 96px;
+}
+.quote-spotlight blockquote {
+  position: relative;
+  max-width: 1040px;
+  margin: 0 0 40px;
+  font-size: clamp(34px, 4.6vw, 66px);
+  line-height: 1.1;
+  font-weight: 300;
+  color: var(--cream);
+}
+.quote-spotlight blockquote em {
+  font-style: normal;
+  color: var(--lav);
+}
+.quote-spotlight-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+.quote-spotlight-names {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  color: #8a8a8a;
+  font-weight: 700;
+}
+.quote-spotlight-names b { color: #f0f0f0; font-weight: 800; }
+
+@media (max-width: 620px) {
+  .quotes-hero { padding: 28px 20px 36px; }
+  .quote-stack { padding: 0 14px 56px; }
+  .quote-stack .quote-card { font-size: 15px; }
+  .quote-spotlight { padding: 16px 20px 72px; }
+}

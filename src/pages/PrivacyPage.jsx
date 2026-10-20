@@ -24,7 +24,7 @@ export default function PrivacyPage() {
                     <div>
                         <div className="text-fade-in stagger-1" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7c3aed', marginBottom: '20px' }}>
                             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }}></span>
-                            About Privacy
+                            Privacy
                         </div>
                         <h1 className="text-fade-in stagger-2" style={{ fontSize: 'clamp(44px, 5.5vw, 76px)', fontWeight: 400, color: '#111', margin: 0, lineHeight: 1.05, letterSpacing: '-0.03em', maxWidth: '980px', fontFamily: 'Telegraf, "Haffer SQ", Arial, sans-serif' }}>
                             Your code never leaves your browser.
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
                             boxShadow: '0 14px 40px rgba(124, 58, 237, 0.12)'
                         }}>
                             <p style={{ fontSize: '20px', color: '#1a1028', lineHeight: 1.55, margin: 0, fontWeight: 450 }}>
-                                XAUDIT runs entirely inside a Web Worker off your main UI thread. No network calls, no tracking scripts, no WebSocket channels, and no server-side code storage anywhere in the pipeline.
+                                Everything happens inside a Web Worker in your tab. There's no server to send your code to, so it doesn't get sent anywhere. No tracking scripts either. I couldn't tell you who uses this if I wanted to.
                             </p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                                 <button
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
                                         transition: 'transform 0.2s ease'
                                     }}
                                 >
-                                    <span style={{ fontSize: '18px' }}>+</span> Start Local Audit
+                                    <span style={{ fontSize: '18px' }}>+</span> Try it
                                 </button>
                                 <a
                                     href="#devtools-verification"
@@ -86,7 +86,7 @@ export default function PrivacyPage() {
                                         textDecoration: 'none',
                                         transition: 'background 0.2s ease'
                                     }}
-                                    title="Scroll to technical details"
+                                    title="Scroll down to the details"
                                 >
                                     ↓
                                 </a>
@@ -96,19 +96,19 @@ export default function PrivacyPage() {
                         {/* Feature Pills Grid */}
                         <div className="privacy-pills-grid" style={{ display: 'grid', gap: '16px' }}>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                worker
+                                0 uploads
                             </div>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                AST
+                                no account
                             </div>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                500KB cap
+                                no tracking
                             </div>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                dedupe
+                                no cookies
                             </div>
                             <div className="privacy-pill-wide" style={{ background: '#161616', color: '#fff', padding: '24px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                no score
+                                history is opt-in
                             </div>
                         </div>
                     </div>
@@ -121,37 +121,37 @@ export default function PrivacyPage() {
                     <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed' }}></span>
-                            Zero Network Overhead
+                            Zero network requests
                         </div>
                         <h2 style={{ fontSize: '36px', fontWeight: 500, color: '#111', margin: '0 0 32px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                            How this is actually true (not just claimed)
+                            Don't take my word for it
                         </h2>
                         
                         <div className="privacy-grid-auto" style={{ display: 'grid', gap: '24px' }}>
                             <div style={{ background: '#161616', color: '#fff', borderRadius: '24px', padding: '32px' }}>
                                 <div style={{ fontSize: '13px', fontWeight: 800, color: '#cca7f3', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
-                                    01. Isolated Web Worker
+                                    01. It runs in a worker
                                 </div>
                                 <p style={{ color: '#ccc', fontSize: '15px', lineHeight: 1.7, margin: 0 }}>
-                                    Analysis runs entirely in a Web Worker inside your tab — parsing and rule execution happen off the UI thread, with no <code>fetch</code>, <code>XMLHttpRequest</code>, <code>WebSocket</code>, or external SDK anywhere in the pipeline.
+                                    Parsing and every rule run in a Web Worker inside your tab. There's no <code>fetch</code>, no <code>XMLHttpRequest</code>, no <code>WebSocket</code> and no outside SDK anywhere in that code. CI fails if one ever shows up.
                                 </p>
                             </div>
 
                             <div style={{ background: '#161616', color: '#fff', borderRadius: '24px', padding: '32px' }}>
                                 <div style={{ fontSize: '13px', fontWeight: 800, color: '#cca7f3', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
-                                    02. DevTools Verification
+                                    02. Check it yourself
                                 </div>
                                 <p style={{ color: '#ccc', fontSize: '15px', lineHeight: 1.7, margin: 0 }}>
-                                    You can verify this yourself: open your browser's DevTools Network tab, paste code, run a check, and watch the request list. <strong style={{ color: '#fff' }}>Zero requests fire.</strong>
+                                    Open DevTools, go to the Network tab, paste some code and hit Run. Then watch the request list. <strong style={{ color: '#fff' }}>It stays empty.</strong>
                                 </p>
                             </div>
 
                             <div style={{ background: '#161616', color: '#fff', borderRadius: '24px', padding: '32px' }}>
                                 <div style={{ fontSize: '13px', fontWeight: 800, color: '#cca7f3', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
-                                    03. Playwright E2E Assertion
+                                    03. A robot checks too
                                 </div>
                                 <p style={{ color: '#ccc', fontSize: '15px', lineHeight: 1.7, margin: 0 }}>
-                                    Verified via live network capture during scans and via a real Playwright end-to-end test that clicks through the production app (landing page → checker → scan → export PDF) with a hard assertion that zero non-local network activity occurs.
+                                    A Playwright test opens the real built app, clicks from the landing page to the checker, runs a scan and exports a PDF. If anything tries to reach the internet along the way, the test fails.
                                 </p>
                             </div>
                         </div>
@@ -161,13 +161,13 @@ export default function PrivacyPage() {
                     <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed' }}></span>
-                            Opt-in Persistence
+                            History is off by default
                         </div>
                         <h2 style={{ fontSize: '36px', fontWeight: 500, color: '#111', margin: '0 0 16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                            What is stored locally (and what isn't)
+                            What gets saved if you turn it on
                         </h2>
                         <p style={{ fontSize: '17px', color: '#555', margin: '0 0 32px', lineHeight: 1.6 }}>
-                            Nothing is written to storage unless you explicitly enable audit history in the UI settings.
+                            Nothing gets saved unless you turn on history in the checker. If you do, this is the whole list. It lives in localStorage on your own computer, in plain text.
                         </p>
 
                         <div className="privacy-grid-auto" style={{ display: 'grid', gap: '28px' }}>
@@ -176,10 +176,10 @@ export default function PrivacyPage() {
                                     ✓ Saved in Local Storage (Opt-in)
                                 </div>
                                 <ul style={{ margin: 0, paddingLeft: '20px', color: '#333', fontSize: '15px', lineHeight: 1.8 }}>
-                                    <li>Finding count per severity</li>
-                                    <li>Matched rule IDs and titles</li>
-                                    <li>Masked ~120-character code excerpt</li>
-                                    <li>Timestamp of the check</li>
+                                    <li>How many findings of each severity</li>
+                                    <li>The rule IDs and titles that matched</li>
+                                    <li>The first ~120 characters of your code, secrets masked</li>
+                                    <li>When you ran the check</li>
                                 </ul>
                             </div>
 
@@ -188,41 +188,41 @@ export default function PrivacyPage() {
                                     ✗ Never Saved Anywhere
                                 </div>
                                 <ul style={{ margin: 0, paddingLeft: '20px', color: '#333', fontSize: '15px', lineHeight: 1.8 }}>
-                                    <li>Full raw source files</li>
-                                    <li>Unmasked API tokens or keys</li>
-                                    <li>User identity or IP address</li>
-                                    <li>Analytics or diagnostic logs</li>
+                                    <li>Your full code</li>
+                                    <li>Any API key or token, unmasked</li>
+                                    <li>Your name, email or anything that identifies you</li>
+                                    <li>Analytics or tracking data</li>
                                 </ul>
                             </div>
                         </div>
                     </section>
 
-                    {/* Section 3: Disclosures & Boundaries */}
+                    {/* Section 3: The fine print */}
                     <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef4444', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }}></span>
-                            Disclosures & Boundaries
+                            The fine print
                         </div>
                         <h2 style={{ fontSize: '36px', fontWeight: 500, color: '#111', margin: '0 0 32px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                            Honest Security Boundaries
+                            What this page can't promise
                         </h2>
 
                         <div className="privacy-grid-auto" style={{ display: 'grid', gap: '24px' }}>
                             <div style={{ background: '#161616', color: '#fff', borderRadius: '24px', padding: '32px' }}>
                                 <div style={{ color: '#f87171', fontWeight: 800, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
-                                    Unverified Offline / PWA Scope
+                                    Offline mode isn't tested
                                 </div>
                                 <div style={{ color: '#ccc', fontSize: '15px', lineHeight: 1.65 }}>
-                                    Offline/PWA behavior is explicitly marked "not independently verified across browsers" — not claimed true, not claimed false.
+                                    The app is set up to work offline, but I haven't been able to properly test that across browsers yet. It might work. I just can't say it does.
                                 </div>
                             </div>
 
                             <div style={{ background: '#161616', color: '#fff', borderRadius: '24px', padding: '32px' }}>
                                 <div style={{ color: '#f87171', fontWeight: 800, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
-                                    Host Infrastructure Security
+                                    The host is out of my hands
                                 </div>
                                 <div style={{ color: '#ccc', fontSize: '15px', lineHeight: 1.65 }}>
-                                    This only covers what happens in the browser tab. It says nothing about the security of whatever host actually serves the built files — no client-side tool can protect against a compromised hosting platform.
+                                    Everything above is about what happens in your tab. The site itself is hosted on Vercel, which keeps normal server logs like any website, IP addresses included. And if the host itself got hacked, nothing running in your browser could fix that.
                                 </div>
                             </div>
                         </div>
@@ -231,14 +231,14 @@ export default function PrivacyPage() {
 
                 <footer>
                     <div className="footer-cta">
-                        <h2>Audit the claim before you trust the result.</h2>
+                        <h2>Paste some code and see what it finds.</h2>
                         <button className="cta dark" onClick={() => navigate('/check')}>
                             <span>+</span> Start Audit
                         </button>
                     </div>
                     <div className="footer-bottom">
                         <span>XAUDIT</span>
-                        <span>Client-side static checker · no network audit path</span>
+                        <span>Runs in your browser · nothing uploaded</span>
                         <span>PDF / SARIF / JSON</span>
                     </div>
                 </footer>

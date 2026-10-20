@@ -6,6 +6,13 @@
        oversight: it's what makes the "no external requests" claim true. */
     --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    /* shadcn-style semantic tokens, mapped onto XAUDIT's palette (see
+       landing.css :root) so anything in components/ui picks up the site's
+       look instead of shadcn's defaults. */
+    --color-background: #111111;
+    --color-foreground: #f2f1ef;
+    --color-muted: #1b1b1b;
+    --color-muted-foreground: #858585;
     --color-bg-dark: #050505;
     --color-accent: #ffffff;
     --color-secondary: #333333;

@@ -86,9 +86,9 @@ export default function LandingPage() {
               enough to sit underneath the header during the page-load
               blur-in transition. */}
           <div className="hero-inner">
-            <p className="eyebrow purple"><span></span>Client-side static code checker</p>
-            <h1>XAUDIT flags risky code patterns without pretending to be more than it is.</h1>
-            <p className="hero-copy">Paste JavaScript, TypeScript, React/JSX, HTML, or a package.json. XAUDIT runs locally in your browser, points out patterns worth a human look, and documents the limits of every rule.</p>
+            <p className="eyebrow purple"><span></span>Code checker that runs in your browser</p>
+            <h1>Paste your code. XAUDIT points at the parts worth a second look.</h1>
+            <p className="hero-copy">It checks JavaScript, TypeScript, React, HTML and package.json files for common security mistakes, and nothing gets uploaded. It doesn't promise your code is secure. It just tells you where to look.</p>
             <div className="hero-actions">
               <button className="cta primary-audit-cta" onClick={handleStartAudit}>
                 <span>+</span> Start Audit
@@ -101,18 +101,17 @@ export default function LandingPage() {
           <div className="shape-notch top"></div>
           <div className="audit-ui">
             <div className="audit-window">
-              <div className="window-bar"><span></span><span></span><span></span><b>worker.ts</b></div>
-              <pre><code>{`const result = await audit({
-  language: "tsx",
-  maxBytes: 500_000,
-  network: false
-});`}</code></pre>
+              <div className="window-bar"><span></span><span></span><span></span><b>greeting.js</b></div>
+              <pre><code>{`const name = params.get("name");
+
+greeting.innerHTML =
+  "Hi " + name;`}</code></pre>
             </div>
             <div className="finding-card">
-              <p>XSS</p>
-              <h3>innerHTML receives traced user input</h3>
+              <p>XSS · high</p>
+              <h3>Unsanitized assignment to .innerHTML</h3>
               <span>Why it matters</span>
-              <small>HTML injection can become script execution. Prefer textContent or a sanitizer with a defined policy.</small>
+              <small>If name comes from a URL, anyone can run their own script on your page. textContent is the boring fix.</small>
             </div>
           </div>
           <div className="shape-notch bottom"></div>
@@ -125,103 +124,117 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section id="testimonials" className="quote-spotlight reveal">
+          <p className="eyebrow purple"><span></span>What people said</p>
+          <blockquote>“What I liked most was that XAUDIT <em>does not try to solve everything at once.</em>”</blockquote>
+          <div className="quote-spotlight-foot">
+            <div className="quote-spotlight-names">
+              <b>Oliver Wesche · Harvard University alum</b>
+              <span>+ four more alumni of Carnegie Mellon University and the University of North Carolina at Chapel Hill</span>
+            </div>
+            <button className="cta" onClick={() => navigate('/testimonials')}>
+              <span>+</span> Read all five
+            </button>
+          </div>
+        </section>
+
         <section id="engine" className="services reveal">
-          <p className="eyebrow purple"><span></span>Analysis engine</p>
-          <h2>Real parsing, narrow rules, and zero network calls in the audit path.</h2>
+          <p className="eyebrow purple"><span></span>How it works</p>
+          <h2>It actually reads your code first. Then it checks it against a short list of known mistakes.</h2>
           <div className="service-grid">
             <article className={expandedCard === 0 ? 'is-expanded' : expandedCard !== null ? 'is-shrunk' : ''}>
-              <h3>Worker-bound</h3>
-              <p>Analysis runs entirely in a Web Worker, off the UI thread, with no network calls anywhere in the pipeline.</p>
+              <h3>Stays in your tab</h3>
+              <p>Everything runs in a Web Worker inside your browser tab. Your code doesn't go anywhere, so there's nothing to leak.</p>
               <div className={`analysis-expand-wrapper ${expandedCard === 0 ? 'is-open' : ''}`}>
                 <div className="analysis-expand-inner">
-                  <p>A single worker is spawned and communicated with over <code>postMessage</code>. Every request carries an incrementing request ID, so the client discards any response whose ID doesn't match the most recent — a stale scan from an earlier paste can never overwrite a newer result. Babel's parsing is synchronous and doesn't yield the event loop mid-parse, but the 500KB input cap keeps worst-case analysis time low enough that this tradeoff was accepted.</p>
+                  <p>There's one worker, and the page talks to it with <code>postMessage</code>. Every scan gets a number. If you paste something new before the last scan finishes, the old answer gets thrown out when it shows up, so you never see results for code that isn't on screen anymore.</p>
                 </div>
               </div>
               <button
                 className="expand-card-btn"
                 onClick={(e) => toggleExpandCard(0, e)}
-                aria-label="Expand Worker-bound card"
+                aria-label="Expand Stays in your tab card"
                 title={expandedCard === 0 ? "Collapse card" : "Expand card"}
               >
                 <ArrowIcon />
               </button>
             </article>
             <article className={expandedCard === 1 ? 'is-expanded' : expandedCard !== null ? 'is-shrunk' : ''}>
-              <h3>Parsed</h3>
-              <p>JSX and TypeScript syntax are parsed into an AST. There is no type checker, and HTML uses a lighter attribute/text scan.</p>
+              <h3>Real parsing</h3>
+              <p>Your code gets turned into a syntax tree by Babel, the same parser half the build tools out there use. HTML gets a simpler scan.</p>
               <div className={`analysis-expand-wrapper ${expandedCard === 1 ? 'is-open' : ''}`}>
                 <div className="analysis-expand-inner">
-                  <p><code>@babel/parser</code> + <code>@babel/traverse</code> were chosen over <code>typescript-estree</code> (pulls in the full TypeScript compiler — large, Node/CLI-oriented) and <code>acorn</code> (fast for JS/JSX, but TypeScript support is a bolted-on plugin). One parser accepts the union of JS/TS/JSX/TSX syntax through a single, mature visitor API — deliberately without a type checker, so nothing here ever reasons about a variable's actual type.</p>
+                  <p>I went with <code>@babel/parser</code> because one parser handles JavaScript, TypeScript and JSX at once. <code>typescript-estree</code> drags the whole TypeScript compiler along with it, and <code>acorn</code>'s TypeScript support felt taped on. There's no type checker, so XAUDIT never knows what type a variable really is. It only sees the shape of the code.</p>
                 </div>
               </div>
               <button
                 className="expand-card-btn"
                 onClick={(e) => toggleExpandCard(1, e)}
-                aria-label="Expand Parsed card"
+                aria-label="Expand Real parsing card"
                 title={expandedCard === 1 ? "Collapse card" : "Expand card"}
               >
                 <ArrowIcon />
               </button>
             </article>
             <article className={expandedCard === 2 ? 'is-expanded' : expandedCard !== null ? 'is-shrunk' : ''}>
-              <h3>Bounded</h3>
-              <p>Input above 500KB is rejected before analysis. Findings are deduplicated by rule and location.</p>
+              <h3>500KB max</h3>
+              <p>Anything bigger gets turned away. If the same problem shows up twice in the same spot, you see it once.</p>
               <div className={`analysis-expand-wrapper ${expandedCard === 2 ? 'is-open' : ''}`}>
                 <div className="analysis-expand-inner">
-                  <p>Oversized input is rejected outright, with a message — never silently truncated and re-analyzed as a partial file. Findings are deduplicated by rule ID and exact source location before they reach the UI, so a single tainted variable referenced ten times in a loop produces one finding, not ten copies of it.</p>
+                  <p>A big file gets rejected with a message. It doesn't get quietly cut in half and checked anyway, because then the report would look complete when it isn't. Duplicates get merged by rule and location, so one bad line inside a loop shows up once instead of ten times.</p>
                 </div>
               </div>
               <button
                 className="expand-card-btn"
                 onClick={(e) => toggleExpandCard(2, e)}
-                aria-label="Expand Bounded card"
+                aria-label="Expand 500KB max card"
                 title={expandedCard === 2 ? "Collapse card" : "Expand card"}
               >
                 <ArrowIcon />
               </button>
             </article>
           </div>
-          <button className="cta" onClick={() => navigate('/engine')}><span>+</span> Explore the engine</button>
+          <button className="cta" onClick={() => navigate('/engine')}><span>+</span> How the engine works</button>
         </section>
 
         <section id="privacy" className="vision reveal">
           <div>
-            <p className="eyebrow red"><span></span>Privacy by default</p>
-            <h2>Your code does not leave the browser.</h2>
-            <p>XAUDIT stores nothing by default. The opt-in local history saves only counts, finding titles, and a masked ~120-character excerpt to plaintext localStorage. It never saves raw code or full secrets.</p>
+            <p className="eyebrow red"><span></span>Privacy</p>
+            <h2>Your code stays on your computer.</h2>
+            <p>XAUDIT saves nothing unless you turn on history. Even then it only keeps the counts, the finding titles and the first 120 or so characters of your code, with secrets masked out. It sits in plain localStorage, so it isn't encrypted. There's just not much there.</p>
             <button className="cta" style={{ marginTop: '28px' }} onClick={() => navigate('/privacy')}>
-              <span>+</span> Read Privacy Architecture
+              <span>+</span> How privacy works
             </button>
           </div>
           <div className="tool-cloud">
-            <span>worker</span><span>AST</span><span>500KB cap</span><span>dedupe</span><span>no score</span>
+            <span>0 uploads</span><span>no account</span><span>no tracking</span><span>no cookies</span><span>no score</span>
           </div>
         </section>
 
         <section id="rules" className="projects">
-          <div className="section-line"><span>Seven rule modules</span><span>Documented exclusions</span></div>
+          <div className="section-line"><span>Seven rules, plus HTML</span><span>Each one lists what it misses</span></div>
           <div className="project-grid rule-grid">
-            <article className="rule-card reveal"><p>01</p><h3>XSS</h3><span>innerHTML, document.write, dangerouslySetInnerHTML, and javascript: URIs. Traces one variable hop and avoids JSX event props.</span></article>
-            <article className="rule-card reveal"><p>02</p><h3>Dynamic execution</h3><span>eval, new Function, and string-form setTimeout or setInterval.</span></article>
-            <article className="rule-card reveal"><p>03</p><h3>SQL injection</h3><span>A narrow heuristic for concatenation or interpolation into .query, .execute, or .raw on a DB-shaped receiver.</span></article>
-            <article className="rule-card reveal"><p>04</p><h3>Hardcoded secrets</h3><span>Vendor-prefixed tokens, name-context fallback, and calibrated entropy checks while excluding UUIDs, hashes, and base64 images.</span></article>
-            <article className="rule-card reveal"><p>05</p><h3>Node command patterns</h3><span>exec, execSync, and spawn({'{'} shell: true {'}'}) with non-literal input.</span></article>
-            <article className="rule-card reveal"><p>06</p><h3>Weak auth patterns</h3><span>Credential-shaped literal comparisons and jwt.decode() without jwt.verify().</span></article>
-            <article className="rule-card reveal"><p>07</p><h3>Dependency hygiene</h3><span>Unpinned versions, non-registry sources, suspicious scripts, and misplaced dev tools in package.json.</span></article>
-            <article className="rule-card reveal"><p>HTML</p><h3>HTML hygiene</h3><span>Viewport, alt text, and inline handlers. Explicitly not AST-based and not security-grade.</span></article>
+            <article className="rule-card reveal"><p>01</p><h3>XSS</h3><span>innerHTML, document.write, dangerouslySetInnerHTML and javascript: links. It follows a value back one variable. Two is too far.</span></article>
+            <article className="rule-card reveal"><p>02</p><h3>Dynamic execution</h3><span>eval, new Function, and setTimeout or setInterval when you hand them a string instead of a function.</span></article>
+            <article className="rule-card reveal"><p>03</p><h3>SQL injection</h3><span>Queries glued together with + or template strings and passed to something that looks like a database. It's narrow on purpose.</span></article>
+            <article className="rule-card reveal"><p>04</p><h3>Hardcoded secrets</h3><span>Keys from OpenAI, Stripe, AWS, GitHub and friends, plus random-looking strings that might be keys. UUIDs and hashes get left alone.</span></article>
+            <article className="rule-card reveal"><p>05</p><h3>Node command patterns</h3><span>exec, execSync and spawn({'{'} shell: true {'}'}) when the command isn't a fixed string.</span></article>
+            <article className="rule-card reveal"><p>06</p><h3>Weak auth patterns</h3><span>A password compared against a hardcoded string, or jwt.decode() with no jwt.verify() anywhere in the file.</span></article>
+            <article className="rule-card reveal"><p>07</p><h3>Dependency hygiene</h3><span>"latest" as a version, git dependencies, sketchy install scripts and dev tools sitting in the wrong section of package.json.</span></article>
+            <article className="rule-card reveal"><p>HTML</p><h3>HTML hygiene</h3><span>Missing viewport, missing alt text, inline onclick. Basic housekeeping. It's not a security scan.</span></article>
           </div>
         </section>
 
         <section id="exports" className="why reveal">
-          <h2><span>• Export</span> Built for handoff, not theatrics.</h2>
+          <h2><span>• Export</span> Take the results with you.</h2>
           <div className="why-grid">
-            <article><h3>PDF</h3><p>A readable client-side report for reviews and lightweight audits.</p></article>
-            <article><h3>SARIF 2.1.0</h3><p>Includes per-rule helpUri links into docs/rules/ for downstream tooling.</p></article>
-            <article><h3>JSON</h3><p>The full result object plus the disclaimer, produced entirely client-side.</p></article>
-            <article><h3>No grades</h3><p>No letter score and no risk theater. Scoring was removed on purpose.</p></article>
-            <article><h3>Limitations</h3><p>Every finding includes what matched, why it matters, a safer example, and its own limits.</p></article>
+            <article><h3>PDF</h3><p>A report you can send to someone who is never going to open a terminal.</p></article>
+            <article><h3>SARIF 2.1.0</h3><p>The format GitHub code scanning and VS Code already read. Each rule links to its own docs page.</p></article>
+            <article><h3>JSON</h3><p>Everything XAUDIT found in one file, for when you want to do your own thing with it.</p></article>
+            <article><h3>No grades</h3><p>There's no score out of 100. A number like that makes messy code look finished, like putting a clean sticker on a dirty cup.</p></article>
+            <article><h3>Limitations</h3><p>Every finding says what matched, why it matters, how to fix it and what the rule can't see.</p></article>
           </div>
-          <button className="cta" onClick={() => navigate('/export')}><span>+</span> See export details</button>
+          <button className="cta" onClick={() => navigate('/export')}><span>+</span> Export formats</button>
         </section>
 
         <section id="tests" className="contact reveal">
@@ -232,9 +245,9 @@ export default function LandingPage() {
             <span>Benchmarks</span>
           </div>
           <div>
-            <p>Nothing aspirational<br /><span>Everything has a test</span></p>
+            <p>234 tests<br /><span>Run on every pull request</span></p>
             <p className="eyebrow purple"><span></span>Testing</p>
-            <h2>Claims are backed by unit, regression, benchmark, docs, and e2e tests.</h2>
+            <h2>If this site says XAUDIT does something, there's a test that checks it does.</h2>
             <button className="cta" style={{ marginTop: '28px' }} onClick={() => navigate('/tests')}>
               <span>+</span> See the test suite
             </button>
@@ -243,57 +256,57 @@ export default function LandingPage() {
 
         <section className="awards reveal">
           <div className="award-track">
-            <div><CheckIcon />No network requests through a real Playwright click-through</div>
-            <div><CheckIcon />Docs coverage fails if a ruleId loses its page</div>
-            <div><CheckIcon />Regression fixtures for parameterized queries and decorator syntax</div>
-            <div><CheckIcon />Independent benchmarks with explicit disclaimers</div>
-            <div><CheckIcon />Hostile self-audit found and fixed a real privacy bug</div>
+            <div><CheckIcon />A real browser clicks through the whole app and checks nothing gets sent out</div>
+            <div><CheckIcon />If a rule loses its docs page, the tests fail</div>
+            <div><CheckIcon />Every false alarm I fixed got its own test so it stays fixed</div>
+            <div><CheckIcon />A second set of test files, written before the engine ever saw them</div>
+            <div><CheckIcon />I tried to break it myself and found a real privacy bug. It's fixed.</div>
 
-            <div><CheckIcon />No network requests through a real Playwright click-through</div>
-            <div><CheckIcon />Docs coverage fails if a ruleId loses its page</div>
-            <div><CheckIcon />Regression fixtures for parameterized queries and decorator syntax</div>
-            <div><CheckIcon />Independent benchmarks with explicit disclaimers</div>
-            <div><CheckIcon />Hostile self-audit found and fixed a real privacy bug</div>
+            <div><CheckIcon />A real browser clicks through the whole app and checks nothing gets sent out</div>
+            <div><CheckIcon />If a rule loses its docs page, the tests fail</div>
+            <div><CheckIcon />Every false alarm I fixed got its own test so it stays fixed</div>
+            <div><CheckIcon />A second set of test files, written before the engine ever saw them</div>
+            <div><CheckIcon />I tried to break it myself and found a real privacy bug. It's fixed.</div>
           </div>
         </section>
 
         <section id="docs" className="testimonials reveal">
           <p className="eyebrow purple"><span></span>Docs</p>
-          <h2>The documentation says what XAUDIT does, what it misses, and what changed.</h2>
+          <h2>The docs cover what XAUDIT does, what it misses and every time I changed my mind.</h2>
           <div className="testimonial-row">
             <article>
               <div className="doc-badge">README</div>
-              <blockquote>README.md, SECURITY.md, architecture, baseline audit, model improvements, self-audit, and one page per rule.</blockquote>
-              <p>Project docs <span>No hidden roadmap claims</span></p>
+              <blockquote>Setup, the security policy, how the engine is built, and a full list of what the first version of this project got wrong.</blockquote>
+              <p>Project docs <span>Start with the README</span></p>
             </article>
             <article>
               <div className="doc-badge">RULES</div>
-              <blockquote>Each rule documents its match shape, safer example, and exclusions.</blockquote>
-              <p>docs/rules/*.md <span>Covered by tests</span></p>
+              <blockquote>Every rule gets its own page with what it catches, a safe example and the cases it skips on purpose.</blockquote>
+              <p>docs/rules/*.md <span>Checked by tests</span></p>
             </article>
             <article>
               <div className="doc-badge">STACK</div>
-              <blockquote>React 19, Vite 7, Tailwind 4, TypeScript, Framer Motion, Vitest, Playwright, and Vercel security headers.</blockquote>
-              <p>Implementation <span>Client-side checker</span></p>
+              <blockquote>React 19, Vite 7, Tailwind 4, TypeScript, Babel, Vitest and Playwright, hosted on Vercel.</blockquote>
+              <p>Implementation <span>No backend</span></p>
             </article>
           </div>
           <div style={{ marginTop: '36px' }}>
             <button className="cta" onClick={() => navigate('/docs')}>
-              <span>+</span> Explore Documentation
+              <span>+</span> Read the docs
             </button>
           </div>
         </section>
 
         <footer>
           <div className="footer-cta">
-            <h2>Audit the claim before you trust the result.</h2>
+            <h2>Paste some code and see what it finds.</h2>
             <button className="cta dark" onClick={handleStartAudit}>
               <span>+</span> Start Audit
             </button>
           </div>
           <div className="footer-bottom">
             <span>XAUDIT</span>
-            <span>Client-side static checker · no network audit path</span>
+            <span>Runs in your browser · nothing uploaded</span>
             <span>PDF / SARIF / JSON</span>
           </div>
         </footer>
