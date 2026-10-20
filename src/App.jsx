@@ -8,6 +8,7 @@ import RulesPage from './pages/RulesPage';
 import EnginePage from './pages/EnginePage';
 import ExportPage from './pages/ExportPage';
 import TestsPage from './pages/TestsPage';
+import TestimonialsPage from './pages/TestimonialsPage';
 import PageTransition from './components/PageTransition';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import './App.css';
@@ -27,6 +28,7 @@ function App() {
           <Route path="/engine" element={<EnginePage />} />
           <Route path="/export" element={<ExportPage />} />
           <Route path="/tests" element={<TestsPage />} />
+          <Route path="/testimonials" element={<TestimonialsPage />} />
           {/* Old routes from the previous app shell — redirect rather than 404 in case anyone bookmarked one. */}
           <Route path="/audit" element={<Navigate to="/check" replace />} />
           <Route path="/audit/history" element={<Navigate to="/check" replace />} />

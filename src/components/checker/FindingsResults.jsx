@@ -53,13 +53,13 @@ export default function FindingsResults({ result, resultsRef }) {
 
     if (result.status !== 'ok') {
         const messages = {
-            empty: 'Nothing to analyze — paste some code first.',
+            empty: 'Nothing to check yet. Paste some code first.',
             'too-large': result.error,
             'parse-error': result.error,
         };
         return (
             <div ref={resultsRef} className="checker-disclaimer" style={{ borderColor: 'rgba(255, 82, 82, 0.4)', background: 'rgba(255, 82, 82, 0.08)', color: '#ff8a8a' }}>
-                {messages[result.status] || 'Analysis could not complete.'}
+                {messages[result.status] || "Something went wrong and the check didn't finish."}
             </div>
         );
     }
@@ -124,7 +124,7 @@ export default function FindingsResults({ result, resultsRef }) {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '16px 20px', borderRadius: '16px', background: '#161616', border: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '24px', fontSize: '13px', color: '#ccc', lineHeight: 1.5 }}>
                 <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
                 <div>
-                    These findings are pattern matches that require human review, not confirmed vulnerabilities. <strong style={{ color: '#fff' }}>A clean result does not mean this code is free of security flaws.</strong>
+                    Each of these is a pattern worth checking, and some won't turn out to be real problems. <strong style={{ color: '#fff' }}>A clean result only means nothing matched.</strong>
                 </div>
             </div>
 
@@ -203,7 +203,7 @@ export default function FindingsResults({ result, resultsRef }) {
 
             {sortedFindings.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 24px', color: '#888', background: '#161616', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '24px', fontSize: '14px' }}>
-                    No findings from the active rule modules. This does not guarantee that the snippet is vulnerability-free.
+                    Nothing matched. That's good, but XAUDIT only knows eight rules, so it isn't the same thing as safe.
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -296,7 +296,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {f.whyItMatters && (
                                                 <div>
                                                     <div style={{ fontSize: '11px', color: '#888', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
-                                                        Why it Matters
+                                                        Why it matters
                                                     </div>
                                                     <div style={{ color: '#ddd', fontSize: '14px', lineHeight: 1.6 }}>
                                                         {f.whyItMatters}
@@ -308,7 +308,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {f.saferExample && (
                                                 <div>
                                                     <div style={{ fontSize: '11px', color: '#34d399', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
-                                                        Safer Approach
+                                                        How to fix it
                                                     </div>
                                                     <pre style={{ background: '#0a0a0a', border: '1px solid rgba(16, 185, 129, 0.25)', color: '#34d399', padding: '14px 18px', borderRadius: '14px', fontFamily: 'monospace', fontSize: '13px', overflowX: 'auto', margin: 0, lineHeight: 1.5 }}>
                                                         {f.saferExample}
@@ -320,7 +320,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {f.snippet && (
                                                 <div>
                                                     <div style={{ fontSize: '11px', color: '#888', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
-                                                        Code Excerpt
+                                                        The code
                                                     </div>
                                                     <pre style={{ background: '#0a0a0a', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#ccc', padding: '14px 18px', borderRadius: '14px', fontFamily: 'monospace', fontSize: '13px', overflowX: 'auto', margin: 0, lineHeight: 1.5 }}>
                                                         {f.snippet}
@@ -332,7 +332,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {f.limitations && (
                                                 <div>
                                                     <div style={{ fontSize: '11px', color: '#777', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-                                                        Limitations of this Check
+                                                        What this check can't see
                                                     </div>
                                                     <div style={{ color: '#888', fontSize: '13px', fontStyle: 'italic', lineHeight: 1.5 }}>
                                                         {f.limitations}
@@ -343,7 +343,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {/* AI Coding Assistant Prompt Section */}
                                             <div style={{ marginTop: '8px', background: '#0e0e0e', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '16px', padding: '18px' }}>
                                                 <div style={{ fontSize: '11px', color: '#888', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
-                                                    Copy Prompt for Coding Assistant
+                                                    Copy a prompt for your AI assistant
                                                 </div>
                                                 
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>

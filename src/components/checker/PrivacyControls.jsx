@@ -23,7 +23,7 @@ export default function PrivacyControls({ onCleared }) {
     return (
         <div className="checker-privacy-card">
             <p style={{ marginBottom: '16px', color: '#888', fontSize: '13px', lineHeight: 1.6 }}>
-                <strong>Zero Network Transmission:</strong> Nothing is transmitted over any network connection by XAUDIT. Analysis runs entirely inside your browser's Web Worker. By default, no code or findings are saved to local storage.
+                <strong>Nothing leaves this tab.</strong> XAUDIT doesn't send anything over the network. The checking happens in a Web Worker right here, and nothing gets saved unless you tick the box below.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#eee', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>

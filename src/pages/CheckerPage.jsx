@@ -58,10 +58,10 @@ export default function CheckerPage() {
                 <div className="page-shell-body">
                     <div className="checker-shell">
                         <div className="checker-hero">
-                            <p className="eyebrow purple"><span></span>Client-Side Audit Engine</p>
-                            <h1>Client-side AST code analysis</h1>
+                            <p className="eyebrow purple"><span></span>The checker</p>
+                            <h1>Paste it in. Hit run.</h1>
                             <p>
-                                Paste JavaScript, TypeScript, React/JSX, HTML, or package.json code below. Analysis executes locally in your browser's Web Worker off the UI thread — zero network requests are made.
+                                JavaScript, TypeScript, React, HTML and package.json all work. The checking happens in a Web Worker in this tab, so your code doesn't go anywhere.
                             </p>
                         </div>
 
@@ -82,14 +82,14 @@ export default function CheckerPage() {
 
                     <footer style={{ marginTop: '80px' }}>
                         <div className="footer-cta">
-                            <h2>Audit the claim before you trust the result.</h2>
+                            <h2>Found something? Fix it and run it again.</h2>
                             <button className="cta dark" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                                 <span>↑</span> Top of Checker
                             </button>
                         </div>
                         <div className="footer-bottom">
                             <span>XAUDIT</span>
-                            <span>Client-side static checker · no network audit path</span>
+                            <span>Runs in your browser · nothing uploaded</span>
                             <span>PDF / SARIF / JSON</span>
                         </div>
                     </footer>

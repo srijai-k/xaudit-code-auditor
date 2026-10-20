@@ -27,7 +27,7 @@ export default function EnginePage() {
                             Analysis Engine
                         </div>
                         <h1 className="text-fade-in stagger-2" style={{ fontSize: 'clamp(44px, 5.5vw, 76px)', fontWeight: 400, color: '#111', margin: 0, lineHeight: 1.05, letterSpacing: '-0.03em', maxWidth: '980px' }}>
-                            Real parsing, narrow rules, and zero network calls in the audit path.
+                            What actually happens when you hit Run.
                         </h1>
                     </div>
 
@@ -49,7 +49,7 @@ export default function EnginePage() {
                             boxShadow: '0 14px 40px rgba(124, 58, 237, 0.12)'
                         }}>
                             <p style={{ fontSize: '20px', color: '#1a1028', lineHeight: 1.55, margin: 0, fontWeight: 450 }}>
-                                Every step of analysis — validation, parsing, rule evaluation, and deduplication — runs inside a Web Worker in your own browser tab. Nothing is uploaded, and nothing calls out.
+                                From the second you hit Run to the second the findings show up, your code stays in your tab. All of it happens in a Web Worker. Nothing gets uploaded.
                             </p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                                 <button
@@ -69,7 +69,7 @@ export default function EnginePage() {
                                         transition: 'transform 0.2s ease'
                                     }}
                                 >
-                                    <span style={{ fontSize: '18px' }}>+</span> Start Local Audit
+                                    <span style={{ fontSize: '18px' }}>+</span> Try it
                                 </button>
                                 <a
                                     href="#pipeline"
@@ -85,7 +85,7 @@ export default function EnginePage() {
                                         textDecoration: 'none',
                                         transition: 'background 0.2s ease'
                                     }}
-                                    title="Scroll to pipeline details"
+                                    title="Scroll down to the pipeline"
                                 >
                                     ↓
                                 </a>
@@ -95,19 +95,19 @@ export default function EnginePage() {
                         {/* Feature Pills Grid */}
                         <div className="privacy-pills-grid" style={{ display: 'grid', gap: '16px' }}>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                worker
+                                Web Worker
                             </div>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                AST
+                                Babel AST
                             </div>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
                                 1 hop
                             </div>
                             <div style={{ background: '#161616', color: '#fff', padding: '26px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                500KB cap
+                                500KB max
                             </div>
                             <div className="privacy-pill-wide" style={{ background: '#161616', color: '#fff', padding: '24px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                zero network
+                                0 network requests
                             </div>
                         </div>
                     </div>
@@ -120,17 +120,17 @@ export default function EnginePage() {
                     <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed' }}></span>
-                            Deterministic Pipeline
+                            The pipeline
                         </div>
                         <h2 style={{ fontSize: '36px', fontWeight: 500, color: '#111', margin: '0 0 24px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                            Every request follows the same fixed path
+                            Every scan takes the exact same route
                         </h2>
 
                         <code style={{ display: 'block', background: '#161616', color: '#e0e0e0', padding: '24px 26px', borderRadius: '20px', fontSize: '13px', lineHeight: 1.9, whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginBottom: '32px' }}>
 {`input text
-  → file-size & type validation   (500KB hard cap, rejected outright)
+  → file-size & type validation   (over 500KB? rejected)
   → Web Worker                    (off the UI thread)
-  → parser selected by mode       (HTML attribute scan OR @babel/parser AST)
+  → parser selected by mode       (HTML scan or @babel/parser AST)
   → AST traversal / narrow rules
   → normalized Finding objects
   → deduplication (by rule + location)
@@ -144,9 +144,9 @@ export default function EnginePage() {
                             <div aria-hidden="true" style={{ position: 'absolute', left: '23px', top: '6px', bottom: '6px', width: '2px', background: 'linear-gradient(#7c3aed, rgba(124,58,237,0.15))' }} />
 
                             {[
-                                { n: 1, title: 'Worker isolation', body: <>A single worker is spawned and communicated with over <code>postMessage</code>. Every request carries an incrementing request ID; the client discards any response whose ID doesn't match the most recent.</> },
-                                { n: 2, title: 'AST-based parsing', body: <><code>@babel/parser</code> + <code>@babel/traverse</code>, chosen over <code>typescript-estree</code> (full TS compiler, Node-oriented) and <code>acorn</code> (bolted-on TS support). One parser accepts the union of JS/TS/JSX/TSX.</> },
-                                { n: 3, title: 'Bounded & deduplicated', body: <>Input above 500KB is rejected before analysis starts — not silently truncated. Findings are deduplicated by rule ID and source location before they reach the UI.</> },
+                                { n: 1, title: 'Its own worker', body: <>There's one worker, and the page talks to it with <code>postMessage</code>. Each scan gets a number. Any answer that comes back with an old number gets ignored, so a slow scan can't overwrite a newer one.</> },
+                                { n: 2, title: 'Babel does the reading', body: <><code>@babel/parser</code> and <code>@babel/traverse</code>. <code>typescript-estree</code> brings the whole TypeScript compiler along, and <code>acorn</code>'s TypeScript support is a plugin bolted on the side. Babel reads JS, TS, JSX and TSX with one parser.</> },
+                                { n: 3, title: 'Size limit and cleanup', body: <>Anything over 500KB gets rejected before the parser even sees it. It doesn't get cut short and checked halfway. Findings with the same rule and location get merged before you see them.</> },
                             ].map((step, i, arr) => (
                                 <div key={step.n} style={{ position: 'relative', marginBottom: i < arr.length - 1 ? '36px' : 0 }}>
                                     <div style={{ position: 'absolute', left: '-58px', top: '0', width: '46px', height: '46px', borderRadius: '50%', background: '#7c3aed', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: '18px', boxShadow: '0 6px 16px rgba(124,58,237,0.35)' }}>
@@ -163,13 +163,13 @@ export default function EnginePage() {
                     <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed' }}></span>
-                            Scope, Stated Honestly
+                            How far it looks
                         </div>
                         <h2 style={{ fontSize: '36px', fontWeight: 500, color: '#111', margin: '0 0 16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                            One variable hop, not full data-flow analysis
+                            It follows your data one step back. That's it.
                         </h2>
                         <p style={{ fontSize: '17px', color: '#555', margin: '0 0 32px', lineHeight: 1.6 }}>
-                            Every rule looks at a direct AST relationship at a single call or assignment site — there is no cross-function taint tracking anywhere in the engine.
+                            Every rule looks at one spot in the code, like a function call or an assignment. If a value passes through a function or a couple of variables first, XAUDIT loses track of it. Real taint tracking is a much bigger project. This isn't that.
                         </p>
 
                         {/* Segmented range indicator — the "1" boundary is the whole
@@ -182,7 +182,7 @@ export default function EnginePage() {
                             </div>
                             <div style={{ flex: '1.4 1 0%', minWidth: 0, background: '#7c3aed', color: '#fff', padding: '22px 10px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '26px', fontWeight: 800 }}>1</div>
-                                <div style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: 700, marginTop: '6px', letterSpacing: '0.04em', overflowWrap: 'anywhere' }}>Hop — traced ✓</div>
+                                <div style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: 700, marginTop: '6px', letterSpacing: '0.04em', overflowWrap: 'anywhere' }}>Hop, traced ✓</div>
                             </div>
                             <div style={{ flex: '1 1 0%', minWidth: 0, background: '#2a2a2a', color: '#888', padding: '22px 10px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '26px', fontWeight: 800 }}>2+</div>
@@ -193,23 +193,23 @@ export default function EnginePage() {
                         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '14px' }}>
                             <li style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                                 <span style={{ color: '#10b981', fontWeight: 800, fontSize: '16px', flexShrink: 0 }}>✓</span>
-                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>A tainted variable assigned one line above a dangerous sink</span>
+                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>A risky value saved to a variable and then used right after</span>
                             </li>
                             <li style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                                 <span style={{ color: '#10b981', fontWeight: 800, fontSize: '16px', flexShrink: 0 }}>✓</span>
-                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>Direct calls to <code>eval</code>, <code>innerHTML</code>, <code>exec</code>, and similar receivers</span>
+                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>Direct use of <code>eval</code>, <code>innerHTML</code>, <code>exec</code> and the like</span>
                             </li>
                             <li style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                                 <span style={{ color: '#10b981', fontWeight: 800, fontSize: '16px', flexShrink: 0 }}>✓</span>
-                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>Sanitizer-wrapped values, recognized and downgraded in severity</span>
+                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>Values run through a known sanitizer like DOMPurify. Those get a lower severity instead of disappearing.</span>
                             </li>
                             <li style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                                 <span style={{ color: '#ef4444', fontWeight: 800, fontSize: '16px', flexShrink: 0 }}>✗</span>
-                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>Taint that crosses more than one variable hop or a function boundary</span>
+                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>Anything that passes through two variables or a function call on the way</span>
                             </li>
                             <li style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                                 <span style={{ color: '#ef4444', fontWeight: 800, fontSize: '16px', flexShrink: 0 }}>✗</span>
-                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>Anything requiring real type information — there is no type checker</span>
+                                <span style={{ color: '#333', fontSize: '15px', lineHeight: 1.6 }}>Anything that depends on types. There's no type checker.</span>
                             </li>
                         </ul>
                     </section>
@@ -217,14 +217,14 @@ export default function EnginePage() {
 
                 <footer>
                     <div className="footer-cta">
-                        <h2>Audit the claim before you trust the result.</h2>
+                        <h2>Paste some code and see what it finds.</h2>
                         <button className="cta dark" onClick={() => navigate('/check')}>
                             <span>+</span> Start Audit
                         </button>
                     </div>
                     <div className="footer-bottom">
                         <span>XAUDIT</span>
-                        <span>Client-side static checker · no network audit path</span>
+                        <span>Runs in your browser · nothing uploaded</span>
                         <span>PDF / SARIF / JSON</span>
                     </div>
                 </footer>

@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -25,6 +26,12 @@ const CONTENT_SECURITY_POLICY = [
 
 // https://vite.dev/config/
 export default defineConfig({
+  // "@/..." points at src/, the same alias shadcn components assume.
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   preview: {
     headers: {
       'Content-Security-Policy': CONTENT_SECURITY_POLICY,

@@ -13,7 +13,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src/lib/analysis/**/*.ts", "src/lib/export/**/*.ts"]
+  "include": ["src/lib/analysis/**/*.ts", "src/lib/export/**/*.ts", "src/lib/utils.ts", "src/components/ui/**/*.tsx"]
 }

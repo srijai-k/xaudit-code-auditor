@@ -23,13 +23,13 @@ export function TopTicker() {
             </strong>
             <div className="ticker-track">
                 <div className="ticker-inner">
-                    <span style={isLight ? { color: '#444' } : {}}>Paste JavaScript, TypeScript, React/JSX, HTML, or <b style={isLight ? { color: '#111' } : {}}>package.json</b></span>
-                    <span style={isLight ? { color: '#444' } : {}}>Runs in a Web Worker with <b style={isLight ? { color: '#111' } : {}}>no network calls</b></span>
-                    <span style={isLight ? { color: '#444' } : {}}>Input is rejected above <b style={isLight ? { color: '#111' } : {}}>500KB</b></span>
-                    <span style={isLight ? { color: '#444' } : {}}>No score, no grade, no <b style={isLight ? { color: '#111' } : {}}>zero false positive</b> promises</span>
-                    <span style={isLight ? { color: '#444' } : {}}>Every documented claim has <b style={isLight ? { color: '#111' } : {}}>a test</b></span>
-                    <span style={isLight ? { color: '#444' } : {}}>Paste JavaScript, TypeScript, React/JSX, HTML, or <b style={isLight ? { color: '#111' } : {}}>package.json</b></span>
-                    <span style={isLight ? { color: '#444' } : {}}>Runs in a Web Worker with <b style={isLight ? { color: '#111' } : {}}>no network calls</b></span>
+                    <span style={isLight ? { color: '#444' } : {}}>Works on JavaScript, TypeScript, React, HTML and <b style={isLight ? { color: '#111' } : {}}>package.json</b></span>
+                    <span style={isLight ? { color: '#444' } : {}}>Your code never leaves <b style={isLight ? { color: '#111' } : {}}>this tab</b></span>
+                    <span style={isLight ? { color: '#444' } : {}}>Files up to <b style={isLight ? { color: '#111' } : {}}>500KB</b></span>
+                    <span style={isLight ? { color: '#444' } : {}}>No scores, no grades, no <b style={isLight ? { color: '#111' } : {}}>promises</b></span>
+                    <span style={isLight ? { color: '#444' } : {}}>Every claim on this site has <b style={isLight ? { color: '#111' } : {}}>a test</b> behind it</span>
+                    <span style={isLight ? { color: '#444' } : {}}>Works on JavaScript, TypeScript, React, HTML and <b style={isLight ? { color: '#111' } : {}}>package.json</b></span>
+                    <span style={isLight ? { color: '#444' } : {}}>Your code never leaves <b style={isLight ? { color: '#111' } : {}}>this tab</b></span>
                 </div>
             </div>
         </div>
@@ -91,6 +91,11 @@ export function HeaderNav({ onOpenHistory }) {
                 </Link>
 
                 <nav className="header-nav">
+                    <Link to="/testimonials" style={linkStyle('/testimonials')}>
+                        {activePath === '/testimonials' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
+                        Testimonials
+                    </Link>
+
                     <Link to="/engine" style={linkStyle('/engine')}>
                         {activePath === '/engine' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--lav)', display: 'inline-block' }}></span>}
                         Engine
@@ -166,6 +171,9 @@ export function HeaderNav({ onOpenHistory }) {
 
                 {mobileMenuOpen && (
                     <div className={`mobile-nav-menu${isLight ? ' is-light' : ''}`}>
+                        <Link to="/testimonials" onClick={() => setMobileMenuOpen(false)} className={`mobile-nav-item${isLight ? ' light-item' : ''}`} style={activePath === '/testimonials' ? { color: 'var(--lav)', fontWeight: 700 } : {}}>
+                            Testimonials
+                        </Link>
                         <Link to="/engine" onClick={() => setMobileMenuOpen(false)} className={`mobile-nav-item${isLight ? ' light-item' : ''}`} style={activePath === '/engine' ? { color: 'var(--lav)', fontWeight: 700 } : {}}>
                             Engine
                         </Link>

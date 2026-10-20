@@ -47,7 +47,7 @@ export default function HistoryDrawer({ open, onClose }) {
                     </button>
                 </div>
                 <p style={{ fontSize: '13px', color: '#888', marginBottom: '24px', lineHeight: 1.5 }}>
-                    Summaries saved locally on this browser. Raw code snippets are never stored.
+                    Summaries saved in this browser only. Your actual code is never stored.
                 </p>
 
                 {!saveEnabled && (
@@ -57,7 +57,7 @@ export default function HistoryDrawer({ open, onClose }) {
                 )}
 
                 {history.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '48px 0', color: '#666', fontSize: '14px' }}>No history items stored.</div>
+                    <div style={{ textAlign: 'center', padding: '48px 0', color: '#666', fontSize: '14px' }}>Nothing here yet.</div>
                 ) : (
                     <>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>

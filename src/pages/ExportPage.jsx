@@ -24,10 +24,10 @@ export default function ExportPage() {
                     <div>
                         <div className="text-fade-in stagger-1" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7c3aed', marginBottom: '20px' }}>
                             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }}></span>
-                            Export & Reporting
+                            Export
                         </div>
                         <h1 className="text-fade-in stagger-2" style={{ fontSize: 'clamp(44px, 5.5vw, 76px)', fontWeight: 400, color: '#111', margin: 0, lineHeight: 1.05, letterSpacing: '-0.03em', maxWidth: '980px' }}>
-                            Built for handoff, not theatrics.
+                            Three ways to take the results with you.
                         </h1>
                     </div>
 
@@ -49,7 +49,7 @@ export default function ExportPage() {
                             boxShadow: '0 14px 40px rgba(124, 58, 237, 0.12)'
                         }}>
                             <p style={{ fontSize: '20px', color: '#1a1028', lineHeight: 1.55, margin: 0, fontWeight: 450 }}>
-                                Three formats, all generated client-side from the exact findings already on screen — no server round-trip, no reformatting, no surprises.
+                                All three get made right in your browser from the findings already on your screen. Nothing gets checked again on the way out, so the report always matches what you saw.
                             </p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                                 <button
@@ -69,7 +69,7 @@ export default function ExportPage() {
                                         transition: 'transform 0.2s ease'
                                     }}
                                 >
-                                    <span style={{ fontSize: '18px' }}>+</span> Start Local Audit
+                                    <span style={{ fontSize: '18px' }}>+</span> Try it
                                 </button>
                                 <a
                                     href="#formats"
@@ -85,7 +85,7 @@ export default function ExportPage() {
                                         textDecoration: 'none',
                                         transition: 'background 0.2s ease'
                                     }}
-                                    title="Scroll to export formats"
+                                    title="Scroll down to the formats"
                                 >
                                     ↓
                                 </a>
@@ -104,7 +104,7 @@ export default function ExportPage() {
                                 SARIF 2.1.0
                             </div>
                             <div className="privacy-pill-wide" style={{ background: '#161616', color: '#fff', padding: '24px 28px', borderRadius: '24px', fontSize: '26px', fontWeight: 700, textAlign: 'center', letterSpacing: '-0.02em', display: 'grid', placeItems: 'center' }}>
-                                no grades, no scores
+                                no grades
                             </div>
                         </div>
                     </div>
@@ -117,10 +117,10 @@ export default function ExportPage() {
                     <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed' }}></span>
-                            Three Formats, Same Findings
+                            Same findings, every time
                         </div>
                         <h2 style={{ fontSize: '36px', fontWeight: 500, color: '#111', margin: '0 0 32px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                            Every format reads the same result object
+                            They all come from the same result
                         </h2>
 
                         {/* File-type tiles — a colored "file icon" band per format,
@@ -131,7 +131,7 @@ export default function ExportPage() {
                                     PDF
                                 </div>
                                 <p style={{ color: '#444', fontSize: '14px', lineHeight: 1.65, margin: 0, padding: '22px 24px' }}>
-                                    A readable, formatted client-side report for reviews and lightweight audits — ready to share or archive without any account or upload.
+                                    A clean report you can send to a teammate or a teacher. No account and no upload needed.
                                 </p>
                             </div>
 
@@ -140,7 +140,7 @@ export default function ExportPage() {
                                     SARIF 2.1.0
                                 </div>
                                 <p style={{ color: '#444', fontSize: '14px', lineHeight: 1.65, margin: 0, padding: '22px 24px' }}>
-                                    The standard format GitHub Code Scanning, VS Code's SARIF viewer, and CI security tooling read — each rule's <code>helpUri</code> links to a real, stable docs anchor.
+                                    The format GitHub code scanning, VS Code's SARIF viewer and most CI tools already understand. Each rule's <code>helpUri</code> links to its own section in the docs.
                                 </p>
                             </div>
 
@@ -149,7 +149,7 @@ export default function ExportPage() {
                                     JSON
                                 </div>
                                 <p style={{ color: '#444', fontSize: '14px', lineHeight: 1.65, margin: 0, padding: '22px 24px' }}>
-                                    The full analysis result payload, plus the disclaimer text shown on screen — produced entirely client-side for downstream tooling.
+                                    The whole result, plus the same disclaimer you see on screen. Handy if you want to build something on top of it.
                                 </p>
                             </div>
                         </div>
@@ -159,10 +159,10 @@ export default function ExportPage() {
                     <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef4444', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }}></span>
-                            No Grades, No Risk Theater
+                            No grades
                         </div>
                         <h2 style={{ fontSize: '36px', fontWeight: 500, color: '#111', margin: '0 0 16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                            Why scoring was removed, not "fixed"
+                            Why there's no score
                         </h2>
                         {/* A struck-through grade is the actual image of what got
                             removed — more direct than another card grid, and it
@@ -172,14 +172,14 @@ export default function ExportPage() {
                                 A+
                             </div>
                             <p style={{ fontSize: '17px', color: '#555', margin: 0, lineHeight: 1.6, maxWidth: '460px' }}>
-                                An earlier version computed a weighted score and mapped it to a letter grade like this one. It was removed entirely, for three reasons:
+                                An earlier version gave your code a letter grade like this one. I took it out completely. Here's why:
                             </p>
                         </div>
 
                         <ol style={{ margin: 0, paddingLeft: '22px', color: '#333', display: 'flex', flexDirection: 'column', gap: '20px', fontSize: '15px', lineHeight: 1.65 }}>
-                            <li><strong style={{ color: '#111' }}>No honest rubric could exist.</strong> A grade implies a calibrated relationship between finding count/severity and real risk. With a handful of narrow rule groups and no data-flow analysis, that relationship doesn't exist.</li>
-                            <li><strong style={{ color: '#111' }}>It was wrong on its own terms.</strong> The old scoring logic disagreed with its own author's hand-written test expectations on two of nine cases. A rubric that fails its own tests has no business being authoritative.</li>
-                            <li><strong style={{ color: '#111' }}>It invited exactly the wrong behavior.</strong> A grade is an invitation to treat a passing result as a decision rather than a prompt to keep looking. A plain count by severity is deliberately less satisfying, and more honest.</li>
+                            <li><strong style={{ color: '#111' }}>The grade didn't mean anything.</strong> For a grade to be fair, the number of findings would have to say something real about how risky the code is. With a handful of narrow rules and no data-flow tracking, it just doesn't.</li>
+                            <li><strong style={{ color: '#111' }}>It failed its own tests.</strong> The scoring disagreed with my own hand-written expectations on two out of nine test cases. Hard to trust a grade that can't pass its own quiz.</li>
+                            <li><strong style={{ color: '#111' }}>People stop at an A.</strong> You see an A, you close the tab. A plain count of findings is less satisfying to look at, which is kind of the point.</li>
                         </ol>
                     </section>
 
@@ -187,16 +187,16 @@ export default function ExportPage() {
                     <section className="privacy-card" style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '32px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.03)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '14px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7c3aed' }}></span>
-                            No Silent Findings
+                            Every finding
                         </div>
                         <h2 style={{ fontSize: '36px', fontWeight: 500, color: '#111', margin: '0 0 32px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                            What every finding includes, in every format
+                            What every finding comes with
                         </h2>
 
                         {/* Connected flow chips — this genuinely is a sequence (the
                             order a finding is read in), so show it as one. */}
                         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
-                            {['What matched', 'Why it matters', 'A safer example', 'Its own stated limits'].map((label, i, arr) => (
+                            {['What matched', 'Why it matters', 'A safer example', "What it can't see"].map((label, i, arr) => (
                                 <React.Fragment key={label}>
                                     <div style={{ background: '#161616', color: '#fff', padding: '14px 22px', borderRadius: '999px', fontSize: '14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
                                         {label}
@@ -210,14 +210,14 @@ export default function ExportPage() {
 
                 <footer>
                     <div className="footer-cta">
-                        <h2>Audit the claim before you trust the result.</h2>
+                        <h2>Paste some code and see what it finds.</h2>
                         <button className="cta dark" onClick={() => navigate('/check')}>
                             <span>+</span> Start Audit
                         </button>
                     </div>
                     <div className="footer-bottom">
                         <span>XAUDIT</span>
-                        <span>Client-side static checker · no network audit path</span>
+                        <span>Runs in your browser · nothing uploaded</span>
                         <span>PDF / SARIF / JSON</span>
                     </div>
                 </footer>
