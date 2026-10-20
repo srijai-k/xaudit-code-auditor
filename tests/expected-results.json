@@ -1140,5 +1140,185 @@
     "expectSeverity": null,
     "forbidSeverity": "medium",
     "note": "legacy class component with lifecycle methods, no dangerous patterns"
+  },
+  "express-reflected-xss-query": {
+    "path": "fixtures/vulnerable/express-reflected-xss-query.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-reflected-xss"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a query-string value concatenated into HTML and sent with res.send() — Express sends strings as text/html"
+  },
+  "express-reflected-xss-destructured-template": {
+    "path": "fixtures/vulnerable/express-reflected-xss-destructured-template.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-reflected-xss"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "input destructured from req.query one line earlier, then sent in a template literal through a chained res.status(200).send()"
+  },
+  "express-open-redirect-next-param": {
+    "path": "fixtures/vulnerable/express-open-redirect-next-param.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-open-redirect"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a ?next= login redirect taken straight from the query string"
+  },
+  "express-open-redirect-leading-slash-only": {
+    "path": "fixtures/vulnerable/express-open-redirect-leading-slash-only.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-open-redirect"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "\"/\" + input is not a same-site guard: \"/\" + \"/evil.example\" is the protocol-relative URL //evil.example"
+  },
+  "express-path-traversal-sendfile": {
+    "path": "fixtures/vulnerable/express-path-traversal-sendfile.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-path-traversal"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a route parameter concatenated into the path given to res.sendFile() with no root option"
+  },
+  "express-path-traversal-fs-path-join": {
+    "path": "fixtures/vulnerable/express-path-traversal-fs-path-join.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-path-traversal"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "path.join() keeps a ../ segment from the query string intact on its way to fs.readFile()"
+  },
+  "express-ssrf-axios-query-url": {
+    "path": "fixtures/vulnerable/express-ssrf-axios-query-url.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-ssrf"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "an image/link-preview proxy that fetches whatever URL the request names"
+  },
+  "express-ssrf-server-fetch-callback": {
+    "path": "fixtures/vulnerable/express-ssrf-server-fetch-callback.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-ssrf"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a webhook handler that calls back to a URL supplied in the request body using the global fetch on the server"
+  },
+  "express-send-request-object-as-json-safe": {
+    "path": "fixtures/safe/express-send-request-object-as-json-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "res.send(req.body) with the whole object: Express sends objects as JSON, not HTML"
+  },
+  "express-send-escaped-safe": {
+    "path": "fixtures/safe/express-send-escaped-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "the input goes through escapeHtml() first — an unknown call is treated as opaque, so escaping stops the finding"
+  },
+  "express-sendfile-root-option-safe": {
+    "path": "fixtures/safe/express-sendfile-root-option-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "res.sendFile(name, { root }) — Express refuses paths that escape the root folder"
+  },
+  "express-path-basename-safe": {
+    "path": "fixtures/safe/express-path-basename-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "path.basename() strips any directory part, so ../ can't climb out — it isn't a pass-through, so no finding"
+  },
+  "express-redirect-same-site-path-safe": {
+    "path": "fixtures/safe/express-redirect-same-site-path-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a redirect that starts with a fixed same-site path (\"/users/\") — the input can only pick which user"
+  },
+  "express-axios-fixed-host-safe": {
+    "path": "fixtures/safe/express-axios-fixed-host-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "the request only fills in a path segment on a fixed https host — it can't choose where the server connects"
+  },
+  "express-browser-url-not-ssrf-safe": {
+    "path": "fixtures/safe/express-browser-url-not-ssrf-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "browser code requesting a URL from the page's own query string isn't SSRF (it runs in the visitor's browser, not on a server)"
+  },
+  "express-input-through-helper-not-caught": {
+    "path": "fixtures/edge-cases/express-input-through-helper-not-caught.ts",
+    "group": "express-request",
+    "bucket": "edge-cases",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "KNOWN FALSE NEGATIVE, documented on purpose: request input passed into a helper function first is not followed across the function boundary"
+  },
+  "xss-inner-html-numeric-value-not-flagged": {
+    "path": "fixtures/safe/xss-inner-html-numeric-value-not-flagged.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "low",
+    "note": "fixed false positive: a count built from .length can't carry HTML, so innerHTML = String(count) is no longer flagged"
+  },
+  "xss-inner-html-url-search-param": {
+    "path": "fixtures/vulnerable/xss-inner-html-url-search-param.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-inner-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a value read from the page URL's query string one line earlier — the finding names the source"
   }
 }

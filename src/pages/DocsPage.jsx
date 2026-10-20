@@ -128,6 +128,11 @@ export default function DocsPage() {
                                             <td>External <code>&lt;script src&gt;</code> files, and script blocks that can't be parsed on their own (those get a note saying they weren't checked).</td>
                                         </tr>
                                         <tr>
+                                            <td><strong>Express Request Input</strong></td>
+                                            <td>Something from the request (<code>req.query</code>, <code>req.body</code>, <code>req.params</code>, <code>req.headers</code>) reaching <code>res.send()</code> as HTML, <code>res.redirect()</code>, a file path (<code>res.sendFile</code>, <code>fs.*</code>), or the URL of an outgoing request (axios, got, http(s), server-side fetch).</td>
+                                            <td>Dynamic values that don't come from the request; input passed through an escaping call first (<code>escapeHtml</code>, <code>path.basename</code>); <code>res.sendFile</code> with a <code>root</code> option; redirects to a fixed same-site path; requests to a fixed host.</td>
+                                        </tr>
+                                        <tr>
                                             <td><strong>Dependency Hygiene</strong></td>
                                             <td>Unpinned version ranges (<code>*</code>, <code>latest</code>); git/URL/file dependency sources; suspicious script patterns (remote download piping); install lifecycle scripts; misplaced dev tools.</td>
                                             <td>Known CVE version lookup; missing lockfiles; unused dependencies.</td>
@@ -354,7 +359,7 @@ export default function DocsPage() {
                             <section id="rules-reference" className="docs-card">
                                 <h2>Every rule ID</h2>
                                 <p>
-                                    41 rule IDs across 8 rule modules. Each one has its own page in <code>docs/rules/</code>:
+                                    46 rule IDs across 9 rule modules. Each one has its own page in <code>docs/rules/</code>:
                                 </p>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', marginTop: '16px' }}>
                                     {[
@@ -365,6 +370,7 @@ export default function DocsPage() {
                                         'node-command-exec-dynamic', 'node-command-spawn-shell',
                                         'auth-hardcoded-credential-comparison', 'auth-jwt-decode-without-verify',
                                         'dep-unpinned-version', 'dep-non-registry-source', 'dep-suspicious-script-content', 'dep-lifecycle-script-present', 'dep-devtool-in-dependencies',
+                                        'express-reflected-xss', 'express-open-redirect', 'express-path-traversal', 'express-ssrf',
                                         'html-missing-viewport', 'html-missing-alt', 'html-inline-event-handler', 'html-missing-csp-meta', 'html-script-content-not-analyzed', 'html-input-not-html'
                                     ].map((id) => (
                                         <div key={id} style={{ padding: '10px 14px', borderRadius: '12px', background: '#0d0d0d', border: '1px solid var(--line)', fontFamily: 'monospace', fontSize: '12px', color: '#eee' }}>

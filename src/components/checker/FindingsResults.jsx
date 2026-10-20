@@ -203,7 +203,7 @@ export default function FindingsResults({ result, resultsRef }) {
 
             {sortedFindings.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 24px', color: '#888', background: '#161616', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '24px', fontSize: '14px' }}>
-                    Nothing matched. That's good, but XAUDIT only knows eight rules, so it isn't the same thing as safe.
+                    Nothing matched. That's good, but XAUDIT only knows nine rule groups, so it isn't the same thing as safe.
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

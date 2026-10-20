@@ -7,6 +7,7 @@ import { sqliRule } from "./rules/sqli";
 import { secretsRule } from "./rules/secrets";
 import { nodeCommandRule } from "./rules/node-command";
 import { authRule } from "./rules/auth";
+import { expressRequestRule } from "./rules/express-request";
 import { parsePackageJson, runDependencyHygieneChecks } from "./rules/dependency-hygiene";
 import { countBySeverity, MAX_SOURCE_BYTES, type AnalysisResult, type Finding, type Language, type RuleRunSummary } from "./types";
 import type { Rule } from "./rule";
@@ -16,7 +17,7 @@ export type AnalysisMode = "html" | "script" | "package-json";
 /** Real, not simulated: called at the actual point each stage begins. */
 export type Stagelistener = (stage: "parsing" | "analyzing" | "rendering", detail?: string) => void;
 
-const SCRIPT_RULES: Rule[] = [xssRule, dynamicExecRule, sqliRule, secretsRule, nodeCommandRule, authRule];
+const SCRIPT_RULES: Rule[] = [xssRule, dynamicExecRule, sqliRule, secretsRule, nodeCommandRule, authRule, expressRequestRule];
 
 function byteLength(str: string): number {
     return new TextEncoder().encode(str).length;
@@ -197,7 +198,7 @@ export function analyze(code: string, requestedMode: AnalysisMode | "auto" = "au
 
     const language: Language = /<\w/.test(source) && /return\s*\(/.test(source) ? "jsx" : /:\s*(string|number|boolean|void|unknown|any)\b/.test(source) ? "typescript" : "javascript";
 
-    onStage?.("analyzing", `${SCRIPT_RULES.length} rules (xss, dynamic-exec, sqli, secrets, node-command, auth)`);
+    onStage?.("analyzing", `${SCRIPT_RULES.length} rules (xss, dynamic-exec, sqli, secrets, node-command, auth, express-request)`);
     let allFindings: ReturnType<Rule["run"]> = [];
     for (const rule of SCRIPT_RULES) {
         try {

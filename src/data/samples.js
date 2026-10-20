@@ -77,6 +77,28 @@ export async function summarize(text) {
 }`,
     },
     {
+        id: 'express-routes',
+        mode: 'script',
+        label: 'Express routes',
+        expect: ['express-reflected-xss', 'express-path-traversal'],
+        code: `// "Add a search page and a file download route to my Express app."
+import express from "express";
+import path from "path";
+
+const app = express();
+
+app.get("/search", (req, res) => {
+  const { q } = req.query;
+  res.send(\`<h1>Results for \${q}</h1><p>No results yet.</p>\`);
+});
+
+app.get("/download/:name", (req, res) => {
+  res.sendFile(path.join(__dirname, "uploads", req.params.name));
+});
+
+app.listen(3000);`,
+    },
+    {
         id: 'landing-page',
         mode: 'html',
         label: 'Landing page',

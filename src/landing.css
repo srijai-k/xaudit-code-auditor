@@ -796,7 +796,7 @@ h1 {
   gap: 18px;
   padding: 36px 5vw 0;
 }
-.rule-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.rule-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } /* 9 cards: a clean 3x3 */
 .rule-card {
   min-height: 360px;
   padding: 26px;
@@ -1092,7 +1092,6 @@ footer {
   nav { gap: 22px; font-size: 13px; }
   .hero { min-height: 560px; }
   h1 { max-width: 720px; font-size: clamp(44px, 5.4vw, 62px); }
-  .rule-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .why-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .cta { max-width: 100%; }
 }

@@ -1,6 +1,6 @@
 import * as t from "@babel/types";
 import type { NodePath } from "@babel/traverse";
-import { traverseAst, locOf, isStaticStringExpression, isSanitizerWrapped, resolveSingleAssignment, excerptOf } from "../ast-utils";
+import { traverseAst, locOf, isStaticStringExpression, isSanitizerWrapped, resolveSingleAssignment, excerptOf, findUserInput, isInertValue, type UserInputSource } from "../ast-utils";
 import type { Rule, RuleContext } from "../rule";
 import type { Finding } from "../types";
 
@@ -60,6 +60,21 @@ import type { Finding } from "../types";
  * variable: `const clean = DOMPurify.sanitize(x); el.innerHTML = clean;` is
  * now recognized as sanitized (downgraded to low), where before the
  * sanitizer call was invisible behind the identifier.
+ *
+ * Values that provably can't carry markup aren't flagged at all: numbers,
+ * `.length`, `parseInt(x)`, `price.toFixed(2)`, `String(total)` when `total`
+ * is itself one of these, and text built only from those plus literal
+ * strings (see ast-utils.ts isInertValue). Before this, `el.innerHTML =
+ * String(count)` with `const count = items.length` was reported as
+ * high-severity XSS.
+ *
+ * When the value visibly comes from user input — the page URL, the
+ * referrer, `window.name`, `URLSearchParams(...).get()`, directly or one
+ * variable hop back (ast-utils.ts findUserInput) — the finding says so.
+ * Severity is NOT lowered for values whose source is unknown: a function
+ * parameter reaching innerHTML is the classic real-world bug, and the
+ * independent benchmark's ground truth (written before the engine ran)
+ * expects "high" for exactly that shape.
  *
  * Explicitly out of scope, by design: this rule never inspects JSX event
  * props (`onClick`, `onChange`, `onSubmit`, etc.). Those are React
@@ -224,7 +239,10 @@ function memberPropName(node: t.Node): string | undefined {
 }
 
 interface Resolution {
+    /** True when the value needs no finding: a static string, or provably inert (a number, `.length`, ...). */
     isStatic: boolean;
+    /** Set when the value visibly comes from user input. */
+    source?: UserInputSource | null;
     /** The node to run the sanitizer check against — the traced-to value when a trace succeeded, else the original. */
     effectiveNode: t.Node;
     /** Set when resolution went through a variable, for the finding message. */
@@ -233,7 +251,8 @@ interface Resolution {
 
 /** Resolves whether a sink's value is effectively static, trying one variable hop if it's a bare identifier. */
 function resolveForXss(path: NodePath, node: t.Node): Resolution {
-    if (isStaticStringExpression(node)) return { isStatic: true, effectiveNode: node };
+    if (isStaticStringExpression(node) || isInertValue(path, node)) return { isStatic: true, effectiveNode: node };
+    const source = findUserInput(path, node);
     if (t.isIdentifier(node)) {
         const resolved = resolveSingleAssignment(path, node);
         if (resolved.resolved && resolved.initNode) {
@@ -241,10 +260,11 @@ function resolveForXss(path: NodePath, node: t.Node): Resolution {
                 isStatic: isStaticStringExpression(resolved.initNode),
                 effectiveNode: resolved.initNode,
                 tracedVia: node.name,
+                source,
             };
         }
     }
-    return { isStatic: false, effectiveNode: node };
+    return { isStatic: false, effectiveNode: node, source };
 }
 
 function makeFinding(ruleId: string, title: string, node: t.Node, code: string, resolution: Resolution): Finding {
@@ -252,6 +272,7 @@ function makeFinding(ruleId: string, title: string, node: t.Node, code: string, 
     const traceNote = resolution.tracedVia
         ? ` (traced back one step to the declaration of \`${resolution.tracedVia}\`)`
         : "";
+    const sourceNote = resolution.source ? ` It comes from ${resolution.source.label}, which anyone can change by editing a link.` : "";
     return {
         ruleId,
         title,
@@ -259,16 +280,17 @@ function makeFinding(ruleId: string, title: string, node: t.Node, code: string, 
         category: "xss",
         message: sanitized
             ? `${title}: the value passed appears to be wrapped in a sanitizer call${traceNote}, but this cannot be verified as safe — it only reduces likelihood.`
-            : `${title}: the value assigned is not a static string literal${traceNote}, so it cannot be confirmed safe from this syntax alone.`,
-        whyItMatters:
-            "If the value ever includes attacker-influenced text (URL params, API responses, user-entered fields) and reaches this sink unescaped, it can execute arbitrary script in the page (DOM-based XSS). This rule cannot confirm the value is actually attacker-controlled — it flags the sink shape only.",
+            : `${title}: the value assigned is not a static string literal${traceNote}, so it cannot be confirmed safe from this syntax alone.${sourceNote}`,
+        whyItMatters: resolution.source && !sanitized
+            ? `The value comes from ${resolution.source.label}. Anyone can send someone a link with HTML or a script in it, and this sink will run it in the page (DOM-based XSS).`
+            : "If the value ever includes attacker-influenced text (URL params, API responses, user-entered fields) and reaches this sink unescaped, it can execute arbitrary script in the page (DOM-based XSS). This rule cannot confirm the value is actually attacker-controlled — it flags the sink shape only.",
         saferExample: sanitized
             ? "Sanitizer detected. Confirm it is imported from a real, maintained library (e.g. `dompurify`) and configured with an allowlist appropriate for your content."
             : "Use `element.textContent = value` for plain text, or sanitize first: `element.innerHTML = DOMPurify.sanitize(value)`.",
         limitations:
             ruleId === "xss-jquery-html"
                 ? "Direct AST match plus one same-scope variable hop, same as the other sinks in this rule — but the receiver check that gates this one is partly a naming convention (a `$`-prefixed identifier, e.g. `$el`), not purely structural, so a non-jQuery/jqLite object that happens to be named that way and happens to have its own unrelated `.html()` method could misfire (false positive), and a jQuery object passed under a differently-named variable through an unresolvable path could be missed (false negative)."
-                : "Direct AST match plus one same-scope variable hop — not full data-flow/taint analysis. A value traced through two or more variables, or assembled in a different function, will not be resolved (false negative). A sanitizer name match does not verify safe configuration.",
+                : "Direct AST match plus one same-scope variable hop — not full data-flow/taint analysis. A value traced through two or more variables, or assembled in a different function, will not be resolved (false negative). A sanitizer name match does not verify safe configuration. Numbers and `.length` values are skipped as unable to carry HTML; an object whose `length` property is attacker-controlled text would be missed.",
         location: locOf(node),
         snippet: excerptOf(code, node),
     };
