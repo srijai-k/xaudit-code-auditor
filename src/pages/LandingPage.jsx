@@ -86,9 +86,9 @@ export default function LandingPage() {
               enough to sit underneath the header during the page-load
               blur-in transition. */}
           <div className="hero-inner">
-            <p className="eyebrow purple"><span></span>Code checker that runs in your browser</p>
-            <h1>Paste your code. XAUDIT points at the parts worth a second look.</h1>
-            <p className="hero-copy">It checks JavaScript, TypeScript, React, HTML and package.json files for common security mistakes, and nothing gets uploaded. It doesn't promise your code is secure. It just tells you where to look.</p>
+            <p className="eyebrow purple"><span></span>For code you didn't write line by line</p>
+            <h1>Check the code your AI wrote before it goes anywhere.</h1>
+            <p className="hero-copy">Paste what ChatGPT, Claude or Copilot gave you. XAUDIT points at the parts worth a second look, right in your browser, and nothing gets uploaded. It doesn't promise your code is secure. It just tells you where to look.</p>
             <div className="hero-actions">
               <button className="cta primary-audit-cta" onClick={handleStartAudit}>
                 <span>+</span> Start Audit
@@ -124,6 +124,24 @@ greeting.innerHTML =
           </div>
         </section>
 
+        {/* DRAFT - Srijai: this is written from the repo history (the old
+            version's claims and docs/baseline-audit.md). Rewrite it in your
+            own words and fix anything that isn't how it actually happened. */}
+        <section id="story" className="origin reveal">
+          <div>
+            <p className="eyebrow purple"><span></span>Why I made this</p>
+            <h2>The first version of XAUDIT was written mostly by AI, and it was very happy with itself.</h2>
+          </div>
+          <div className="origin-body">
+            <p>It said it was AI-powered. It said it had zero false positives. I believed it for a while.</p>
+            <p>Then I actually tested it. I expected to find a needle in a haystack. It was more like finding hay in a stack of needles. The SQL injection check never ran. The most common XSS bug got noticed and then never reported. The storage it called encrypted was plain text.</p>
+            <p>So I started over. This version only says what I can back up with a test.</p>
+            <button className="cta" onClick={() => navigate('/docs')}>
+              <span>+</span> What the old version got wrong
+            </button>
+          </div>
+        </section>
+
         <section id="testimonials" className="quote-spotlight reveal">
           <p className="eyebrow purple"><span></span>What people said</p>
           <blockquote>“What I liked most was that XAUDIT <em>does not try to solve everything at once.</em>”</blockquote>
@@ -137,6 +155,18 @@ greeting.innerHTML =
               <span>+</span> Read all six
             </button>
           </div>
+        </section>
+
+        <section id="loop" className="loop reveal">
+          <p className="eyebrow purple"><span></span>Fits into how you already code</p>
+          <h2>Your AI writes it, XAUDIT reads it, and the fix goes straight back to your AI.</h2>
+          <ol className="loop-grid">
+            <li><b>01</b><h3>Ask your AI</h3><p>Get the code from ChatGPT, Claude, Copilot, Cursor or v0, same as always.</p></li>
+            <li><b>02</b><h3>Paste it here</h3><p>XAUDIT reads it in your browser and points at anything risky. Nothing leaves the tab.</p></li>
+            <li><b>03</b><h3>Copy the prompt</h3><p>Every finding comes with a ready-made prompt for Cursor, Claude, ChatGPT or v0 that explains the problem and asks for a fix.</p></li>
+            <li><b>04</b><h3>Paste it back</h3><p>Your AI fixes it. Run it through again if you want to be sure.</p></li>
+          </ol>
+          <button className="cta" onClick={() => navigate('/check')}><span>+</span> Try it with a sample</button>
         </section>
 
         <section id="engine" className="services reveal">
