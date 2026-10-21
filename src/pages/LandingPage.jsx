@@ -280,7 +280,7 @@ greeting.innerHTML =
             <article className="rule-card reveal"><p>05</p><h3>Node command patterns</h3><span>exec, execSync and spawn({'{'} shell: true {'}'}) when the command isn't a fixed string.</span></article>
             <article className="rule-card reveal"><p>06</p><h3>Weak auth patterns</h3><span>Hardcoded password checks, passwords stored as MD5 or SHA-256, reset codes made with Math.random(), and JWT secrets typed into the code.</span></article>
             <article className="rule-card reveal"><p>07</p><h3>Dependency hygiene</h3><span>"latest" as a version, git dependencies, sketchy install scripts and dev tools sitting in the wrong section of package.json.</span></article>
-            <article className="rule-card reveal"><p>08</p><h3>Express routes</h3><span>Request input sent back as HTML, used in a redirect, a file path or a URL the server fetches. Plus CORS that trusts any site and session cookies scripts can read.</span></article>
+            <article className="rule-card reveal"><p>08</p><h3>Express routes</h3><span>Request input in HTML, redirects, file paths and fetched URLs. Plus missing ownership and admin checks, owner ids taken from the client, and secrets sent back in responses.</span></article>
             <article className="rule-card reveal"><p>HTML</p><h3>HTML hygiene</h3><span>Missing viewport, missing alt text, inline onclick. Basic housekeeping. It's not a security scan.</span></article>
           </div>
         </section>

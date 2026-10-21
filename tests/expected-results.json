@@ -1451,5 +1451,154 @@
     "expectSeverity": null,
     "forbidSeverity": "medium",
     "note": "session cookie with httpOnly, plus a harmless theme cookie"
+  },
+  "express-workspace-service-audit": {
+    "path": "fixtures/vulnerable/express-workspace-service-audit.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-missing-ownership-check",
+      "express-client-controlled-ownership",
+      "express-admin-route-without-role-check",
+      "express-secret-in-response",
+      "express-path-traversal",
+      "express-reflected-xss",
+      "auth-predictable-token",
+      "node-command-exec-dynamic"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a whole Express service a user reported against: BOLA on /documents/:id and /account/:id, ownerId from req.body, /admin/promote with no role check, a time-based reset token returned in the response, secrets in /internal/config, two-hop path traversal in /download, reflected HTML in /preview, exec in /diagnostics"
+  },
+  "express-bola-document-by-id": {
+    "path": "fixtures/vulnerable/express-bola-document-by-id.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-missing-ownership-check"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a logged-in route that loads a record by the URL id and never checks who's asking"
+  },
+  "express-bola-mounted-auth": {
+    "path": "fixtures/vulnerable/express-bola-mounted-auth.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-missing-ownership-check"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "login required by a prefix-mounted guard rather than on the route itself; still no ownership check"
+  },
+  "express-ownership-checked-safe": {
+    "path": "fixtures/safe/express-ownership-checked-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "the record is checked against the logged-in user, or looked up scoped to them"
+  },
+  "express-public-lookup-safe": {
+    "path": "fixtures/safe/express-public-lookup-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a public product page with no login middleware: looking up by id is the whole point"
+  },
+  "express-admin-promote-no-role-check": {
+    "path": "fixtures/vulnerable/express-admin-promote-no-role-check.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-admin-route-without-role-check"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "an /admin route behind a login check only"
+  },
+  "express-admin-guarded-safe": {
+    "path": "fixtures/safe/express-admin-guarded-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "admin routes guarded on the route, inside the handler, or by a prefix-mounted role guard"
+  },
+  "express-owner-from-request-body": {
+    "path": "fixtures/vulnerable/express-owner-from-request-body.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-client-controlled-ownership"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "ownerId and role taken straight from req.body"
+  },
+  "express-mass-assignment-req-body": {
+    "path": "fixtures/vulnerable/express-mass-assignment-req-body.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-client-controlled-ownership"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "every field from req.body copied onto a record (Object.assign / spread), role and owner included"
+  },
+  "express-owner-from-session-safe": {
+    "path": "fixtures/safe/express-owner-from-session-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "owner set from the logged-in user, role from a fixed value, and only one editable field copied"
+  },
+  "express-secret-in-response": {
+    "path": "fixtures/vulnerable/express-secret-in-response.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-secret-in-response"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a config endpoint returning the JWT secret, and an account endpoint returning the password"
+  },
+  "express-login-token-response-safe": {
+    "path": "fixtures/safe/express-login-token-response-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a login response with a session token, access/refresh tokens and a passwordChanged flag: all expected"
+  },
+  "auth-reset-token-from-time": {
+    "path": "fixtures/vulnerable/auth-reset-token-from-time.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-predictable-token"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a reset token built from an id and Date.now() with no random part"
+  },
+  "auth-time-about-a-token-safe": {
+    "path": "fixtures/safe/auth-time-about-a-token-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "an expiry timestamp for a token, and a token that has real randomness in it"
   }
 }

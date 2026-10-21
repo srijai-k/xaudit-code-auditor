@@ -4,13 +4,13 @@ Source: [`src/lib/analysis/rules/express-request.ts`](../../src/lib/analysis/rul
 
 Narrow checks for Express/Koa-style Node.js handlers. The first four need the same thing before they fire: a value that visibly comes from the incoming request reaching the call. "The request" means `req.query`, `req.body`, `req.params`, `req.headers`, `req.cookies`, `req.get(...)`/`req.header(...)`, or Koa's `ctx.query`/`ctx.params`/`ctx.request.body`.
 
-The input is followed directly, through string building (`+`, template literals), through text-preserving calls (`.trim()`, `.slice()`, `decodeURIComponent()`, `path.join()`), and one never-reassigned variable back, including destructuring (`const { name } = req.query`). Any other function call is treated as opaque on purpose, so `escapeHtml(req.query.name)` or `path.basename(req.params.file)` stops the finding.
+The input is followed directly, through string building (`+`, template literals), through text-preserving calls (`.trim()`, `.slice()`, `decodeURIComponent()`, `path.join()`), and up to three never-reassigned variables back within the same function, including destructuring (`const { name } = req.query`). Route handlers often stage input through a couple of variables first (`const name = String(req.query.file); const full = path.join(dir, name); res.sendFile(full)`), and every check needs the trail to end at the request, so following further doesn't add false alarms. Any other function call is treated as opaque on purpose, so `escapeHtml(req.query.name)` or `path.basename(req.params.file)` stops the finding.
 
 A dynamic value from anywhere else is **not** flagged by this module. "Any non-literal reaching `res.redirect`" would fire on nearly every real redirect, the same over-breadth mistake the reverted `import()`/`require()` check made (see [`docs/model-improvements.md`](../model-improvements.md)).
 
 The last two (`express-cors-any-origin-with-credentials`, `express-cookie-insecure`) are configuration checks: the risky thing is the setting itself, so they don't need request input.
 
-**Shared limitations:** name-based. `req`/`request`/`ctx` are assumed to be the request, `res`/`response` the response and `fs` the file system module, so renamed variables or imports are missed. One variable hop, no cross-function tracking: input passed into a helper function first is not followed (a documented false negative, `tests/fixtures/edge-cases/express-input-through-helper-not-caught.ts`). It can't see validation done elsewhere in the handler (an allowlist check, a prefix guard), so a value that really is checked can still be flagged.
+**Shared limitations:** name-based. `req`/`request`/`ctx` are assumed to be the request, `res`/`response` the response and `fs` the file system module, so renamed variables or imports are missed. Up to three variable hops within one function, no cross-function tracking: input passed into a helper function first is not followed (a documented false negative, `tests/fixtures/edge-cases/express-input-through-helper-not-caught.ts`). It can't see validation done elsewhere in the handler (an allowlist check, a prefix guard), so a value that really is checked can still be flagged.
 
 ---
 
@@ -168,3 +168,115 @@ res.cookie("theme", "dark");
 **Limitations:** an options object held in a variable isn't checked (not flagged). Only `httpOnly` is required; a missing `secure` or `sameSite` is mentioned in the safer example but doesn't trigger the finding on its own. Cookies named outside the list are missed.
 
 **Tests:** `tests/fixtures/vulnerable/express-cookie-session-no-httponly.ts` · safe: `tests/fixtures/safe/express-cookie-httponly-safe.ts`
+
+
+---
+
+## express-secret-in-response
+
+A response check: it doesn't need request input.
+
+**What it flags:** `res.json(...)`, `res.send(...)` or `res.jsonp(...)` with an object literal that has a field named like a password, secret, private key, API key/token, internal token, reset token or verification code (whole words, one level of nesting checked).
+
+**Severity:** High. Whoever makes the request gets the value, and responses end up in logs and caches too.
+
+**Risky examples:**
+```js
+res.json({ jwtSecret: JWT_SECRET, apiToken: process.env.INTERNAL_API_TOKEN });
+res.json({ id: a.id, email: a.email, password: a.password });
+res.json({ message: "Reset requested", resetToken: token });
+```
+
+**Safe examples (not flagged):**
+```js
+res.json({ token: makeSession(), user: { id: u.id, email: u.email } }); // a login response
+res.json({ accessToken, refreshToken, expiresIn: 3600 });
+res.json({ passwordChanged: true });
+```
+A plain `token`, `accessToken` or `refreshToken` isn't flagged: returning those is what a login endpoint is for.
+
+**Limitations:** only object literals written at the call are checked. `res.json(user)` that sends a whole database record, password field and all, isn't flagged, because the fields can't be seen from here.
+
+**Tests:** `tests/fixtures/vulnerable/express-secret-in-response.ts`, `express-workspace-service-audit.ts` · safe: `tests/fixtures/safe/express-login-token-response-safe.ts`
+
+---
+
+## express-client-controlled-ownership
+
+**What it flags:** a field that decides ownership or permissions (`ownerId`, `owner`, `userId`, `createdBy`, `authorId`, `accountId`, `tenantId`, `role`, `isAdmin`, `permissions`, `scopes`...) assigned or set in an object literal from request input, including `req.body.ownerId || req.auth.userId`. Also flags copying all of `req.body`/`req.query` onto a record with `Object.assign(record, req.body)` or `{ ...req.body }`.
+
+**Severity:** High. The client can send any value: create records in someone else's name, move a record to their account, or give themselves a role.
+
+**Risky examples:**
+```js
+documents.push({ ownerId: req.body.ownerId || req.auth.userId, content: req.body.content });
+document.ownerId = req.body.ownerId ?? document.ownerId;
+Object.assign(req.user, req.body);
+```
+
+**Safe example (not flagged):**
+```js
+notes.push({ ownerId: req.user.id, text: req.body.text });
+```
+
+**Limitations:** name-based on the field. An admin-only endpoint that's meant to set a role from the request is still flagged; check it's behind a role guard and dismiss it.
+
+**Tests:** `tests/fixtures/vulnerable/express-owner-from-request-body.ts`, `express-mass-assignment-req-body.ts`, `express-workspace-service-audit.ts` · safe: `tests/fixtures/safe/express-owner-from-session-safe.ts`
+
+---
+
+## express-admin-route-without-role-check
+
+**What it flags:** a route whose path has an `/admin` segment (`app.post("/admin/promote", ...)`), with no admin/role middleware on the route (names like `adminOnly`, `requireRole(...)`, `authorize`, `checkPermission`), no role guard mounted on its prefix with `app.use("/admin", ...)`, and no role check of the caller inside the handler (`if (req.user.role !== "admin")`).
+
+**Severity:** High. Being logged in isn't being an admin: any signed-in user who finds the URL can run it.
+
+**Risky example:**
+```js
+app.post("/admin/promote", authenticated, (req, res) => {
+  users.find((u) => u.id === Number(req.body.userId)).role = "admin";
+  res.json({ promoted: true });
+});
+```
+
+**Safe examples (not flagged):**
+```js
+app.delete("/admin/users/:id", authenticated, adminOnly, handler);
+app.use("/admin", authenticated, requireRole("admin"));
+app.post("/admin/flags", authenticated, (req, res) => { if (req.user.role !== "admin") return res.sendStatus(403); /* ... */ });
+```
+
+**Limitations:** recognises guards by name. A role check done inside a helper function, or admin routes on a router mounted under a different name, can still be flagged; an admin area that doesn't use "admin" in its paths isn't checked.
+
+**Tests:** `tests/fixtures/vulnerable/express-admin-promote-no-role-check.ts`, `express-workspace-service-audit.ts` · safe: `tests/fixtures/safe/express-admin-guarded-safe.ts`
+
+---
+
+## express-missing-ownership-check
+
+**A heuristic, and labelled as one on every finding.** Whether a user should see a record depends on what the app is for, which no pattern can know for certain.
+
+**What it flags:** a route that requires a login (login-style middleware on the route, or mounted with `app.use(...)` on its prefix or the whole app), then looks a record up with an id from the request (`req.params.*`, or an `...Id` field of `req.body`/`req.query`, passed to `find`/`findById`/`findOne`/`findByPk`/`filter`/...), and never reads the current user anywhere in the handler (`req.user`, `req.auth`, `req.session`, `res.locals.user`, `ctx.state.user`). Routes with a role guard are skipped (admins usually may access any record).
+
+**Severity:** Medium, because it's a heuristic. When it's right, it's the most common access-control bug in real APIs (IDOR / broken object-level authorization).
+
+**Risky example:**
+```js
+app.get("/documents/:id", authenticated, (req, res) => {
+  res.json(documents.find((d) => d.id === Number(req.params.id)));
+});
+```
+
+**Safe examples (not flagged):**
+```js
+// checked against the caller
+if (!doc || doc.ownerId !== req.auth.userId) return res.status(404).end();
+// or looked up scoped to them
+await Order.findOne({ _id: req.params.id, user: req.user.id });
+// a public route with no login: looking up by id is the point
+app.get("/products/:id", async (req, res) => res.json(await Product.findById(req.params.id)));
+```
+
+**Limitations:** a check done inside a helper function, or a query scoped some other way, still gets flagged; a route that's meant to show any record to any logged-in user (a shared team space) gets flagged too. A route with no recognisable login middleware isn't checked at all.
+
+**Tests:** `tests/fixtures/vulnerable/express-bola-document-by-id.ts`, `express-bola-mounted-auth.ts`, `express-workspace-service-audit.ts` · safe: `tests/fixtures/safe/express-ownership-checked-safe.ts`, `express-public-lookup-safe.ts`

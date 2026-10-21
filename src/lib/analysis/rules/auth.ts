@@ -1,6 +1,6 @@
 import * as t from "@babel/types";
 import type { NodePath } from "@babel/traverse";
-import { traverseAst, locOf, excerptOf, isStaticStringExpression, resolveSingleAssignment } from "../ast-utils";
+import { traverseAst, locOf, excerptOf, isStaticStringExpression, resolveSingleAssignment, wordsOf } from "../ast-utils";
 import type { Rule, RuleContext } from "../rule";
 import type { Finding } from "../types";
 
@@ -232,9 +232,89 @@ export const authRule: Rule = {
             },
         });
 
+        // ---- Check 6: a secret built from the clock -------------------
+        const checkPredictable = (name: string | undefined, value: t.Node | null | undefined, node: t.Node) => {
+            if (!name || !value || !isSecretName(name) || isTimestampName(name)) return;
+            if (!containsCall(value, isClockCall) || containsCall(value, isRandomnessCall)) return;
+            findings.push({
+                ruleId: "auth-predictable-token",
+                title: "Secret value built from the time",
+                severity: "high",
+                category: "auth",
+                message: `"${name}" is built from the current time (and maybe an id), with no random part. Anyone who knows roughly when it was made can work it out.`,
+                whyItMatters: "Timestamps only have so many possible values, and ids are usually guessable. For a reset token that means someone can request a reset for another person's account, try the few thousand tokens that time window allows, and take the account over.",
+                saferExample: "`const token = crypto.randomBytes(32).toString(\"hex\")`. Store a hash of it with an expiry time, and only ever send the token to the user's email, never in the response.",
+                limitations: "Name-based: only checks values named like a secret (token, otp, reset code, session id...). Names that describe a time, like tokenExpiresAt or resetCreatedAt, are skipped on purpose. A value counts as random if any crypto/uuid/nanoid/Math.random call appears in it (Math.random is reported separately by auth-insecure-random-token).",
+                location: locOf(node),
+                snippet: excerptOf(code, node),
+            });
+        };
+        traverseAst(ast, {
+            VariableDeclarator(path) {
+                const { node } = path;
+                checkPredictable(t.isIdentifier(node.id) ? node.id.name : undefined, node.init, node);
+            },
+            AssignmentExpression(path) {
+                const { node } = path;
+                if (node.operator === "=") checkPredictable(nameOf(node.left), node.right, node);
+            },
+            ObjectProperty(path) {
+                const { node } = path;
+                const key = t.isIdentifier(node.key) ? node.key.name : t.isStringLiteral(node.key) ? node.key.value : undefined;
+                if (!node.shorthand) checkPredictable(key, node.value, node);
+            },
+        });
+
         return findings;
     },
 };
+
+// ---- helpers for check 6 -------------------------------------------------
+
+const TIME_WORDS = new Set(["at", "expires", "expiry", "expiration", "expire", "created", "updated", "issued", "time", "timestamp", "date", "ttl", "age", "ms", "until"]);
+/** "tokenExpiresAt", "resetCreatedAt": a time ABOUT a secret, which should be a timestamp. */
+function isTimestampName(name: string): boolean {
+    return wordsOf(name).some((w) => TIME_WORDS.has(w));
+}
+
+/** Date.now(), new Date(), x.getTime(), performance.now(), process.hrtime(). */
+function isClockCall(node: t.Node): boolean {
+    if (t.isNewExpression(node) && t.isIdentifier(node.callee) && node.callee.name === "Date") return true;
+    if (!t.isCallExpression(node)) return false;
+    const c = node.callee;
+    if (!t.isMemberExpression(c) || c.computed || !t.isIdentifier(c.property)) return false;
+    const prop = c.property.name;
+    if (t.isIdentifier(c.object) && c.object.name === "Date" && prop === "now") return true;
+    if (prop === "getTime" || prop === "valueOf") return true;
+    if (t.isIdentifier(c.object) && c.object.name === "performance" && prop === "now") return true;
+    if (t.isIdentifier(c.object) && c.object.name === "process" && prop === "hrtime") return true;
+    return false;
+}
+
+/** Anything that brings real (or at least claimed) randomness in. */
+function isRandomnessCall(node: t.Node): boolean {
+    if (!t.isCallExpression(node)) return false;
+    const c = node.callee;
+    const name = t.isIdentifier(c) ? c.name : t.isMemberExpression(c) && !c.computed && t.isIdentifier(c.property) ? c.property.name : "";
+    return /^(randomBytes|randomUUID|randomInt|getRandomValues|random|uuid|v4|nanoid|customAlphabet|generateSecret|randomFillSync)$/.test(name);
+}
+
+/** Does any node inside `root` (including itself) satisfy `test`? Doesn't descend into nested functions. */
+function containsCall(root: t.Node, test: (n: t.Node) => boolean): boolean {
+    let found = false;
+    const visit = (n: t.Node | null | undefined, depth: number) => {
+        if (!n || found || depth > 40) return;
+        if (test(n)) { found = true; return; }
+        if (t.isFunction(n)) return;
+        for (const key of t.VISITOR_KEYS[n.type] ?? []) {
+            const child = (n as unknown as Record<string, unknown>)[key];
+            if (Array.isArray(child)) child.forEach((c) => visit(c as t.Node, depth + 1));
+            else if (child && typeof child === "object" && "type" in (child as object)) visit(child as t.Node, depth + 1);
+        }
+    };
+    visit(root, 0);
+    return found;
+}
 
 // ---- helpers for checks 3-5 ---------------------------------------------
 
@@ -242,15 +322,6 @@ const FAST_HASHES = /^(md4|md5|sha1|sha-1|sha224|sha256|sha-256|sha384|sha512|sh
 const FAST_HASH_FUNCTIONS = new Set(["md5", "sha1", "sha256", "sha512", "MD5", "SHA1", "SHA256", "SHA512"]);
 const JWT_OBJECT_NAMES = new Set(["jwt", "JWT", "jsonwebtoken"]);
 
-/** Splits camelCase / snake_case / kebab-case into lowercase words: "resetToken" -> ["reset", "token"]. */
-function wordsOf(name: string): string[] {
-    return name
-        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-        .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
-        .split(/[^A-Za-z0-9]+/)
-        .filter(Boolean)
-        .map((w) => w.toLowerCase());
-}
 
 const PASSWORD_WORDS = new Set(["password", "passwd", "pwd", "pass", "passphrase"]);
 function isPasswordName(name: string): boolean {

@@ -140,3 +140,28 @@ const token = jwt.sign({ id: user.id }, secret, { expiresIn: "1h" });
 **Limitations:** only recognises the call on an object named jwt/JWT/jsonwebtoken, and follows one variable hop. A secret passed through a config object or built some other way is missed. When the literal sits in a variable named like a secret, `secret-generic-assignment` may also fire on that line.
 
 **Tests:** `tests/fixtures/vulnerable/auth-jwt-sign-literal-secret.ts` · safe: `tests/fixtures/safe/auth-jwt-env-secret-safe.ts`
+
+
+---
+
+## auth-predictable-token
+
+**What it flags:** a value named like a secret (token, otp, reset code, session id...) built from the clock (`Date.now()`, `new Date()`, `.getTime()`, `performance.now()`, `process.hrtime()`), usually together with an id, with no random part at all.
+
+**Severity:** High. A timestamp has only so many possible values, and ids are guessable, so a reset token like this can be worked out and used to take over an account.
+
+**Risky example:**
+```js
+const token = "reset-" + account.id + "-" + Date.now();
+```
+
+**Safe examples (not flagged):**
+```js
+const tokenExpiresAt = Date.now() + 3600 * 1000;                         // a time ABOUT a token
+const token = crypto.randomBytes(16).toString("hex") + "-" + Date.now(); // has real randomness
+```
+Names that describe a time (`...ExpiresAt`, `...CreatedAt`, `...Ttl`) are skipped on purpose.
+
+**Limitations:** name-based, like the other auth checks. Any crypto/uuid/nanoid/Math.random call in the value counts as "random" (Math.random is reported separately by `auth-insecure-random-token`). A predictable value that doesn't use the clock (a counter, a hash of the email) is missed.
+
+**Tests:** `tests/fixtures/vulnerable/auth-reset-token-from-time.ts`, `tests/fixtures/vulnerable/express-workspace-service-audit.ts` · safe: `tests/fixtures/safe/auth-time-about-a-token-safe.ts`

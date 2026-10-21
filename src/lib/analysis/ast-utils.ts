@@ -351,6 +351,16 @@ export function isInertValue(path: NodePath, node: t.Node, hops = 1, depth = 0):
     return false;
 }
 
+/** Splits camelCase / snake_case / kebab-case into lowercase words: "resetToken" -> ["reset", "token"]. Name rules match whole words with this, so "footprint" is never an "otp". */
+export function wordsOf(name: string): string[] {
+    return name
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+        .split(/[^A-Za-z0-9]+/)
+        .filter(Boolean)
+        .map((w) => w.toLowerCase());
+}
+
 /** Renders a short, single-line source excerpt for a node, capped in length. */
 export function excerptOf(code: string, node: { start?: number | null; end?: number | null }, max = 160): string {
     if (node.start == null || node.end == null) return "";
