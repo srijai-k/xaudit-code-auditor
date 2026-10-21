@@ -327,3 +327,18 @@ GitHub's own documented SARIF extension field, `properties["security-severity"]`
 **A real-AI benchmark harness (`tests/ai-benchmark/`, `npm run bench:ai`).** 25 everyday prompts, folders for each tool's unedited answers, and a `labels.json` where a person records which findings are real. The script only reports; it never decides what's real. **No responses have been collected yet**, so the report is empty on purpose, and nothing in it should be quoted until it isn't.
 
 **Full suite after this:** 300/300 unit tests passing (was 278); every earlier fixture and both existing benchmarks are unchanged.
+
+
+## Gaps found by a user's test file: access control, predictable tokens, a two-hop path traversal (2026-10-21)
+
+**Where this came from:** a user ran XAUDIT over a deliberately vulnerable Express "workspace" service and listed seven real problems it missed: broken object-level authorization on `GET`/`PUT /documents/:id` and `GET /account/:id`, a privilege-escalation route (`/admin/promote` with only a login check), a reset token built from `Date.now()`, secrets and passwords returned in responses, ownership taken from `req.body`, and path traversal in `/download`. That file is now `tests/fixtures/vulnerable/express-workspace-service-audit.ts`, and it must keep producing all of them.
+
+**One was a bug, not a gap.** `express-path-traversal` should already have caught `/download`; it didn't because the input went through *two* variables (`filename`, then `filePath`) and the Express checks only followed one. They now follow up to three within the same function (`REQUEST_HOPS`). That's safe here in a way it wouldn't be for a sink-shape rule: every Express check needs the trail to end at the request.
+
+**Five new checks.** `auth-predictable-token` (a secret-named value built from the clock with no random part; names like `tokenExpiresAt` skipped). `express-secret-in-response` (password/secret/reset-token fields in a `res.json` object; a plain `token` in a login response isn't flagged). `express-client-controlled-ownership` (`ownerId`/`role`/`isAdmin`... from request input, or all of `req.body` assigned/spread onto a record). `express-admin-route-without-role-check` (an `/admin` route with no role middleware, no mounted role guard, and no role check of the caller in the handler). And `express-missing-ownership-check`: a logged-in route that loads a record by a request id and never reads the current user. That last one is a **heuristic**, medium severity, and says so on every finding: whether a user *should* see a record depends on what the app is for, which no pattern can know.
+
+**False alarms caught before shipping.** A 16-case probe of correctly written code found one: admin routes protected all at once with `app.use("/admin", authenticated, requireRole("admin"))` were flagged, because the guard isn't on the route. Guards mounted with `app.use(...)` are now read first; a role guard on a prefix covers its routes, and a login guard on a prefix or the whole app counts as login middleware (which also lets the ownership check see routes that don't list it themselves).
+
+**Also fixed: the PDF report listed only the original five rule groups.** Its "Rules applied" line is now built from the rules that actually ran for that report.
+
+**Full suite after this:** 314/314 unit tests passing (was 300).
