@@ -1,48 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { MAX_SOURCE_BYTES } from '../../lib/analysis/types';
-
-const SAMPLES = {
-    html: `<!DOCTYPE html>
-<html>
-<head>
-    <title>Sample Page</title>
-</head>
-<body>
-    <h1>Hello World</h1>
-    <img src="https://example.com/logo.png">
-    <button onclick="alert('hi')">Submit</button>
-</body>
-</html>`,
-    script: `import React from 'react';
-
-export default function Profile({ user }) {
-  const handleClick = () => console.log('clicked');
-
-  return (
-    <div onClick={handleClick}>
-      <button onClick={handleClick}>Save</button>
-      <div dangerouslySetInnerHTML={{ __html: user.bio }} />
-    </div>
-  );
-}`,
-    'package-json': `{
-  "name": "example-app",
-  "version": "1.0.0",
-  "dependencies": {
-    "express": "*",
-    "lodash": "^4.17.21",
-    "some-fork": "git+https://github.com/someuser/some-fork.git",
-    "eslint": "^9.0.0"
-  },
-  "devDependencies": {
-    "vitest": "^3.0.0"
-  },
-  "scripts": {
-    "postinstall": "node ./scripts/setup.js",
-    "build": "vite build"
-  }
-}`,
-};
+import { samplesForMode } from '../../data/samples';
+import CodeEditor from './CodeEditor';
 
 const MODES = [
     { id: 'html', label: 'HTML' },
@@ -51,7 +10,7 @@ const MODES = [
     { id: 'auto', label: 'Auto-detect' },
 ];
 
-export default function CodeInput({ code, onCodeChange, mode, onModeChange, onRun, running, stageLine }) {
+export default function CodeInput({ code, onCodeChange, mode, onModeChange, onRun, running, stageLine, highlights, jumpRef, placeholder }) {
     const sizeBytes = new TextEncoder().encode(code).length;
     const overLimit = sizeBytes > MAX_SOURCE_BYTES;
 
@@ -64,8 +23,13 @@ export default function CodeInput({ code, onCodeChange, mode, onModeChange, onRu
         }
     };
 
+    // Each click loads the next sample that fits the selected mode, so
+    // clicking again shows a different kind of mistake.
+    const sampleTurn = useRef(0);
     const loadSample = () => {
-        onCodeChange(SAMPLES[mode] || SAMPLES.script);
+        const options = samplesForMode(mode);
+        onCodeChange(options[sampleTurn.current % options.length].code);
+        sampleTurn.current += 1;
     };
 
     return (
@@ -92,19 +56,18 @@ export default function CodeInput({ code, onCodeChange, mode, onModeChange, onRu
                 </div>
             </div>
 
-            <textarea
+            <CodeEditor
                 value={code}
-                onChange={(e) => onCodeChange(e.target.value)}
-                placeholder={mode === 'html' ? '// Paste HTML here...' : '// Paste JavaScript, TypeScript, React/JSX, or package.json here...'}
-                spellCheck="false"
-                rows={12}
-                className="checker-textarea"
+                onChange={onCodeChange}
+                placeholder={placeholder || (mode === 'html' ? '// Paste HTML here...' : '// Paste JavaScript, TypeScript, React/JSX, or package.json here...')}
+                highlights={highlights}
+                jumpRef={jumpRef}
             />
 
             <div className="checker-editor-footer">
                 <span className={`checker-limit-text ${overLimit ? 'over' : ''}`}>
                     {(sizeBytes / 1024).toFixed(1)} KB / {(MAX_SOURCE_BYTES / 1024).toFixed(0)} KB
-                    {overLimit && ' — over the analysis limit, will be rejected'}
+                    {overLimit && ' · too big, this will get rejected'}
                 </span>
                 <button
                     onClick={onRun}

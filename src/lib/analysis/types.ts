@@ -13,6 +13,7 @@ export type RuleCategory =
     | "node-command"
     | "auth"
     | "dependency-hygiene"
+    | "express-request"
     | "html";
 
 export type Language = "javascript" | "typescript" | "jsx" | "html" | "json" | "unknown";

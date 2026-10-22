@@ -1,12 +1,13 @@
 import { parseSource } from "./parse";
 import { dedupeFindings } from "./dedupe";
-import { runHtmlChecks, extractInlineScripts, buildScriptNotAnalyzedFinding } from "./rules/html";
+import { runHtmlChecks, extractInlineScripts, buildScriptNotAnalyzedFinding, looksLikeHtml, buildInputNotHtmlFinding } from "./rules/html";
 import { xssRule } from "./rules/xss";
 import { dynamicExecRule } from "./rules/dynamic-exec";
 import { sqliRule } from "./rules/sqli";
 import { secretsRule } from "./rules/secrets";
 import { nodeCommandRule } from "./rules/node-command";
 import { authRule } from "./rules/auth";
+import { expressRequestRule } from "./rules/express-request";
 import { parsePackageJson, runDependencyHygieneChecks } from "./rules/dependency-hygiene";
 import { countBySeverity, MAX_SOURCE_BYTES, type AnalysisResult, type Finding, type Language, type RuleRunSummary } from "./types";
 import type { Rule } from "./rule";
@@ -16,7 +17,7 @@ export type AnalysisMode = "html" | "script" | "package-json";
 /** Real, not simulated: called at the actual point each stage begins. */
 export type Stagelistener = (stage: "parsing" | "analyzing" | "rendering", detail?: string) => void;
 
-const SCRIPT_RULES: Rule[] = [xssRule, dynamicExecRule, sqliRule, secretsRule, nodeCommandRule, authRule];
+const SCRIPT_RULES: Rule[] = [xssRule, dynamicExecRule, sqliRule, secretsRule, nodeCommandRule, authRule, expressRequestRule];
 
 function byteLength(str: string): number {
     return new TextEncoder().encode(str).length;
@@ -29,6 +30,25 @@ function looksLikePackageJson(trimmed: string): boolean {
     if (!parsed.ok) return false;
     const data = parsed.data;
     return typeof data.name === "string" && ("dependencies" in data || "devDependencies" in data || "scripts" in data);
+}
+
+/**
+ * Only consulted after the JS parser has already failed, to replace a
+ * baffling "Unexpected token" with a plain "this is Python". Needs at
+ * least two independent Python tells, so one stray `#` or `print(` in
+ * broken JavaScript doesn't get it labelled as Python.
+ */
+const PYTHON_TELLS: RegExp[] = [
+    /^\s*def\s+\w+\s*\(.*\)\s*(->\s*[^:]+)?:\s*(#.*)?$/m, // def f(x):
+    /^\s*(from\s+[\w.]+\s+import\s+[\w*, ]+|import\s+[\w.]+(\s+as\s+\w+)?)\s*$/m, // import os / from x import y
+    /^\s*(elif\s+.+|else|try|except(\s+[\w.]+(\s+as\s+\w+)?)?|finally)\s*:\s*(#.*)?$/m, // elif/else:/try:/except:
+    /^\s*(if|for|while|with|class)\s+[^{};]+:\s*(#.*)?$/m, // if x:  for a in b:
+    /\bself\.\w+/, // self.attr
+    /^\s*#(?!!)[^\n]*$/m, // # comment (not a #! shebang)
+    /\b(True|False|None)\b/,
+];
+function looksLikePython(code: string): boolean {
+    return PYTHON_TELLS.filter((re) => re.test(code)).length >= 2;
 }
 
 function detectMode(code: string, requested: AnalysisMode | "auto"): AnalysisMode {
@@ -86,6 +106,12 @@ export function analyze(code: string, requestedMode: AnalysisMode | "auto" = "au
         onStage?.("analyzing", "HTML hygiene + real rules on parseable inline <script> content");
         let allFindings: Finding[] = runHtmlChecks(source);
         rulesRun.push({ ruleId: "html" });
+
+        // HTML mode is only ever reached with no markup when the user picked
+        // it by hand (auto-detect needs a doctype or <html> tag). Say so
+        // instead of returning a clean report for code nothing examined.
+        // No silent mode switch: the user chose HTML, so they get told.
+        if (!looksLikeHtml(source)) allFindings.push(buildInputNotHtmlFinding());
 
         // Inline <script> content used to be a total blind spot in HTML
         // mode — see html.ts's own doc comment and F-05 in
@@ -182,16 +208,18 @@ export function analyze(code: string, requestedMode: AnalysisMode | "auto" = "au
             rulesRun: [],
             durationMs: (typeof performance !== "undefined" ? performance.now() : Date.now()) - start,
             truncated,
-            error: parseResult.location
-                ? `Could not parse this as JavaScript/TypeScript/JSX: ${parseResult.error} (line ${parseResult.location.line}, column ${parseResult.location.column})`
-                : `Could not parse this as JavaScript/TypeScript/JSX: ${parseResult.error}`,
+            error: looksLikePython(source)
+                ? "This looks like Python. XAUDIT only reads JavaScript, TypeScript, React/JSX, HTML and package.json for now, so none of its rules ran on it."
+                : parseResult.location
+                    ? `Could not parse this as JavaScript/TypeScript/JSX: ${parseResult.error} (line ${parseResult.location.line}, column ${parseResult.location.column})`
+                    : `Could not parse this as JavaScript/TypeScript/JSX: ${parseResult.error}`,
             timestamp,
         };
     }
 
     const language: Language = /<\w/.test(source) && /return\s*\(/.test(source) ? "jsx" : /:\s*(string|number|boolean|void|unknown|any)\b/.test(source) ? "typescript" : "javascript";
 
-    onStage?.("analyzing", `${SCRIPT_RULES.length} rules (xss, dynamic-exec, sqli, secrets, node-command, auth)`);
+    onStage?.("analyzing", `${SCRIPT_RULES.length} rules (xss, dynamic-exec, sqli, secrets, node-command, auth, express-request)`);
     let allFindings: ReturnType<Rule["run"]> = [];
     for (const rule of SCRIPT_RULES) {
         try {

@@ -47,7 +47,10 @@ test.describe("E2E: zero network requests during a full real-browser user flow",
         });
 
         await page.goto("/");
-        await page.getByText(/open the checker/i).first().click();
+        // Landing-page copy has changed since this test was first written
+        // (was "open the checker", now "Start Audit" — several buttons on
+        // this page share that label, so target the hero's specifically).
+        await page.getByRole("button", { name: /start audit/i }).first().click();
 
         // JS/TS/React mode, paste a snippet that fires multiple rule
         // groups at once (xss + secrets), run it, confirm real findings.
@@ -62,7 +65,10 @@ test.describe("E2E: zero network requests during a full real-browser user flow",
         // Opt into local history and re-run — exercises the localStorage
         // write path (the exact path F-01's live secret leak was found
         // in), still under network observation the whole time.
-        await page.getByLabel(/save report summaries locally/i).check();
+        // Label copy has since changed word order ("save report summaries
+        // locally" → "save local report summaries") — match on the stable
+        // part of the phrase instead of the full, now-wrong exact order.
+        await page.getByLabel(/save local report summaries/i).check();
         await page.getByRole("button", { name: /run analysis/i }).click();
         await expect(page.getByText(/detailed findings/i)).toBeVisible();
 
@@ -94,7 +100,8 @@ test.describe("E2E: zero network requests during a full real-browser user flow",
         expect(jsonDownload, "Export JSON should trigger a real client-side download under the enforced CSP").not.toBeNull();
 
         // Clean up local storage via the UI's own control, still observed.
-        await page.getByRole("button", { name: /clear local data/i }).click();
+        // Button copy is now "Clear local storage" (was "Clear local data").
+        await page.getByRole("button", { name: /clear local storage/i }).click();
 
         expect(externalRequests, `Unexpected non-local network requests: ${JSON.stringify(externalRequests, null, 2)}`).toEqual([]);
     });

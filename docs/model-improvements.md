@@ -90,7 +90,7 @@ Both are completely ordinary, extremely common patterns — code-splitting by lo
 
 **A safety note on Prisma specifically:** Prisma's *other* raw-query API, `$queryRaw`/`$executeRaw` used as a tagged template — `` prisma.$queryRaw`SELECT ... WHERE id = ${id}` `` — auto-parameterizes every `${}` and is safe by Prisma's own design. It was never at risk of being flagged (it's a different AST node type, a TaggedTemplateExpression, that this rule's CallExpression-only visitor never even looks at), but a dedicated safe fixture now locks that in explicitly rather than leaving it to accident.
 
-**Full suite after this change:** verified via `tests/independent-benchmark/samples/report-export.js` (a realistic Sequelize module, written independently of these unit-test fixtures) in addition to the new unit-test fixtures — see `docs/independent-benchmark-report.md`.
+**Full suite after this change:** verified via `tests/independent-benchmark/samples/report-export.js` (a realistic Sequelize module, written independently of these unit-test fixtures) in addition to the new unit-test fixtures — see `docs/held-out-benchmark-report.md`.
 
 ## Conservative entropy-based secrets fallback (2026-09-03)
 
@@ -133,7 +133,7 @@ The rule requires **all** of: length ≥ 24, no whitespace, not URL/path-shaped,
 
 **What this is honestly still not:** a third-party or externally-sourced benchmark. The same process that writes the rules wrote this corpus. What's genuinely different is that these files weren't written to test a specific rule's logic — they're realistic application code with mixed safe/unsafe patterns in the same file, larger noise-floor checks on "nothing wrong here" code, and predictions made while deliberately not looking at what the engine would do. See the report's own opening disclaimer for the full framing — it's written to stand next to the fixtures-based report's disclaimer, not to overclaim past it.
 
-**What happened the first time it ran:** while writing the realistic admin-panel file (predicting ground truth, not yet having run anything), I found the dangerouslySetInnerHTML-as-a-variable gap described above and fixed it before the first scoring run — a real bug the exercise of writing *realistic* code surfaced, the same way the earlier `import()`/`require()` mistake was caught by real usage rather than by the tidy fixtures. After that fix, the first (and so far only) scoring run matched every prediction: 14 files, 13 true positives, 0 false positives, 0 false negatives. See `docs/independent-benchmark-report.md` for the full breakdown, including the one known/accepted false positive (`admin-panel.jsx`'s two-hop case) that was predicted to be flagged and was.
+**What happened the first time it ran:** while writing the realistic admin-panel file (predicting ground truth, not yet having run anything), I found the dangerouslySetInnerHTML-as-a-variable gap described above and fixed it before the first scoring run — a real bug the exercise of writing *realistic* code surfaced, the same way the earlier `import()`/`require()` mistake was caught by real usage rather than by the tidy fixtures. After that fix, the first (and so far only) scoring run matched every prediction: 14 files, 13 true positives, 0 false positives, 0 false negatives. See `docs/held-out-benchmark-report.md` for the full breakdown, including the one known/accepted false positive (`admin-panel.jsx`'s two-hop case) that was predicted to be flagged and was.
 
 ## Fixed: decorator-based TypeScript failed to parse at all (2026-09-03)
 
@@ -290,3 +290,55 @@ GitHub's own documented SARIF extension field, `properties["security-severity"]`
 **What this does *not* do:** still no cross-block or cross-file data-flow — each script block is analyzed in isolation, so a value split across two separate `<script>` tags isn't traced between them. A block that depends on ambient globals defined by surrounding template output (not just syntax) can still parse "successfully" while missing context the real deployment would have; this is the same category of limitation the top-level JS/TS/React mode already carries, not a new one introduced here.
 
 **Full suite after this:** 213/213 unit tests passing (was 209).
+
+## Knowing where a value comes from, and a new rule group for Express request input (2026-10-20)
+
+**The problem, in plain terms:** two separate gaps, found by pasting the kind of code people get from AI tools into the engine. First, the XSS rule flagged every non-literal value at an HTML sink the same way, so `const count = items.length; badge.innerHTML = String(count)` came back as high-severity XSS, even though a number can't carry markup. Second, the most common server-side mistakes in AI-written Express routes weren't covered at all: `res.send("<h1>Hi " + req.query.name + "</h1>")` (reflected XSS), `res.redirect(req.query.next)` (open redirect), `res.sendFile(dir + req.params.name)` (path traversal) and `axios.get(req.query.url)` (SSRF) all produced nothing.
+
+**The fix, part 1: two shared helpers in `ast-utils.ts`.** `findUserInput` recognises values that visibly come from user input: request input on the server (`req.query`/`body`/`params`/`headers`/`cookies`, `req.get()`, Koa's `ctx.query`/`ctx.request.body`) and browser input in the page (`location.*`, `document.URL`, `document.referrer`, `window.name`, `URLSearchParams(...).get()`). It follows them through string building, a short list of text-preserving calls (`.trim()`, `.slice()`, `decodeURIComponent()`, `path.join()`), and one never-reassigned variable back, destructuring included. Every other call is opaque on purpose, so `escapeHtml(req.query.name)` is *not* raw input. `isInertValue` recognises values that can't carry HTML (numbers, `.length`, `parseInt`, `.toFixed`, `String()` of one of those, and text built only from those and literal strings).
+
+**The fix, part 2: XSS.** Inert values are no longer flagged, and when the source is visible the finding names it ("It comes from the page URL (location.hash)…"). Severity for an *unknown* source was deliberately left at high rather than lowered: a function parameter reaching `innerHTML` is the classic real bug, and the held-out benchmark's ground truth, written before the engine was ever run against it, expects high for exactly that shape. Changing severities to make the ground truth "fit" would undo the point of that benchmark.
+
+**The fix, part 3: a new rule module, `express-request.ts`,** with four checks (`express-reflected-xss`, `express-open-redirect`, `express-path-traversal`, `express-ssrf`). All of them need request input to reach the call. A dynamic value from anywhere else is not flagged, for the same reason the reverted `import()`/`require()` check was reverted: "any non-literal reaching `res.redirect`" would fire on nearly every legitimate redirect. Known-safe shapes are exempted where the syntax shows them: `res.send(req.body)` (sent as JSON), `res.sendFile(name, { root })`, redirects starting with a fixed same-site path like `"/users/"` (but not a bare `"/"`, since `"/" + "/evil.example"` is `//evil.example`), and outgoing calls to a fixed `https://host/` prefix.
+
+**One bug caught while building it:** `path.join(dir, req.query.file)` was initially missed, because `join` is also in the list of text-preserving string methods (`array.join`), so `path.join(...)` was read as "the text of `path`" before the path-builder check ran. The order is now path builders first; `tests/fixtures/vulnerable/express-path-traversal-fs-path-join.ts` covers it.
+
+**How this was verified:** 18 new fixtures (8 vulnerable, 9 safe, 1 documented false negative for input passed through a helper function), a new `docs/rules/express-request.md` (enforced by the docs-coverage test), and a 24-case probe of realistic snippets run before and after. Every existing XSS fixture and benchmark expectation still passes unchanged.
+
+**What this does *not* do:** still one variable hop and no cross-function tracking; receivers are recognised by name (`req`, `res`, `fs`); validation done elsewhere in a handler (an allowlist check) doesn't suppress a finding.
+
+**Full suite after this:** 278/278 unit tests passing (was 256).
+
+
+## Checking the AI's fix, highlighted lines, more AI-shortcut rules, a CLI and a GitHub Action (2026-10-20)
+
+**Why:** the site is now aimed at people checking code their AI wrote, and the honest question they'll ask is "why not just ask the AI?" These changes are the parts an AI chat can't credibly do for itself.
+
+**Checking the fix (`src/lib/analysis/compare.ts`).** After a check, "Check your AI's fix" keeps the result as a baseline; the next run is compared against it: fixed, still there, new. The matching deliberately errs against claiming a fix: same rule and same code excerpt first, then the same rule anywhere, and only what's left over counts as fixed or new. So an AI renaming a variable around an unchanged `innerHTML` assignment shows as "still there". The comparison only happens when asked for, so two unrelated pastes are never compared. `tests/unit/compare-runs.test.ts` covers a real fix, a reworded non-fix, duplicate findings and an identical re-run.
+
+**Highlighted lines.** The checker's textarea now has line numbers and a band on every flagged line (coloured by the worst severity on that line), and each finding's line number jumps to it. The textarea is still the real input; the layers behind it are scrolled to match. Wrapping is off on purpose so the bands can't drift.
+
+**Five more rules for common AI shortcuts.** In `auth.ts`: `auth-weak-password-hash` (a password-named value through MD5/SHA-1/SHA-256), `auth-insecure-random-token` (`Math.random()` building something named like a token/OTP/reset code), `auth-jwt-literal-secret`. In `express-request.ts`: `express-cors-any-origin-with-credentials` and `express-cookie-insecure`. Names are matched as whole words (camelCase/snake_case split), which caught two false alarms before they shipped: "footprint" contains "otp", and "resetDelay" isn't a reset token. `origin: "*"` with credentials is deliberately not flagged, because browsers refuse it.
+
+**Python gets a plain answer.** Pasting Python used to produce Babel's "Unexpected token". Now, only after the JS parser has already failed and only with two independent Python tells, the error says it looks like Python and that no rules ran. Broken JavaScript still gets the normal parse error (`tests/unit/python-input.test.ts`).
+
+**Command line and GitHub Action.** `src/cli/xaudit.ts` runs the engine over files on disk (text/JSON/SARIF, `--fail-on`, exit codes), and `action.yml` makes the repo usable as a GitHub Action that writes SARIF for code scanning. `generateSarifForFiles` was split out of the SARIF generator so one report can cover many files; the single-paste export is unchanged (its tests still pass). CI now smoke-tests the CLI on the fixtures.
+
+**A real-AI benchmark harness (`tests/ai-benchmark/`, `npm run bench:ai`).** 25 everyday prompts, folders for each tool's unedited answers, and a `labels.json` where a person records which findings are real. The script only reports; it never decides what's real. **No responses have been collected yet**, so the report is empty on purpose, and nothing in it should be quoted until it isn't.
+
+**Full suite after this:** 300/300 unit tests passing (was 278); every earlier fixture and both existing benchmarks are unchanged.
+
+
+## Gaps found by a user's test file: access control, predictable tokens, a two-hop path traversal (2026-10-21)
+
+**Where this came from:** a user ran XAUDIT over a deliberately vulnerable Express "workspace" service and listed seven real problems it missed: broken object-level authorization on `GET`/`PUT /documents/:id` and `GET /account/:id`, a privilege-escalation route (`/admin/promote` with only a login check), a reset token built from `Date.now()`, secrets and passwords returned in responses, ownership taken from `req.body`, and path traversal in `/download`. That file is now `tests/fixtures/vulnerable/express-workspace-service-audit.ts`, and it must keep producing all of them.
+
+**One was a bug, not a gap.** `express-path-traversal` should already have caught `/download`; it didn't because the input went through *two* variables (`filename`, then `filePath`) and the Express checks only followed one. They now follow up to three within the same function (`REQUEST_HOPS`). That's safe here in a way it wouldn't be for a sink-shape rule: every Express check needs the trail to end at the request.
+
+**Five new checks.** `auth-predictable-token` (a secret-named value built from the clock with no random part; names like `tokenExpiresAt` skipped). `express-secret-in-response` (password/secret/reset-token fields in a `res.json` object; a plain `token` in a login response isn't flagged). `express-client-controlled-ownership` (`ownerId`/`role`/`isAdmin`... from request input, or all of `req.body` assigned/spread onto a record). `express-admin-route-without-role-check` (an `/admin` route with no role middleware, no mounted role guard, and no role check of the caller in the handler). And `express-missing-ownership-check`: a logged-in route that loads a record by a request id and never reads the current user. That last one is a **heuristic**, medium severity, and says so on every finding: whether a user *should* see a record depends on what the app is for, which no pattern can know.
+
+**False alarms caught before shipping.** A 16-case probe of correctly written code found one: admin routes protected all at once with `app.use("/admin", authenticated, requireRole("admin"))` were flagged, because the guard isn't on the route. Guards mounted with `app.use(...)` are now read first; a role guard on a prefix covers its routes, and a login guard on a prefix or the whole app counts as login middleware (which also lets the ownership check see routes that don't list it themselves).
+
+**Also fixed: the PDF report listed only the original five rule groups.** Its "Rules applied" line is now built from the rules that actually ran for that report.
+
+**Full suite after this:** 314/314 unit tests passing (was 300).

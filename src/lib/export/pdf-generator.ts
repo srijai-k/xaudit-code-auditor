@@ -1,6 +1,18 @@
 import { jsPDF } from "jspdf";
 import type { AnalysisResult, Severity } from "../analysis/types";
 
+const RULE_GROUP_NAMES: Record<string, string> = {
+    xss: "DOM XSS",
+    "dynamic-exec": "dynamic execution",
+    sqli: "narrow SQL injection heuristic",
+    secrets: "hardcoded secrets",
+    "node-command": "Node.js command patterns",
+    auth: "weak authentication patterns",
+    "express-request": "Express request input and access control",
+    "dependency-hygiene": "dependency hygiene",
+    html: "basic HTML hygiene",
+};
+
 /**
  * PDF export. Renders only what the report already computed — no grade, no
  * verdict. Every finding snippet rendered here has already been masked at
@@ -87,7 +99,9 @@ export const generatePDF = (report: AnalysisResult, logoUrl?: string) => {
 
     addText(`Language detected: ${report.language}`, margin, yPos, 9, fontSans, "normal", colors.gray);
     yPos += 6;
-    addText(`Rules applied: findings are limited to the pattern set documented in the XAUDIT README (DOM XSS, dynamic execution, narrow SQLi heuristic, hardcoded secrets, Node.js command patterns${report.language === "html" ? ", plus basic HTML hygiene checks" : ""}).`, margin, yPos, 8, fontSans, "normal", colors.darkGray, "left", pageWidth - margin * 2);
+    // Built from the rules that actually ran for this report, so it can't fall behind the engine again.
+    const ruleNames = (report.rulesRun ?? []).map((r) => RULE_GROUP_NAMES[r.ruleId] ?? r.ruleId);
+    addText(`Rules applied: ${ruleNames.length ? ruleNames.join(", ") : "none"}. Findings are limited to these pattern checks (see the rule docs for what each one covers and misses).`, margin, yPos, 8, fontSans, "normal", colors.darkGray, "left", pageWidth - margin * 2);
     yPos += 16;
 
     doc.addPage();

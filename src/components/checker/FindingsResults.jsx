@@ -4,6 +4,7 @@ import { generatePDF } from '../../lib/export/pdf-generator';
 import { generateSarif } from '../../lib/export/sarif-generator';
 import { generateJsonExport } from '../../lib/export/json-generator';
 import ReportOverview from './ReportOverview';
+import FixComparison from './FixComparison';
 
 const SEVERITY_STYLES = {
     critical: { bg: 'rgba(239, 68, 68, 0.15)', text: '#f87171', border: 'rgba(239, 68, 68, 0.3)' },
@@ -18,16 +19,19 @@ const AI_TOOLS = ['ChatGPT', 'Claude', 'Cursor', 'v0'];
 function generateAssistantPrompt(tool, finding) {
     const snippet = finding.snippet ? `\n\`\`\`\n${finding.snippet}\n\`\`\`` : '';
     const body = `**Finding**: ${finding.title}\n**What matched**: ${finding.message}\n**Why it matters**: ${finding.whyItMatters}\n**Safer approach**: ${finding.saferExample}\n**Limitations of this check**: ${finding.limitations}${snippet}`;
+    // Every prompt asks for the whole file back, so the answer can go straight
+    // into "Check your AI's fix" and be compared with this run.
+    const ask = '\n\nIf it applies, return the complete fixed code (not just the changed lines) so I can check it again.';
     switch (tool) {
         case 'Cursor':
-            return `(In Cursor)\n\nReview and, if applicable, fix this finding.\n\n${body}`;
+            return `(In Cursor)\n\nReview and, if applicable, fix this finding.\n\n${body}${ask}`;
         case 'Claude':
-            return `Act as a senior engineer reviewing a static-analysis finding. This is a pattern match, not a confirmed vulnerability — verify it applies before changing anything.\n\n${body}\n\nIf it applies, return only the fixed code.`;
+            return `Act as a senior engineer reviewing a static-analysis finding. This is a pattern match, not a confirmed vulnerability — verify it applies before changing anything.\n\n${body}${ask}`;
         case 'v0':
-            return `Review this finding and preserve layout/styling while addressing it if applicable:\n\n${body}`;
+            return `Review this finding and preserve layout/styling while addressing it if applicable:\n\n${body}${ask}`;
         case 'ChatGPT':
         default:
-            return `Review this finding (pattern match, not a confirmed vulnerability):\n\n${body}`;
+            return `Review this finding (pattern match, not a confirmed vulnerability):\n\n${body}${ask}`;
     }
 }
 
@@ -43,7 +47,7 @@ function downloadTextFile(filename, content, mimeType) {
     URL.revokeObjectURL(url);
 }
 
-export default function FindingsResults({ result, resultsRef }) {
+export default function FindingsResults({ result, resultsRef, comparison, onCheckFix, onJumpToLine }) {
     const [expandedFindingId, setExpandedFindingId] = useState(null);
     const [selectedToolMap, setSelectedToolMap] = useState({});
     const [copiedMap, setCopiedMap] = useState({});
@@ -53,13 +57,13 @@ export default function FindingsResults({ result, resultsRef }) {
 
     if (result.status !== 'ok') {
         const messages = {
-            empty: 'Nothing to analyze — paste some code first.',
+            empty: 'Nothing to check yet. Paste some code first.',
             'too-large': result.error,
             'parse-error': result.error,
         };
         return (
             <div ref={resultsRef} className="checker-disclaimer" style={{ borderColor: 'rgba(255, 82, 82, 0.4)', background: 'rgba(255, 82, 82, 0.08)', color: '#ff8a8a' }}>
-                {messages[result.status] || 'Analysis could not complete.'}
+                {messages[result.status] || "Something went wrong and the check didn't finish."}
             </div>
         );
     }
@@ -124,7 +128,7 @@ export default function FindingsResults({ result, resultsRef }) {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '16px 20px', borderRadius: '16px', background: '#161616', border: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '24px', fontSize: '13px', color: '#ccc', lineHeight: 1.5 }}>
                 <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
                 <div>
-                    These findings are pattern matches that require human review, not confirmed vulnerabilities. <strong style={{ color: '#fff' }}>A clean result does not mean this code is free of security flaws.</strong>
+                    Each of these is a pattern worth checking, and some won't turn out to be real problems. <strong style={{ color: '#fff' }}>A clean result only means nothing matched.</strong>
                 </div>
             </div>
 
@@ -193,6 +197,8 @@ export default function FindingsResults({ result, resultsRef }) {
                 </div>
             </div>
 
+            {comparison && <FixComparison comparison={comparison} />}
+
             {/* Report Overview Breakdown */}
             <ReportOverview result={result} />
 
@@ -201,9 +207,16 @@ export default function FindingsResults({ result, resultsRef }) {
                 <span></span>Detailed Findings {sortedFindings.length > 0 && `(${sortedFindings.length})`}
             </p>
 
+            {sortedFindings.length > 0 && onCheckFix && (
+                <div className="fix-check-offer">
+                    <p><b>Asked your AI to fix these?</b> Paste its version next and XAUDIT will tell you what actually got fixed, what's still there, and anything new it broke.</p>
+                    <button className="checker-export-btn" onClick={onCheckFix}>Check your AI's fix</button>
+                </div>
+            )}
+
             {sortedFindings.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 24px', color: '#888', background: '#161616', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '24px', fontSize: '14px' }}>
-                    No findings from the active rule modules. This does not guarantee that the snippet is vulnerability-free.
+                    Nothing matched. That's good, but XAUDIT only knows nine rule groups, so it isn't the same thing as safe.
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -243,7 +256,13 @@ export default function FindingsResults({ result, resultsRef }) {
                                         <span style={{ fontSize: '11px', color: 'var(--lav)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>
                                             {f.category}
                                         </span>
-                                        {f.location && <span style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>Line {f.location.line}</span>}
+                                        {f.location && (onJumpToLine ? (
+                                            <button type="button" className="finding-line-btn" onClick={() => onJumpToLine(f.location.line)} title="Show this line in the code">
+                                                Line {f.location.line}
+                                            </button>
+                                        ) : (
+                                            <span style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>Line {f.location.line}</span>
+                                        ))}
                                     </div>
 
                                     {/* Inline Expand Button */}
@@ -296,7 +315,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {f.whyItMatters && (
                                                 <div>
                                                     <div style={{ fontSize: '11px', color: '#888', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
-                                                        Why it Matters
+                                                        Why it matters
                                                     </div>
                                                     <div style={{ color: '#ddd', fontSize: '14px', lineHeight: 1.6 }}>
                                                         {f.whyItMatters}
@@ -308,7 +327,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {f.saferExample && (
                                                 <div>
                                                     <div style={{ fontSize: '11px', color: '#34d399', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
-                                                        Safer Approach
+                                                        How to fix it
                                                     </div>
                                                     <pre style={{ background: '#0a0a0a', border: '1px solid rgba(16, 185, 129, 0.25)', color: '#34d399', padding: '14px 18px', borderRadius: '14px', fontFamily: 'monospace', fontSize: '13px', overflowX: 'auto', margin: 0, lineHeight: 1.5 }}>
                                                         {f.saferExample}
@@ -320,7 +339,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {f.snippet && (
                                                 <div>
                                                     <div style={{ fontSize: '11px', color: '#888', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
-                                                        Code Excerpt
+                                                        The code
                                                     </div>
                                                     <pre style={{ background: '#0a0a0a', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#ccc', padding: '14px 18px', borderRadius: '14px', fontFamily: 'monospace', fontSize: '13px', overflowX: 'auto', margin: 0, lineHeight: 1.5 }}>
                                                         {f.snippet}
@@ -332,7 +351,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {f.limitations && (
                                                 <div>
                                                     <div style={{ fontSize: '11px', color: '#777', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-                                                        Limitations of this Check
+                                                        What this check can't see
                                                     </div>
                                                     <div style={{ color: '#888', fontSize: '13px', fontStyle: 'italic', lineHeight: 1.5 }}>
                                                         {f.limitations}
@@ -343,7 +362,7 @@ export default function FindingsResults({ result, resultsRef }) {
                                             {/* AI Coding Assistant Prompt Section */}
                                             <div style={{ marginTop: '8px', background: '#0e0e0e', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '16px', padding: '18px' }}>
                                                 <div style={{ fontSize: '11px', color: '#888', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
-                                                    Copy Prompt for Coding Assistant
+                                                    Copy a prompt for your AI assistant
                                                 </div>
                                                 
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
