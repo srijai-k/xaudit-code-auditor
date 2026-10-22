@@ -124,18 +124,16 @@ greeting.innerHTML =
           </div>
         </section>
 
-        {/* DRAFT - Srijai: this is written from the repo history (the old
-            version's claims and docs/baseline-audit.md). Rewrite it in your
-            own words and fix anything that isn't how it actually happened. */}
+        {/* Srijai's own words. The facts match docs/baseline-audit.md. */}
         <section id="story" className="origin reveal">
           <div>
             <p className="eyebrow purple"><span></span>Why I made this</p>
             <h2>The first version of XAUDIT was written mostly by AI, and it was very happy with itself.</h2>
           </div>
           <div className="origin-body">
-            <p>It said it was AI-powered. It said it had zero false positives. I believed it for a while.</p>
-            <p>Then I actually tested it. I expected to find a needle in a haystack. It was more like finding hay in a stack of needles. The SQL injection check never ran. The most common XSS bug got noticed and then never reported. The storage it called encrypted was plain text.</p>
-            <p>So I started over. This version only says what I can back up with a test.</p>
+            <p>The first version said it was AI-powered. It said it had zero false positives. And honestly, I believed it for a while.</p>
+            <p>Then I actually tested it. I was expecting to find a needle in a haystack. It was more like finding hay in a stack of needles. The SQL injection check never ran. The most common XSS bug got caught and then just never showed up in the report. The storage it called encrypted was plain text. Clean sticker, dirty cup.</p>
+            <p>So I started over. This version only says what I can prove with a test.</p>
             <button className="cta" onClick={() => navigate('/docs')}>
               <span>+</span> What the old version got wrong
             </button>
