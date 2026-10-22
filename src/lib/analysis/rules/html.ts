@@ -172,3 +172,42 @@ export function buildScriptNotAnalyzedFinding(startLine: number): Finding {
         location: { line: startLine, column: 0 },
     };
 }
+
+// Real element names only, so a TypeScript generic (`Array<string>`) or a
+// comparison (`a < b && c > d`) never counts as markup on its own.
+const COMMON_HTML_TAGS =
+    "html|head|body|title|meta|link|script|style|div|span|p|a|img|ul|ol|li|table|thead|tbody|tr|td|th|form|input|button|label|select|option|textarea|section|article|header|footer|nav|main|aside|h[1-6]|br|hr|iframe|svg|template|noscript|canvas|video|audio|source|pre|code|strong|em|b|i|small|blockquote|figure|picture";
+const HTML_MARKUP_PATTERN = new RegExp(
+    String.raw`<!doctype\s+html|<!--|<\/[a-z][a-z0-9-]*\s*>|<(?:${COMMON_HTML_TAGS})(?:\s[^<>]*)?\/?>`,
+    "i",
+);
+
+/**
+ * True when the input contains anything that reads as HTML markup: a
+ * doctype, a comment, a closing tag, or an opening tag for a real HTML
+ * element. Still pure text scanning. Used only to decide whether HTML mode
+ * owes the user a disclosure; it never switches modes on its own.
+ */
+export function looksLikeHtml(code: string): boolean {
+    return HTML_MARKUP_PATTERN.test(code);
+}
+
+/**
+ * The other half of F-05 (docs/self-audit-2026-09-03.md): HTML mode
+ * picked by hand for input with no markup at all, e.g. plain JavaScript.
+ * Without this, runHtmlChecks finds nothing, there are no <script> blocks
+ * to extract, and the result is a clean 0-finding report for code that no
+ * real rule ever looked at. Info severity, one per document.
+ */
+export function buildInputNotHtmlFinding(): Finding {
+    return {
+        ruleId: "html-input-not-html",
+        title: "Input doesn't look like HTML",
+        severity: "info",
+        category: "html",
+        message: "HTML mode was selected, but this input has no HTML markup in it (no doctype, no tags). Only the HTML hygiene checks ran, and they had nothing to look at. None of the JavaScript rules (XSS, SQL injection, secrets, dynamic execution, Node.js command patterns, auth) ran.",
+        whyItMatters: "A clean result here means nothing was examined, not that nothing was wrong. If this is JavaScript or TypeScript, a real issue like an eval() call or an unsanitized innerHTML assignment would not be flagged in this mode.",
+        saferExample: 'Re-run with "Auto-detect" or "JS / TS / React" mode so the real detection rules run on this code.',
+        limitations: "Text-pattern check for common HTML markup, not a parser. A fragment with only unusual or custom tags may get this note even though it is HTML, and the checker never switches modes for you.",
+    };
+}

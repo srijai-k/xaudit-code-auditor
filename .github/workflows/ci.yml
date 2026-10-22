@@ -20,6 +20,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint (informational for now — not yet a merge gate)
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Type-check the analysis engine (must pass)
+        run: npm run typecheck
+
       - name: Run test suite (must pass — this is the regression gate)
         run: npm test
 
@@ -28,6 +35,15 @@ jobs:
 
       - name: Regenerate independent benchmark report
         run: npm run bench:independent
+
+      - name: CLI smoke test (flags the vulnerable fixtures, passes the safe ones)
+        run: |
+          npm run -s xaudit -- tests/fixtures/safe --fail-on high
+          if npm run -s xaudit -- tests/fixtures/vulnerable --fail-on high > /dev/null; then
+            echo "::error::xaudit CLI did not fail on tests/fixtures/vulnerable"; exit 1
+          fi
+          npm run -s xaudit -- tests/fixtures/vulnerable --format sarif --output xaudit.sarif --fail-on none
+          node -e "const r=JSON.parse(require('fs').readFileSync('xaudit.sarif','utf8')).runs[0]; if(!r.results.length) process.exit(1)"
 
       - name: Build production bundle
         run: npm run build

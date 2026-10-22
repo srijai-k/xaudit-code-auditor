@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -25,6 +26,12 @@ const CONTENT_SECURITY_POLICY = [
 
 // https://vite.dev/config/
 export default defineConfig({
+  // "@/..." points at src/, the same alias shadcn components assume.
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   preview: {
     headers: {
       'Content-Security-Policy': CONTENT_SECURITY_POLICY,
@@ -48,12 +55,12 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']
       },
       manifest: {
         name: 'XAUDIT',
         short_name: 'XAUDIT',
-        description: 'Client-side static code checker for JavaScript, TypeScript, React/JSX, and HTML patterns.',
+        description: 'Check the code your AI wrote. Points at risky JavaScript, TypeScript, React, HTML and package.json patterns, right in your browser.',
         theme_color: '#050505',
         background_color: '#050505',
         display: 'standalone',

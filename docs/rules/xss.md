@@ -4,6 +4,10 @@ Source: [`src/lib/analysis/rules/xss.ts`](../../src/lib/analysis/rules/xss.ts) �
 
 AST-based (Babel), with one same-scope variable hop (`resolveSingleAssignment` in [`ast-utils.ts`](../../src/lib/analysis/ast-utils.ts)) — not full data-flow/taint analysis. A finding is only raised when the value at a sink isn't provably a static string, checked either directly or by tracing an identifier back one hop to a `const`/`let` declaration that's never reassigned.
 
+Values that provably can't carry HTML are not flagged at any sink: numbers, `.length`, `parseInt(x)`/`Number(x)`, `price.toFixed(2)`, `Math.*`, `String(total)` when `total` is itself one of these, and text built only from those plus literal strings (`"You have " + cart.length + " items"`). See `isInertValue` in [`ast-utils.ts`](../../src/lib/analysis/ast-utils.ts). One assumption is disclosed on every finding: `.length` is treated as a number, so an object whose `length` property is attacker-controlled text would be missed. Tests: `tests/fixtures/safe/xss-inner-html-numeric-value-not-flagged.ts`.
+
+When the value visibly comes from user input in the page (`location.*`, `document.URL`, `document.referrer`, `window.name`, `new URLSearchParams(location.search).get(...)`), directly or one variable hop back, the finding's message and "why it matters" name that source (`findUserInput` in `ast-utils.ts`). **Severity is not lowered when the source is unknown:** a function parameter reaching `innerHTML` is the classic real-world bug, and the independent benchmark's ground truth, written before the engine ran, expects "high" for that shape. Tests: `tests/fixtures/vulnerable/xss-inner-html-url-search-param.ts`.
+
 Every `ruleId` below has its own anchor on this page — this is what `helpUri` in the SARIF export points to.
 
 ---

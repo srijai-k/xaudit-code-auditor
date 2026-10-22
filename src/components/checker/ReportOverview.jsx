@@ -20,6 +20,7 @@ const CATEGORY_LABELS = {
     'node-command': 'Node Command Patterns',
     auth: 'Weak Authentication',
     'dependency-hygiene': 'Dependency Hygiene',
+    'express-request': 'Express Request Input',
     html: 'HTML Hygiene',
 };
 

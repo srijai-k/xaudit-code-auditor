@@ -1,49 +1,51 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { TopTicker, HeaderNav } from '../components/Navbar';
-import logoXa from '../assets/logo-xa.png';
 import '../landing.css';
 
 const SECTIONS = [
     { id: 'overview', title: 'Overview' },
-    { id: 'checks', title: 'Current Supported Checks' },
-    { id: 'unsupported', title: 'Unsupported Scope' },
-    { id: 'local-exec', title: 'Local Execution & Privacy' },
-    { id: 'export', title: 'Report Export Formats' },
+    { id: 'checks', title: 'What it checks' },
+    { id: 'unsupported', title: 'What it doesn\'t cover' },
+    { id: 'local-exec', title: 'Privacy and local running' },
+    { id: 'export', title: 'Export formats' },
     { id: 'scoring-removed', title: 'Scoring Removed' },
-    { id: 'limitations', title: 'Limitations & Disclaimer' },
-    { id: 'architecture', title: 'Architecture & Parsers' },
-    { id: 'baseline', title: 'Pre-Rewrite Baseline Audit' },
-    { id: 'improvements', title: 'Model Improvements Log' },
+    { id: 'limitations', title: 'Limitations' },
+    { id: 'architecture', title: 'Architecture' },
+    { id: 'baseline', title: 'What the old version got wrong' },
+    { id: 'improvements', title: 'Engine changelog' },
     { id: 'self-audit', title: 'Self-Audit (2026-09-03)' },
-    { id: 'rules-reference', title: 'Exhaustive Rule Reference' },
+    { id: 'rules-reference', title: 'Every rule ID' },
 ];
 
 export default function DocsPage() {
-    const navigate = useNavigate();
     const [activeSection, setActiveSection] = useState('overview');
 
     return (
-        <div className="landing-wrapper">
+        <div className="landing-wrapper" style={{ background: '#222222' }}>
             <TopTicker />
-            <main className="page-shell">
+            <main className="page-shell" style={{ background: '#f4f3ef', color: '#111', minHeight: '100vh', borderRadius: '32px' }}>
                 <HeaderNav />
 
+                <div className="page-shell-body">
                 {/* Recentered Header Section */}
                 <div style={{ padding: '48px 24px 32px', textAlign: 'center', maxWidth: '840px', margin: '0 auto' }}>
-                    <p className="eyebrow purple" style={{ justifyContent: 'center' }}><span></span>Official Specification & Documentation</p>
-                    <h1 style={{ fontSize: '42px', fontWeight: 500, color: '#fff', margin: '10px 0 16px', lineHeight: 1.15 }}>
-                        XAUDIT Technical Reference
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7c3aed', marginBottom: '20px', justifyContent: 'center' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }}></span>
+                        Docs
+                    </div>
+                    <h1 style={{ fontSize: '42px', fontWeight: 500, color: '#111', margin: '10px 0 16px', lineHeight: 1.15 }}>
+                        The long version.
                     </h1>
-                    <p style={{ color: '#888', fontSize: '16px', lineHeight: 1.6 }}>
-                        Complete reference manual, rule specifications, self-audit report, model improvement changelog, and local execution details.
+                    <p style={{ color: '#555', fontSize: '16px', lineHeight: 1.6 }}>
+                        What every rule checks, what it skips, how the engine is built and every bug I found in my own code. The other pages are the short version.
                     </p>
                 </div>
 
                 <div className="docs-layout">
                     {/* Sticky Sidebar Tab Navigation */}
                     <aside className="docs-sidebar">
-                        <div className="docs-nav-title">DOCUMENTATION INDEX</div>
+                        <div className="docs-nav-title">ON THIS PAGE</div>
                         {SECTIONS.map((sec) => (
                             <button
                                 key={sec.id}
@@ -62,13 +64,13 @@ export default function DocsPage() {
                             <section id="overview" className="docs-card">
                                 <h2>Overview</h2>
                                 <p>
-                                    XAUDIT is a client-side static code checker for a defined set of JavaScript, TypeScript, React/JSX, HTML, and package.json patterns. Analysis runs entirely in your browser, in a Web Worker, via a real AST parser (<code>@babel/parser</code>) for code and a JSON-based rule module for package.json — a small set of hand-written, unit-tested pattern rules — not an AI model, not regex guesswork over raw text.
+                                    XAUDIT is a code checker that runs in your browser, made for checking code you got from an AI tool (or anywhere else) before you use it. It reads JavaScript, TypeScript, React/JSX and HTML with a real parser (<code>@babel/parser</code>), reads package.json as JSON, and runs a small set of rules I wrote and tested by hand. All of it happens in a Web Worker. There's no AI model in it, and it isn't just searching text with regex.
                                 </p>
                                 <div className="docs-callout warning">
-                                    <strong>Important Notice:</strong> XAUDIT reports potential issues that require human review. A clean result does not mean your code is secure.
+                                    <strong>Worth saying up front:</strong> everything XAUDIT reports needs a human to look at it. A clean result doesn't mean your code is secure.
                                 </div>
                                 <p>
-                                    This is a rewrite of an earlier version of this project that made claims — "AI-powered," "WebAssembly," "zero false positives," "enterprise-grade," support for a dozen languages/frameworks — that the code behind it did not back up. Nothing in this documentation is aspirational; everything here has a test.
+                                    This is a rewrite. The first version of this project called itself "AI-powered" and "enterprise-grade," said it ran on WebAssembly, promised zero false positives and claimed to support a dozen frameworks. The code behind it couldn't back any of that up. This version tries to only say things there's a test for.
                                 </p>
                             </section>
                         )}
@@ -76,17 +78,17 @@ export default function DocsPage() {
                         {/* Current Supported Checks */}
                         {activeSection === 'checks' && (
                             <section id="checks" className="docs-card">
-                                <h2>Current Supported Checks</h2>
+                                <h2>What it checks</h2>
                                 <p>
-                                    Only JavaScript, TypeScript, React/JSX, basic HTML, and package.json are analyzed. Every finding carries: what matched, why it matters, a safer example, and its own stated limitations. There is no letter grade, no "ship it" verdict, and no numeric score — that was removed on purpose (see <em>Scoring Removed</em>).
+                                    Only JavaScript, TypeScript, React/JSX, basic HTML and package.json get checked. Every finding comes with what matched, why it matters, a safer example and what the rule can't see. There's no grade or score. I took that out on purpose (see <em>Scoring Removed</em>).
                                 </p>
 
                                 <table className="docs-table">
                                     <thead>
                                         <tr>
-                                            <th style={{ width: '22%' }}>Rule Group</th>
-                                            <th style={{ width: '40%' }}>What it Flags</th>
-                                            <th style={{ width: '38%' }}>What it Deliberately Does NOT Flag</th>
+                                            <th style={{ width: '22%' }}>Rule group</th>
+                                            <th style={{ width: '40%' }}>What it flags</th>
+                                            <th style={{ width: '38%' }}>What it leaves alone on purpose</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -117,13 +119,18 @@ export default function DocsPage() {
                                         </tr>
                                         <tr>
                                             <td><strong>Weak Authentication Patterns</strong></td>
-                                            <td>A credential-shaped name compared directly against a string literal; <code>jwt.decode()</code> with no <code>jwt.verify()</code> anywhere in the same file.</td>
-                                            <td>Comparisons against non-literals; fields named credential-shaped without equality comparison; <code>jwt.verify()</code> in a different file; test assertions.</td>
+                                            <td>A credential-shaped name compared directly against a string literal; <code>jwt.decode()</code> with no <code>jwt.verify()</code> anywhere in the same file; a password run through MD5/SHA-1/SHA-256; <code>Math.random()</code> used for a token, reset code or OTP; <code>jwt.sign()</code>/<code>verify()</code> with a secret written in the code.</td>
+                                            <td>Comparisons against non-literals; fields named credential-shaped without equality comparison; <code>jwt.verify()</code> in a different file; test assertions; fast hashes of non-password data (checksums, ETags); <code>Math.random()</code> for animations or shuffles; JWT secrets from the environment.</td>
                                         </tr>
                                         <tr>
                                             <td><strong>HTML Hygiene</strong></td>
-                                            <td>Missing viewport meta, missing alt text, literal inline <code>onclick="..."</code> attributes, missing CSP meta tag, non-trivial <code>&lt;script&gt;</code> blocks in HTML mode.</td>
-                                            <td>Anything regarding JS/JSX inside the page.</td>
+                                            <td>Missing viewport meta, missing alt text, literal inline <code>onclick="..."</code> attributes, missing CSP meta tag. Inline <code>&lt;script&gt;</code> blocks also get run through the JavaScript rules.</td>
+                                            <td>External <code>&lt;script src&gt;</code> files, and script blocks that can't be parsed on their own (those get a note saying they weren't checked).</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Express Request Input</strong></td>
+                                            <td>Something from the request (<code>req.query</code>, <code>req.body</code>, <code>req.params</code>, <code>req.headers</code>) reaching <code>res.send()</code> as HTML, <code>res.redirect()</code>, a file path (<code>res.sendFile</code>, <code>fs.*</code>), or the URL of an outgoing request (axios, got, http(s), server-side fetch). Also <code>cors(&#123; origin: true, credentials: true &#125;)</code>, session cookies set without <code>httpOnly</code>, passwords or secrets in a response, owner/role fields taken from the request, <code>/admin</code> routes with no role check, and logged-in routes that load a record by id without checking who's asking (a labelled heuristic).</td>
+                                            <td>Dynamic values that don't come from the request; input passed through an escaping call first (<code>escapeHtml</code>, <code>path.basename</code>); <code>res.sendFile</code> with a <code>root</code> option; redirects to a fixed same-site path; requests to a fixed host.</td>
                                         </tr>
                                         <tr>
                                             <td><strong>Dependency Hygiene</strong></td>
@@ -138,15 +145,15 @@ export default function DocsPage() {
                         {/* Unsupported Scope */}
                         {activeSection === 'unsupported' && (
                             <section id="unsupported" className="docs-card">
-                                <h2>Unsupported Scope</h2>
-                                <h3>Unsupported Vulnerability Classes</h3>
+                                <h2>What it doesn't cover</h2>
+                                <h3>Vulnerabilities it doesn't look for</h3>
                                 <p>
-                                    Not implemented, and not claimed: general authentication/session-management analysis beyond the two narrow checks, ReDoS/algorithmic-complexity detection, CSRF, SSRF, prototype pollution, insecure deserialization, dependency/CVE scanning, general command injection beyond the narrow Node.js pattern, and anything requiring real type information or cross-function data-flow/taint tracking.
+                                    XAUDIT doesn't check for general authentication/session-management analysis beyond the two narrow checks, ReDoS/algorithmic-complexity detection, CSRF, SSRF, prototype pollution, insecure deserialization, dependency/CVE scanning, general command injection beyond the narrow Node.js pattern, and anything requiring real type information or cross-function data-flow/taint tracking.
                                 </p>
 
-                                <h3>Unsupported Languages & Frameworks</h3>
+                                <h3>Languages and frameworks it doesn't support</h3>
                                 <p>
-                                    Do not assume support for: Vue, Svelte, Astro, Solid, Next.js-specific patterns, Node.js backend analysis beyond the narrow command-pattern rule, Tailwind security analysis, Web Components, or arbitrary "polyglot" code.
+                                    Don't expect results for Vue, Svelte, Astro, Solid, Next.js-specific patterns, Node.js backend analysis beyond the narrow command-pattern rule, Tailwind security analysis, Web Components, or arbitrary "polyglot" code.
                                 </p>
                             </section>
                         )}
@@ -154,18 +161,18 @@ export default function DocsPage() {
                         {/* Local Execution & Privacy */}
                         {activeSection === 'local-exec' && (
                             <section id="local-exec" className="docs-card">
-                                <h2>How Analysis Runs Locally</h2>
-                                <ul style={{ color: '#ccc', lineHeight: 1.8, paddingLeft: '20px', marginBottom: '24px' }}>
-                                    <li>Pasted/typed code is checked against a <strong>500KB size limit</strong> before anything else runs — oversized input is rejected with a message, not silently truncated.</li>
+                                <h2>How it runs on your machine</h2>
+                                <ul style={{ color: '#333', lineHeight: 1.8, paddingLeft: '20px', marginBottom: '24px' }}>
+                                    <li>Pasted/typed code is checked against a <strong>500KB size limit</strong> before anything else runs. Anything bigger is rejected with a message instead of being cut short.</li>
                                     <li>The code is sent (via <code>postMessage</code>, in-memory, same-origin) to a dedicated Web Worker. Parsing and rule execution happen there, off the UI thread.</li>
                                     <li>For HTML input, a lightweight attribute/text scan runs. For everything else, <code>@babel/parser</code> builds a real AST and each rule module traverses it independently.</li>
                                     <li>Findings are deduplicated by rule + source location and returned to the main thread.</li>
                                     <li>Nothing in this pipeline calls <code>fetch</code>, <code>XMLHttpRequest</code>, <code>WebSocket</code>, or any external SDK.</li>
                                 </ul>
 
-                                <h3>What Data is Stored Locally</h3>
+                                <h3>What gets saved</h3>
                                 <p>
-                                    <strong>Nothing, by default.</strong> Nothing is written to <code>localStorage</code> unless "Save report summaries locally" is explicitly enabled. When enabled, only this is stored — never raw code, never a full secret value: timestamp, detected language, finding counts by severity, finding titles (not full snippets), and a masked excerpt of the input (first ~120 characters). This data is plaintext, not encrypted. A "Clear local data" button is available.
+                                    <strong>Nothing, by default.</strong> Nothing is written to <code>localStorage</code> unless you turn on "Save local report summaries". If you do, this is all that gets stored. Never your full code and never a full secret: timestamp, detected language, finding counts by severity, finding titles (not full snippets), and a masked excerpt of the input (first ~120 characters). This data is plaintext, not encrypted. A "Clear local data" button is available.
                                 </p>
                             </section>
                         )}
@@ -173,15 +180,19 @@ export default function DocsPage() {
                         {/* Report Export Formats */}
                         {activeSection === 'export' && (
                             <section id="export" className="docs-card">
-                                <h2>Exporting a Report</h2>
+                                <h2>Export formats</h2>
                                 <p>
-                                    Three formats, all generated client-side from the exact findings already on screen:
+                                    Three formats, all made in your browser from the findings already on screen:
                                 </p>
-                                <ul style={{ color: '#ccc', lineHeight: 1.8, paddingLeft: '20px' }}>
+                                <ul style={{ color: '#333', lineHeight: 1.8, paddingLeft: '20px' }}>
                                     <li><strong>PDF</strong>: A formatted report for sharing and archiving.</li>
-                                    <li><strong>SARIF 2.1.0</strong>: The standard format GitHub Code Scanning, VS Code's SARIF viewer, and CI security tooling read — each rule's <code>helpUri</code> links to a real, stable anchor.</li>
-                                    <li><strong>JSON</strong>: The full analysis result payload.</li>
+                                    <li><strong>SARIF 2.1.0</strong>: The standard format GitHub Code Scanning, VS Code's SARIF viewer, and most CI tools already read. Each rule's <code>helpUri</code> links to its own section in the docs.</li>
+                                    <li><strong>JSON</strong>: The whole result, plus the on-screen disclaimer.</li>
                                 </ul>
+                                <h3>Checking a whole project</h3>
+                                <p>
+                                    The same engine runs from the command line (<code>npm run xaudit -- your-project/</code>) and as a GitHub Action that writes SARIF for code scanning on every pull request. Both run offline on your machine or the CI runner. Setup is in <code>docs/cli-and-github-action.md</code> in the repo.
+                                </p>
                             </section>
                         )}
 
@@ -190,12 +201,12 @@ export default function DocsPage() {
                             <section id="scoring-removed" className="docs-card">
                                 <h2>Scoring Removed</h2>
                                 <p>
-                                    An earlier version of XAUDIT computed a weighted overall score, mapped it to a letter grade, and produced a ship/no-ship style verdict. This was removed entirely rather than kept in a "fixed" form, for three reasons:
+                                    An earlier version of XAUDIT gave your code a weighted score, turned it into a letter grade and told you whether to ship. I took all of it out. Here's why:
                                 </p>
-                                <ol style={{ color: '#ccc', lineHeight: 1.8, paddingLeft: '20px' }}>
-                                    <li><strong>No rubric could be made honest at this rule count:</strong> A grade implies a calibrated relationship between finding count/severity and actual security risk. With a handful of narrow rule groups and no data-flow analysis, that relationship doesn't exist.</li>
-                                    <li><strong>It was empirically wrong on its own terms:</strong> The old scoring logic disagreed with its own author's hand-written test expectations on two of nine cases. A rubric that can't pass its own test cases has no business being presented as authoritative.</li>
-                                    <li><strong>It invited exactly the wrong behavior:</strong> A grade or verdict is an invitation to treat a passing result as a decision rather than a prompt to keep looking. The replacement — a plain count of findings by severity, each with its own stated limitations — is deliberately less satisfying and more honest.</li>
+                                <ol style={{ color: '#333', lineHeight: 1.8, paddingLeft: '20px' }}>
+                                    <li><strong>The grade didn't mean anything.</strong> For a grade to be fair, the number of findings would have to say something real about how risky the code is. With a handful of narrow rules and no data-flow tracking, it just doesn't.</li>
+                                    <li><strong>It failed its own tests.</strong> The scoring disagreed with my own hand-written expectations on two out of nine test cases. Hard to trust a grade that can't pass its own quiz.</li>
+                                    <li><strong>People stop at an A.</strong> You see an A, you close the tab. What's there now is a plain count of findings by severity, each with its own limits listed. It's less satisfying to look at, which is kind of the point.</li>
                                 </ol>
                             </section>
                         )}
@@ -203,24 +214,24 @@ export default function DocsPage() {
                         {/* Limitations & Disclaimer */}
                         {activeSection === 'limitations' && (
                             <section id="limitations" className="docs-card">
-                                <h2>Known Limitations & Security Disclaimer</h2>
-                                <h3>Known Limitations</h3>
-                                <ul style={{ color: '#ccc', lineHeight: 1.7, paddingLeft: '20px', marginBottom: '24px' }}>
+                                <h2>Limitations</h2>
+                                <h3>Things it can't do</h3>
+                                <ul style={{ color: '#333', lineHeight: 1.7, paddingLeft: '20px', marginBottom: '24px' }}>
                                     <li>No data-flow or taint analysis anywhere. Every rule looks at a direct AST relationship at a single call/assignment site.</li>
                                     <li>No type checker. TypeScript syntax parses, but type information is never used.</li>
                                     <li>The SQL-injection rule is deliberately narrow and will miss anything not shaped like one of its recognized method names on a recognized DB-shaped receiver.</li>
                                     <li>The secrets rule's entropy fallback will still miss a real secret that's hex-only or lands under its entropy threshold.</li>
                                     <li>No input-size streaming/chunking: input above 500KB is rejected outright.</li>
-                                    <li>Old-style TypeScript angle-bracket casts (<code>&lt;Foo&gt;value</code>) do not parse — permanently ambiguous with JSX. Decorators, enums, private class fields, satisfies, and namespaces all parse correctly.</li>
+                                    <li>Old-style TypeScript angle-bracket casts (<code>&lt;Foo&gt;value</code>) don't parse, because with JSX turned on they look exactly like a tag. Use <code>value as Foo</code> instead. Decorators, enums, private class fields, satisfies, and namespaces all parse correctly.</li>
                                     <li>PWA/offline behavior: the app shell is precached, but full offline functionality has not been independently verified across browsers.</li>
                                     <li>Security headers (CSP, HSTS, X-Frame-Options) are configured for Vercel deployment specifically. Hosting elsewhere gets none of this protection unless equivalent host-level configuration is added.</li>
-                                    <li>Manually selecting "HTML" mode on non-HTML input does not analyze embedded <code>&lt;script&gt;</code> content and can return a clean, 0-finding result.</li>
-                                    <li>The zero-network-request claim is verified manually before releases, not enforced by an automated CI test.</li>
-                                    <li>This is a young rewrite. The rule set is intentionally small; "not flagged" means "not covered," not "checked and clean."</li>
+                                    <li>If you pick HTML mode and paste plain JavaScript, the JavaScript rules still don't run on it. You get a note saying so instead of a clean result. Auto-detect doesn't have this problem.</li>
+                                    <li>The zero-network claim is checked in CI two ways: a Playwright test that watches every request during a real click-through, and a check that fails the build if <code>fetch</code>, <code>XMLHttpRequest</code> or <code>WebSocket</code> shows up anywhere in the source.</li>
+                                    <li>This is a young rewrite and the rule set is small on purpose. If something isn't flagged, it might just not be covered.</li>
                                 </ul>
 
                                 <div className="docs-callout danger">
-                                    <strong>Security Disclaimer:</strong> XAUDIT is a supplementary, best-effort static pattern-checker. It is not a substitute for a professional security review, threat modeling, dependency/SCA scanning, penetration testing, or a secure development lifecycle. A clean XAUDIT result does not mean your code is secure, and a reported finding does not by itself mean your code is exploitable.
+                                    <strong>The disclaimer:</strong> XAUDIT is a supplementary, best-effort static pattern-checker. It is not a substitute for a professional security review, threat modeling, dependency/SCA scanning, penetration testing, or a secure development lifecycle. A clean XAUDIT result does not mean your code is secure, and a reported finding does not by itself mean your code is exploitable.
                                 </div>
                             </section>
                         )}
@@ -228,12 +239,12 @@ export default function DocsPage() {
                         {/* Architecture */}
                         {activeSection === 'architecture' && (
                             <section id="architecture" className="docs-card">
-                                <h2>Architecture & Parser Selection</h2>
+                                <h2>Architecture</h2>
                                 <div className="docs-code-block">
 {`User pasted/uploaded text
-  → file-size & type validation            (500KB hard cap, rejected outright)
+  → file-size & type validation            (over 500KB? rejected)
   → Web Worker
-  → parser selected by mode                 (html attribute scan OR @babel/parser AST)
+  → parser selected by mode                 (HTML scan or @babel/parser AST)
   → AST traversal / narrowly scoped rules
   → normalized Finding objects
   → deduplication
@@ -241,14 +252,14 @@ export default function DocsPage() {
   → optional local-only report persistence  (off by default)`}
                                 </div>
 
-                                <h3>Parser Choice</h3>
+                                <h3>Why Babel</h3>
                                 <p>
-                                    <code>@babel/parser</code> + <code>@babel/traverse</code> was chosen over <code>@typescript-eslint/typescript-estree</code> (pulls in full TS compiler — large, Node/CLI-oriented) and <code>acorn</code> (fast for JS/JSX, but bolted-on TS plugin). Babel provides a single parser accepting the union of JS/TS/JSX/TSX syntax with a mature, uniform visitor API. It does not include a type checker — a deliberate scope limit, not an oversight.
+                                    I went with <code>@babel/parser</code> and <code>@babel/traverse</code>. <code>@typescript-eslint/typescript-estree</code> pulls in the whole TypeScript compiler, which is big and built for Node. <code>acorn</code> is fast for JS and JSX, but TypeScript is a plugin bolted onto it. Babel reads JS, TS, JSX and TSX with one parser and one way of walking the tree. There's no type checker, and that's on purpose.
                                 </p>
 
-                                <h3>Web Worker Isolation</h3>
+                                <h3>The Web Worker</h3>
                                 <p>
-                                    A single worker is spawned and communicated with over <code>postMessage</code>. Every request carries an incrementing <code>requestId</code>; the client discards any response whose ID doesn't match the most recent. Babel's synchronous calls do not yield, but given the 500KB cap, worst-case analysis time stays low enough that this tradeoff was accepted.
+                                    There's one worker, and the page talks to it over <code>postMessage</code>. Every request gets a <code>requestId</code> that goes up by one each time. If an answer comes back with an old ID, it gets ignored. Babel can't be paused halfway through a parse, but with the 500KB cap even the worst case finishes fast, so I left it like that.
                                 </p>
                             </section>
                         )}
@@ -256,21 +267,21 @@ export default function DocsPage() {
                         {/* Pre-Rewrite Baseline Audit */}
                         {activeSection === 'baseline' && (
                             <section id="baseline" className="docs-card">
-                                <h2>Baseline Audit (Pre-Rewrite)</h2>
+                                <h2>What the old version got wrong</h2>
                                 <p>
-                                    Recorded before any rewrite work, as ground truth measured against source code, local runs, production builds, and a 30-case adversarial script run:
+                                    Before rewriting anything, I went through the old version and wrote down what was actually true. I checked the source, ran it locally, built it for production and threw 30 tricky test cases at it:
                                 </p>
-                                <ul style={{ color: '#ccc', lineHeight: 1.7, paddingLeft: '20px' }}>
-                                    <li>Pure regex/string matching engine. No parser, no AST, no data-flow tracking, no AI model.</li>
-                                    <li>SQLi detector was unreachable dead code after an unconditional early return.</li>
-                                    <li>Standard React JSX (<code>onClick=&#123;handleClick&#125;</code>) reported as critical inline click handler vulnerability.</li>
-                                    <li>Raw DOM XSS (<code>element.innerHTML = userInput</code>) computed a flag internally but never created a finding.</li>
-                                    <li>Secret scanner mislabeled real keys as multiple unrelated vendor keys.</li>
-                                    <li>PDF library had unpatched critical/high security advisories.</li>
+                                <ul style={{ color: '#333', lineHeight: 1.7, paddingLeft: '20px' }}>
+                                    <li>It was all regex and string matching. No parser and no AI model, even though the site said "AI-powered."</li>
+                                    <li>The SQL injection detector never ran. It sat after a <code>return</code> that always fired.</li>
+                                    <li>A normal React <code>onClick=&#123;handleClick&#125;</code> got flagged as a critical vulnerability.</li>
+                                    <li><code>element.innerHTML = userInput</code>, the most classic XSS there is, got noticed internally and then never reported.</li>
+                                    <li>The secret scanner labeled one real key as several different vendors' keys at once.</li>
+                                    <li>The PDF library had known critical and high security advisories that were never patched.</li>
                                     <li>No CSP or security headers anywhere.</li>
-                                    <li>External font requests contradicted "0 KB uploaded" claim.</li>
-                                    <li>Local storage was plaintext despite on-page "encrypted" claim.</li>
-                                    <li>30-case adversarial corpus baseline: <strong>Precision = 0.64, Recall = 0.41, F1 = 0.50</strong>.</li>
+                                    <li>It loaded fonts from an outside server while saying "0 KB uploaded."</li>
+                                    <li>The site said local storage was encrypted. It was plain text.</li>
+                                    <li>Score on the 30 tricky cases: <strong>Precision = 0.64, Recall = 0.41, F1 = 0.50</strong>.</li>
                                 </ul>
                             </section>
                         )}
@@ -278,19 +289,19 @@ export default function DocsPage() {
                         {/* Model Improvements Log */}
                         {activeSection === 'improvements' && (
                             <section id="improvements" className="docs-card">
-                                <h2>Model Improvements Log</h2>
-                                <p>Plain-language record of changes to the detection engine:</p>
-                                <ul style={{ color: '#ccc', lineHeight: 1.7, paddingLeft: '20px' }}>
-                                    <li><strong>Same-scope variable tracing:</strong> Traces Plain variables back one hop to initial declaration. Cuts false positives on safe HTML literals & catches indirect SQLi.</li>
-                                    <li><strong>Reverted dynamic import()/require() check:</strong> Reverted same day after testing showed high false positives on locale/route code-splitting.</li>
+                                <h2>Engine changelog</h2>
+                                <p>Every real change to how detection works, in the order it happened:</p>
+                                <ul style={{ color: '#333', lineHeight: 1.7, paddingLeft: '20px' }}>
+                                    <li><strong>Same-scope variable tracing:</strong> Follows a plain variable back one step to where it was declared. Fewer false alarms on safe HTML strings, and it catches SQL that was built one line earlier.</li>
+                                    <li><strong>Reverted dynamic import()/require() check:</strong> Undone the same day. It flagged normal code-splitting for languages and routes way too often.</li>
                                     <li><strong>Expanded ORM coverage:</strong> Added <code>sequelize</code>, <code>dataSource</code>, <code>queryRunner</code>, and Prisma unsafe raw-query methods.</li>
-                                    <li><strong>Entropy-based secrets fallback:</strong> Shannon entropy threshold ≥ 4.5 bits/char calibrated against real tokens vs git hashes, UUIDs, SRI hashes, CDN URLs.</li>
-                                    <li><strong>Fixed dangerouslySetInnerHTML as variable:</strong> Resolved gap where props object built separately as a variable bypassed object-literal check.</li>
-                                    <li><strong>Independent benchmark corpus:</strong> Built 14 multi-concern benchmark files. Result: <strong>14 files, 13 true positives, 0 false positives, 0 false negatives</strong>.</li>
-                                    <li><strong>Fixed Decorator TS parsing:</strong> Added Babel <code>decorators-legacy</code> plugin enabling NestJS, Angular, and TypeORM controller parsing.</li>
-                                    <li><strong>New Sink — jQuery .html():</strong> Added receiver-validated check for jQuery/jqLite <code>.html()</code> DOM injection.</li>
-                                    <li><strong>Weak Authentication rules:</strong> Hardcoded credential equality checks & <code>jwt.decode()</code> without <code>jwt.verify()</code> in same file.</li>
-                                    <li><strong>Pathological slowdown testing:</strong> Verified adversarial backreferences, 7,500+ findings, 20,000 deep nested arrays run in sub-second time without ReDoS.</li>
+                                    <li><strong>Entropy-based secrets fallback:</strong> Catches random-looking strings above 4.5 bits of entropy per character. Tuned against real tokens so git hashes, UUIDs, SRI hashes and CDN URLs don't set it off.</li>
+                                    <li><strong>Fixed dangerouslySetInnerHTML as variable:</strong> If the <code>&#123; __html &#125;</code> object was built in a separate variable first, it used to slip past. Not anymore.</li>
+                                    <li><strong>Separate benchmark files:</strong> Realistic files with a few things going on in each, with expected results written down first. Now <strong>21 files, 22 found, 0 false alarms, 0 missed</strong>. I wrote these too, so take that with some salt.</li>
+                                    <li><strong>Fixed Decorator TS parsing:</strong> Turned on Babel's <code>decorators-legacy</code> plugin, so NestJS, Angular and TypeORM code parses now.</li>
+                                    <li><strong>New check, jQuery .html():</strong> Flags <code>.html()</code>, but only when it's called on something that really looks like jQuery.</li>
+                                    <li><strong>Weak Authentication rules:</strong> Passwords compared against a hardcoded string, and <code>jwt.decode()</code> with no <code>jwt.verify()</code> in the same file.</li>
+                                    <li><strong>Pathological slowdown testing:</strong> Threw nasty inputs at it on purpose: regex-breaking strings, files with 7,500+ findings, arrays nested 20,000 deep. All of them finish in under a second.</li>
                                 </ul>
                             </section>
                         )}
@@ -298,9 +309,9 @@ export default function DocsPage() {
                         {/* Self-Audit */}
                         {activeSection === 'self-audit' && (
                             <section id="self-audit" className="docs-card">
-                                <h2>Self-Audit — 2026-09-03</h2>
+                                <h2>Self-audit, 2026-09-03</h2>
                                 <div className="docs-callout warning">
-                                    <strong>Executive Verdict:</strong> An early usable developer tool with limited verified coverage. A real, narrow, AST-based static checker — not an AI product, not a security guarantee.
+                                    <strong>Short version:</strong> it's an early tool that works, with a small set of checks I can actually back up. Useful for finding where to look. It won't tell you your code is safe.
                                 </div>
 
                                 <table className="docs-table">
@@ -308,39 +319,39 @@ export default function DocsPage() {
                                         <tr>
                                             <th>ID</th>
                                             <th>Severity</th>
-                                            <th>Finding Summary & Resolution</th>
+                                            <th>What I found and what I did about it</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
                                             <td><code>F-01</code></td>
                                             <td><span className="docs-badge critical">Critical</span></td>
-                                            <td>Non-vendor high-entropy secret leaked unmasked into local storage history. Fixed during audit with a matching redaction pass before storage writes.</td>
+                                            <td>A random-looking secret with no known format was getting saved to history unmasked. Fixed during the audit: everything goes through the same masking step before it's saved now.</td>
                                         </tr>
                                         <tr>
                                             <td><code>F-02</code></td>
                                             <td><span className="docs-badge medium">Medium</span></td>
-                                            <td>Two landing page sections stated conflicting rule-group counts. Fixed same day to single consistent count.</td>
+                                            <td>Two sections of the landing page disagreed on how many rule groups there were. Fixed the same day.</td>
                                         </tr>
                                         <tr>
                                             <td><code>F-03</code></td>
                                             <td><span className="docs-badge medium">Medium</span></td>
-                                            <td>Security headers were Vercel-platform-specific without disclosure. Fixed same day in deployment docs.</td>
+                                            <td>The security headers only work on Vercel and nothing said so. Added to the deployment docs the same day.</td>
                                         </tr>
                                         <tr>
                                             <td><code>F-04</code></td>
                                             <td><span className="docs-badge low">Low</span></td>
-                                            <td>"Send to coding assistant" button only copied text to clipboard. Fixed UI text to describe actual clipboard operation.</td>
+                                            <td>A button said "Send to coding assistant" but it only copied text. Renamed it to say what it actually does.</td>
                                         </tr>
                                         <tr>
                                             <td><code>F-05</code></td>
                                             <td><span className="docs-badge low">Low</span></td>
-                                            <td>Manual HTML mode override on non-HTML input returned clean zero-finding result. Fixed by adding informational disclosure finding.</td>
+                                            <td>Picking HTML mode for non-HTML input gave a clean zero-finding result. Fixed: input with no HTML in it now gets a note saying the JavaScript rules didn't run, and script blocks that can't be parsed get one too.</td>
                                         </tr>
                                         <tr>
                                             <td><code>F-06</code></td>
                                             <td><span className="docs-badge info">Info</span></td>
-                                            <td>Zero-network request claim lacked automated regression test. Closed with unit tests, traps, and Playwright end-to-end network & console guards.</td>
+                                            <td>Nothing automatically checked the zero-network claim. Now unit tests and a Playwright run both fail if anything tries to reach the network.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -350,9 +361,9 @@ export default function DocsPage() {
                         {/* Exhaustive Rule Reference */}
                         {activeSection === 'rules-reference' && (
                             <section id="rules-reference" className="docs-card">
-                                <h2>Exhaustive Rule Reference</h2>
+                                <h2>Every rule ID</h2>
                                 <p>
-                                    41 active documented rule IDs across 8 rule modules:
+                                    56 rule IDs across 9 rule modules. Each one has its own page in <code>docs/rules/</code>:
                                 </p>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', marginTop: '16px' }}>
                                     {[
@@ -361,9 +372,10 @@ export default function DocsPage() {
                                         'secret-openai', 'secret-anthropic', 'secret-stripe', 'secret-aws', 'secret-github', 'secret-gitlab', 'secret-slack', 'secret-pem-key', 'secret-google-api', 'secret-generic-assignment', 'secret-high-entropy-string',
                                         'exec-eval', 'exec-function-ctor', 'exec-set-timeout-string', 'exec-set-interval-string',
                                         'node-command-exec-dynamic', 'node-command-spawn-shell',
-                                        'auth-hardcoded-credential-comparison', 'auth-jwt-decode-without-verify',
+                                        'auth-hardcoded-credential-comparison', 'auth-jwt-decode-without-verify', 'auth-weak-password-hash', 'auth-insecure-random-token', 'auth-jwt-literal-secret', 'auth-predictable-token',
                                         'dep-unpinned-version', 'dep-non-registry-source', 'dep-suspicious-script-content', 'dep-lifecycle-script-present', 'dep-devtool-in-dependencies',
-                                        'html-missing-viewport', 'html-missing-alt', 'html-inline-event-handler', 'html-missing-csp-meta', 'html-script-content-not-analyzed'
+                                        'express-reflected-xss', 'express-open-redirect', 'express-path-traversal', 'express-ssrf', 'express-cors-any-origin-with-credentials', 'express-cookie-insecure', 'express-secret-in-response', 'express-client-controlled-ownership', 'express-admin-route-without-role-check', 'express-missing-ownership-check',
+                                        'html-missing-viewport', 'html-missing-alt', 'html-inline-event-handler', 'html-missing-csp-meta', 'html-script-content-not-analyzed', 'html-input-not-html'
                                     ].map((id) => (
                                         <div key={id} style={{ padding: '10px 14px', borderRadius: '12px', background: '#0d0d0d', border: '1px solid var(--line)', fontFamily: 'monospace', fontSize: '12px', color: '#eee' }}>
                                             {id}
@@ -377,17 +389,18 @@ export default function DocsPage() {
 
                 <footer style={{ marginTop: '80px' }}>
                     <div className="footer-cta">
-                        <h2>Audit the claim before you trust the result.</h2>
+                        <h2>Paste some code and see what it finds.</h2>
                         <button className="cta dark" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                             <span>↑</span> Top of Documentation
                         </button>
                     </div>
                     <div className="footer-bottom">
                         <span>XAUDIT</span>
-                        <span>Client-side static checker · no network audit path</span>
+                        <span>Runs in your browser · nothing uploaded</span>
                         <span>PDF / SARIF / JSON</span>
                     </div>
                 </footer>
+                </div>
             </main>
         </div>
     );

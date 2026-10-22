@@ -1,0 +1,9 @@
+{
+  // The command-line tool runs on Node, so it gets Node's types. Kept out of
+  // tsconfig.json so the browser engine is still type-checked without them.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["src/cli/**/*.ts", "src/lib/analysis/**/*.ts", "src/lib/export/**/*.ts"]
+}

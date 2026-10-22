@@ -1140,5 +1140,465 @@
     "expectSeverity": null,
     "forbidSeverity": "medium",
     "note": "legacy class component with lifecycle methods, no dangerous patterns"
+  },
+  "express-reflected-xss-query": {
+    "path": "fixtures/vulnerable/express-reflected-xss-query.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-reflected-xss"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a query-string value concatenated into HTML and sent with res.send() — Express sends strings as text/html"
+  },
+  "express-reflected-xss-destructured-template": {
+    "path": "fixtures/vulnerable/express-reflected-xss-destructured-template.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-reflected-xss"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "input destructured from req.query one line earlier, then sent in a template literal through a chained res.status(200).send()"
+  },
+  "express-open-redirect-next-param": {
+    "path": "fixtures/vulnerable/express-open-redirect-next-param.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-open-redirect"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a ?next= login redirect taken straight from the query string"
+  },
+  "express-open-redirect-leading-slash-only": {
+    "path": "fixtures/vulnerable/express-open-redirect-leading-slash-only.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-open-redirect"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "\"/\" + input is not a same-site guard: \"/\" + \"/evil.example\" is the protocol-relative URL //evil.example"
+  },
+  "express-path-traversal-sendfile": {
+    "path": "fixtures/vulnerable/express-path-traversal-sendfile.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-path-traversal"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a route parameter concatenated into the path given to res.sendFile() with no root option"
+  },
+  "express-path-traversal-fs-path-join": {
+    "path": "fixtures/vulnerable/express-path-traversal-fs-path-join.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-path-traversal"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "path.join() keeps a ../ segment from the query string intact on its way to fs.readFile()"
+  },
+  "express-ssrf-axios-query-url": {
+    "path": "fixtures/vulnerable/express-ssrf-axios-query-url.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-ssrf"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "an image/link-preview proxy that fetches whatever URL the request names"
+  },
+  "express-ssrf-server-fetch-callback": {
+    "path": "fixtures/vulnerable/express-ssrf-server-fetch-callback.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-ssrf"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a webhook handler that calls back to a URL supplied in the request body using the global fetch on the server"
+  },
+  "express-send-request-object-as-json-safe": {
+    "path": "fixtures/safe/express-send-request-object-as-json-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "res.send(req.body) with the whole object: Express sends objects as JSON, not HTML"
+  },
+  "express-send-escaped-safe": {
+    "path": "fixtures/safe/express-send-escaped-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "the input goes through escapeHtml() first — an unknown call is treated as opaque, so escaping stops the finding"
+  },
+  "express-sendfile-root-option-safe": {
+    "path": "fixtures/safe/express-sendfile-root-option-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "res.sendFile(name, { root }) — Express refuses paths that escape the root folder"
+  },
+  "express-path-basename-safe": {
+    "path": "fixtures/safe/express-path-basename-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "path.basename() strips any directory part, so ../ can't climb out — it isn't a pass-through, so no finding"
+  },
+  "express-redirect-same-site-path-safe": {
+    "path": "fixtures/safe/express-redirect-same-site-path-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a redirect that starts with a fixed same-site path (\"/users/\") — the input can only pick which user"
+  },
+  "express-axios-fixed-host-safe": {
+    "path": "fixtures/safe/express-axios-fixed-host-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "the request only fills in a path segment on a fixed https host — it can't choose where the server connects"
+  },
+  "express-browser-url-not-ssrf-safe": {
+    "path": "fixtures/safe/express-browser-url-not-ssrf-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "browser code requesting a URL from the page's own query string isn't SSRF (it runs in the visitor's browser, not on a server)"
+  },
+  "express-input-through-helper-not-caught": {
+    "path": "fixtures/edge-cases/express-input-through-helper-not-caught.ts",
+    "group": "express-request",
+    "bucket": "edge-cases",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "high",
+    "note": "KNOWN FALSE NEGATIVE, documented on purpose: request input passed into a helper function first is not followed across the function boundary"
+  },
+  "xss-inner-html-numeric-value-not-flagged": {
+    "path": "fixtures/safe/xss-inner-html-numeric-value-not-flagged.ts",
+    "group": "xss",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "low",
+    "note": "fixed false positive: a count built from .length can't carry HTML, so innerHTML = String(count) is no longer flagged"
+  },
+  "xss-inner-html-url-search-param": {
+    "path": "fixtures/vulnerable/xss-inner-html-url-search-param.ts",
+    "group": "xss",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "xss-inner-html"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a value read from the page URL's query string one line earlier — the finding names the source"
+  },
+  "auth-md5-password-hash": {
+    "path": "fixtures/vulnerable/auth-md5-password-hash.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-weak-password-hash"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a signup handler storing an MD5 of the password"
+  },
+  "auth-sha256-user-password": {
+    "path": "fixtures/vulnerable/auth-sha256-user-password.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-weak-password-hash"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "plain SHA-256 of user.password (fast, unsalted)"
+  },
+  "auth-md5-file-checksum-safe": {
+    "path": "fixtures/safe/auth-md5-file-checksum-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "MD5 used as a file checksum/ETag: not a password, not flagged"
+  },
+  "auth-bcrypt-hash-safe": {
+    "path": "fixtures/safe/auth-bcrypt-hash-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "bcrypt is a slow password hash: the safe way to do it"
+  },
+  "auth-math-random-reset-token": {
+    "path": "fixtures/vulnerable/auth-math-random-reset-token.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-insecure-random-token"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a password-reset token built from Math.random()"
+  },
+  "auth-math-random-otp-function": {
+    "path": "fixtures/vulnerable/auth-math-random-otp-function.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-insecure-random-token"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a one-time login code from a function named like an OTP generator"
+  },
+  "auth-math-random-ui-safe": {
+    "path": "fixtures/safe/auth-math-random-ui-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "low",
+    "note": "Math.random() for an animation delay, a shuffle, and a variable named footprint (not an OTP): none are secrets"
+  },
+  "auth-jwt-sign-literal-secret": {
+    "path": "fixtures/vulnerable/auth-jwt-sign-literal-secret.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-jwt-literal-secret"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "jwt.sign() with the secret typed into the call"
+  },
+  "auth-jwt-env-secret-safe": {
+    "path": "fixtures/safe/auth-jwt-env-secret-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "JWT secret loaded from the environment"
+  },
+  "express-cors-origin-true-credentials": {
+    "path": "fixtures/vulnerable/express-cors-origin-true-credentials.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-cors-any-origin-with-credentials"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "cors() reflecting any origin while allowing cookies"
+  },
+  "express-cors-allowlist-safe": {
+    "path": "fixtures/safe/express-cors-allowlist-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "CORS limited to a known origin, with credentials"
+  },
+  "express-cookie-session-no-httponly": {
+    "path": "fixtures/vulnerable/express-cookie-session-no-httponly.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-cookie-insecure"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a session cookie set without httpOnly"
+  },
+  "express-cookie-httponly-safe": {
+    "path": "fixtures/safe/express-cookie-httponly-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "session cookie with httpOnly, plus a harmless theme cookie"
+  },
+  "express-workspace-service-audit": {
+    "path": "fixtures/vulnerable/express-workspace-service-audit.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-missing-ownership-check",
+      "express-client-controlled-ownership",
+      "express-admin-route-without-role-check",
+      "express-secret-in-response",
+      "express-path-traversal",
+      "express-reflected-xss",
+      "auth-predictable-token",
+      "node-command-exec-dynamic"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a whole Express service a user reported against: BOLA on /documents/:id and /account/:id, ownerId from req.body, /admin/promote with no role check, a time-based reset token returned in the response, secrets in /internal/config, two-hop path traversal in /download, reflected HTML in /preview, exec in /diagnostics"
+  },
+  "express-bola-document-by-id": {
+    "path": "fixtures/vulnerable/express-bola-document-by-id.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-missing-ownership-check"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a logged-in route that loads a record by the URL id and never checks who's asking"
+  },
+  "express-bola-mounted-auth": {
+    "path": "fixtures/vulnerable/express-bola-mounted-auth.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-missing-ownership-check"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "login required by a prefix-mounted guard rather than on the route itself; still no ownership check"
+  },
+  "express-ownership-checked-safe": {
+    "path": "fixtures/safe/express-ownership-checked-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "the record is checked against the logged-in user, or looked up scoped to them"
+  },
+  "express-public-lookup-safe": {
+    "path": "fixtures/safe/express-public-lookup-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a public product page with no login middleware: looking up by id is the whole point"
+  },
+  "express-admin-promote-no-role-check": {
+    "path": "fixtures/vulnerable/express-admin-promote-no-role-check.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-admin-route-without-role-check"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "an /admin route behind a login check only"
+  },
+  "express-admin-guarded-safe": {
+    "path": "fixtures/safe/express-admin-guarded-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "admin routes guarded on the route, inside the handler, or by a prefix-mounted role guard"
+  },
+  "express-owner-from-request-body": {
+    "path": "fixtures/vulnerable/express-owner-from-request-body.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-client-controlled-ownership"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "ownerId and role taken straight from req.body"
+  },
+  "express-mass-assignment-req-body": {
+    "path": "fixtures/vulnerable/express-mass-assignment-req-body.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-client-controlled-ownership"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "every field from req.body copied onto a record (Object.assign / spread), role and owner included"
+  },
+  "express-owner-from-session-safe": {
+    "path": "fixtures/safe/express-owner-from-session-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "owner set from the logged-in user, role from a fixed value, and only one editable field copied"
+  },
+  "express-secret-in-response": {
+    "path": "fixtures/vulnerable/express-secret-in-response.ts",
+    "group": "express-request",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "express-secret-in-response"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a config endpoint returning the JWT secret, and an account endpoint returning the password"
+  },
+  "express-login-token-response-safe": {
+    "path": "fixtures/safe/express-login-token-response-safe.ts",
+    "group": "express-request",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "a login response with a session token, access/refresh tokens and a passwordChanged flag: all expected"
+  },
+  "auth-reset-token-from-time": {
+    "path": "fixtures/vulnerable/auth-reset-token-from-time.ts",
+    "group": "auth",
+    "bucket": "vulnerable",
+    "expectRuleIds": [
+      "auth-predictable-token"
+    ],
+    "expectSeverity": null,
+    "forbidSeverity": null,
+    "note": "a reset token built from an id and Date.now() with no random part"
+  },
+  "auth-time-about-a-token-safe": {
+    "path": "fixtures/safe/auth-time-about-a-token-safe.ts",
+    "group": "auth",
+    "bucket": "safe",
+    "expectRuleIds": [],
+    "expectSeverity": null,
+    "forbidSeverity": "medium",
+    "note": "an expiry timestamp for a token, and a token that has real randomness in it"
   }
 }

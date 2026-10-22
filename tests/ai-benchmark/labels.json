@@ -1,0 +1,8 @@
+{
+  "_howTo": "One entry per response file, keyed by its path under responses/ (e.g. \"chatgpt/01-login-route.js\"). Fill this in by READING the code yourself, after running XAUDIT on it: real = ruleIds XAUDIT reported that you confirmed are genuine problems; notReal = ruleIds XAUDIT reported that you judged false alarms; missed = real problems you found that XAUDIT didn't report, in plain words (include ones XAUDIT has no rule for at all). Leave a response out of this file until you've actually checked it - unlabeled responses are listed in the report but not scored.",
+  "_example": {
+    "real": ["sqli-dynamic-query"],
+    "notReal": [],
+    "missed": ["No rate limiting on the login route (XAUDIT has no rule for this)"]
+  }
+}
